@@ -38,10 +38,10 @@ function addClass(nodeChar, sRecord, tData)
 	addClassSkill(rAdd, sRecord, sDescriptionText);
 
 	--Add ability score bonuses
-	--CharRaceManager.helperResolveStatIncreaseOnRaceDrop(rAdd, sRecord, sDescriptionText);
+	CharClassManager.helperResolveDefenseIncreaseOnRaceDrop(rAdd, sRecord, sDescriptionText);
 
 	-- Notification
-	--ChatManager.SystemMessageResource("char_abilities_message_raceadd", sRaceName, rAdd.sCharName);
+	ChatManager.SystemMessageResource("char_abilities_message_classadd", sClassName, rAdd.sCharName);
 	
 end
 
@@ -82,7 +82,7 @@ function addClassArmorProficiencies(rAdd, sRecord, sDescriptionText)
 		end
 		if isArmorProficiencyInList == false then
 			local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("proficiencyarmor"));
-			DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference", "powerdesc", sPattern);
+			DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
 			DB.setValue(rCreatedIDChildNode, "value", "string", x);
 			ChatManager.SystemMessageResource("char_abilities_message_armorproficiencyadd", x, rAdd.sCharName);
 		end
@@ -92,6 +92,7 @@ end
 function addClassWeaponProficiencies(rAdd, sRecord, sDescriptionText)
 	local sWeaponProficienciesValue = '';
 	local sImplementsProficienciesValue = '';
+	local sImplementsDetailsValue = '';
 	-- local rWeaponProficienciesNode = DB.findNode(DB.getPath(sRecord, "weaponproficiencies"));
 	-- if rWeaponProficienciesNode then
 	-- 		sWeaponProficienciesValue = DB.getText(rWeaponProficienciesNode);
@@ -112,6 +113,11 @@ function addClassWeaponProficiencies(rAdd, sRecord, sDescriptionText)
 		if sImplementProficiencyDescriptionTextLine then
 			sImplementsProficienciesValue = string.match(sImplementProficiencyDescriptionTextLine, "[%a,%s]+");
 		end
+		local sImplementsDetailsDescriptionTextLine = string.match(sDescriptionText, "<p>%s*<b>%s*IMPLEMENTS%s*</b></p>%s*<p>(.*)</p>");
+		if sImplementsDetailsDescriptionTextLine then
+			sImplementsDetailsValue = string.gsub(sImplementsDetailsDescriptionTextLine, "</p>", "\n");
+			sImplementsDetailsValue = string.gsub(sImplementsDetailsValue, "<p>", "    ");
+		end
 	end
 	local tWeaponProficiencies = StringManager.split(sWeaponProficienciesValue, ',', true);
 	local tCurrentWeaponProficiencies = DB.getChildren(rAdd.nodeChar, "proficiencyweapon");
@@ -125,7 +131,7 @@ function addClassWeaponProficiencies(rAdd, sRecord, sDescriptionText)
 		end
 		if isWeaponProficiencyInList == false then
 			local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("proficiencyweapon"));
-			DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference", "powerdesc", sPattern);
+			DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
 			DB.setValue(rCreatedIDChildNode, "value", "string", x);
 			ChatManager.SystemMessageResource("char_abilities_message_weaponproficiencyadd", x, rAdd.sCharName);
 		end
@@ -142,8 +148,11 @@ function addClassWeaponProficiencies(rAdd, sRecord, sDescriptionText)
 		end
 		if isImplementProficiencyInList == false then
 			local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("proficiencyweapon"));
-			DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference", "powerdesc", sPattern);
+			DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
 			DB.setValue(rCreatedIDChildNode, "value", "string", y);
+			if sImplementsDetailsValue then
+				DB.setValue(rCreatedIDChildNode, "description", "string", sImplementsDetailsValue);
+			end
 			ChatManager.SystemMessageResource("char_abilities_message_implementproficiencyadd", y, rAdd.sCharName);
 		end
 	end
@@ -453,12 +462,8 @@ function addClassSkill(rAdd, sRecord, sDescriptionText)
 		sFirstSkillValue = string.match(sSkillBonusesDescriptionTextLine, "[%w]+");
 		sNumberOfTrainedSkills = string.match(sSkillBonusesDescriptionTextLine, "choose (%d+) more trained");
 		nNumberOfTrainedSkills = tonumber(sNumberOfTrainedSkills);
-		Debug.console("sSkillBonusesDescriptionTextLine", sSkillBonusesDescriptionTextLine);
-		Debug.console("sFirstSkillValue", sFirstSkillValue);
-		Debug.console("nNumberOfTrainedSkills", nNumberOfTrainedSkills);
 		local sClassSkillsDescriptionTextLine = string.match(sDescriptionText, "<p>%s*<i>%s*Class Skills%s*</i>%s*:%s*(.-)</p>");
 		sSkillValue = string.match(sClassSkillsDescriptionTextLine, "[%w%(%),%s]+");
-		Debug.console("sSkillValue", sSkillValue);
 	end
 	--Add any automatically added skills as trained first
 	if sFirstSkillValue then
@@ -487,6 +492,7 @@ function addClassSkill(rAdd, sRecord, sDescriptionText)
 			title = Interface.getString("char_build_title_selectclassskill"),
 			msg = Interface.getString("char_build_message_selectclassskill"),
 			options = tOptions,
+			min = nNumberOfTrainedSkills,
 			max = nNumberOfTrainedSkills,
 			callback = CharClassManager.callbackResolveSkillTrainOnClassDrop,
 			custom = rAdd,
@@ -519,106 +525,71 @@ function callbackResolveSkillTrainOnClassDrop(tSelection, rAdd, tSelectionLinks)
 	end
 	for _,selectedSkill in pairs(tSelection) do
 		local sSkill = string.lower(string.match(selectedSkill, "%a+"));
-		Debug.console("sSkill",sSkill);
 		local rSkillNodeChildren = DB.getChildren(rAdd.nodeChar, "skilllist");
 		for _,x in pairs(rSkillNodeChildren) do
 			if string.lower(DB.getText(x, "label")) == string.lower(sSkill) then
 				DB.setValue(x, "trained", "number", "1");
+				sSkill = string.gsub(sSkill, "^%l", string.upper);
 				ChatManager.SystemMessageResource("char_skills_message_skilltrained", sSkill, rAdd.sCharName);
 			end
 		end
 	end
 end
 
-function helperResolveStatIncreaseOnRaceDrop(rAdd, sRecord, sDescriptionText)
+function helperResolveDefenseIncreaseOnRaceDrop(rAdd, sRecord, sDescriptionText)
 	if not rAdd then
 		return;
 	end
 
-	--Reset racial ability score bonuses before adding new ones
-	for __,y in pairs(DB.getChildren(rAdd.nodeChar, "abilities")) do
-		local nCurrentAbilityScore = DB.getValue(y, "score", 0);
-		local nCurrentAbilityRaceBonus = DB.getValue(y, "race", "0");
-		if nCurrentAbilityRaceBonus and nCurrentAbilityRaceBonus ~= "0" then
-			DB.setValue(y, "score", "number", nCurrentAbilityScore - nCurrentAbilityRaceBonus);
-			DB.setValue(y, "race", "number", "0");
+	--Reset class defense bonuses before adding new ones
+	for __,y in pairs(DB.getChildren(rAdd.nodeChar, "defenses")) do
+		local nCurrentDefense = DB.getValue(y, "total", 0);
+		local nCurrentDefenseClassBonus = DB.getValue(y, "class", "0");
+		if nCurrentDefenseClassBonus and nCurrentDefenseClassBonus ~= "0" then
+			DB.setValue(y, "total", "number", nCurrentDefense - nCurrentDefenseClassBonus);
+			DB.setValue(y, "class", "number", "0");
 		end
 	end
 
-	local sAbilityScoresValue = '';
-	local rAbilityScoresNode = DB.findNode(DB.getPath(sRecord, "abilityscores"));
-	if rAbilityScoresNode then
-			sAbilityScoresValue = DB.getText(rAbilityScoresNode);
-	elseif DB.findNode(DB.getPath(sRecord, "traits")) then
-		local rRecordTraitsNode = DB.findNode(DB.getPath(sRecord, "traits"));
-		if rRecordTraitsNode then
-			local rAbilityScoreTraitsNode = DB.getChild(rRecordTraitsNode, "abilityscores");
-			if rAbilityScoreTraitsNode then
-				local rAbilityScoreTextNode = DB.getChild(rAbilityScoreTraitsNode, "text");
-				sAbilityScoresValue = DB.getText(rAbilityScoreTextNode);
-			end
-		end
-	elseif sDescriptionText then
-		local sAbilityScoresDescriptionTextLine = string.match(sDescriptionText, "<p>%s*<b>%s*Ability scores%s*</b>%s*:%s*(.-)</p>");
-		Debug.console("sAbilityScoresDescriptionTextLine:",sAbilityScoresDescriptionTextLine);
-		sAbilityScoresValue = string.match(sAbilityScoresDescriptionTextLine, "[%w,%s%+]+");
+	local sDefenseValue = '';
+	local rDefenseNode = DB.findNode(DB.getPath(sRecord, "defenses"));
+	-- if rDefenseNode then
+	-- 		sDefenseValue = DB.getText(rDefenseNode);
+	-- elseif DB.findNode(DB.getPath(sRecord, "traits")) then
+	-- 	local rRecordTraitsNode = DB.findNode(DB.getPath(sRecord, "traits"));
+	-- 	if rRecordTraitsNode then
+	-- 		local rAbilityScoreTraitsNode = DB.getChild(rRecordTraitsNode, "abilityscores");
+	-- 		if rAbilityScoreTraitsNode then
+	-- 			local rAbilityScoreTextNode = DB.getChild(rAbilityScoreTraitsNode, "text");
+	-- 			sDefenseValue = DB.getText(rAbilityScoreTextNode);
+	-- 		end
+	-- 	end
+	-- elseif sDescriptionText then
+	if sDescriptionText then
+		local sDefensesDescriptionTextLine = string.match(sDescriptionText, "<p>%s*<b>%s*Bonus to Defense%s*:%s*</b>%s*(.-)</p>");
+		sDefenseValue = string.match(sDefensesDescriptionTextLine, "[%w,%s%+]+");
 	end
-	local tAbilityScoreBonuses = StringManager.split(sAbilityScoresValue, ',', true);
-	for _,x in pairs(tAbilityScoreBonuses) do
-		-- Direct increase ability scores that don't have a choice
+	local tDefenseBonuses = StringManager.split(sDefenseValue, ',', true);
+	for _,x in pairs(tDefenseBonuses) do
+		-- Direct increase defenses that don't have a choice
 		if not string.find(x, "or") then
-			local rAbilitiesNode = DB.findNode(DB.getPath(rAdd.nodeChar, "abilities"));
-			local sAbilityScoreName = string.match(x, "%a+");
-			local nAbiltyScoreBonusNumber = string.match(x, "%d+");
-			if not nAbiltyScoreBonusNumber then
-				nAbiltyScoreBonusNumber = "2";
+			local rDefensesNode = DB.findNode(DB.getPath(rAdd.nodeChar, "defenses"));
+			local sDefenseName = string.match(x, "%a+");
+			local nDefenseBonusNumber = string.match(x, "%d+");
+			if not nDefenseBonusNumber then
+				nDefenseBonusNumber = "2";
 			end
-			local rAbilitiesNodeChild = DB.getChild(rAbilitiesNode, string.lower(sAbilityScoreName));
-			if rAbilitiesNodeChild then
-				local nCurrentAbilityScore = DB.getValue(rAbilitiesNodeChild, "score", 0);
-				DB.setValue(rAbilitiesNodeChild, "race", "number", nAbiltyScoreBonusNumber);
-				DB.setValue(rAbilitiesNodeChild, "score", "number", nCurrentAbilityScore + nAbiltyScoreBonusNumber);
-				ChatManager.SystemMessageResource("char_main_message_statbonusadd", nAbiltyScoreBonusNumber, sAbilityScoreName, rAdd.sCharName);
+			local rDefenseNodeChild = DB.getChild(rDefensesNode, string.lower(sDefenseName));
+			if rDefenseNodeChild then
+				local nCurrentDefense = DB.getValue(rDefenseNodeChild, "total", 0);
+				DB.setValue(rDefenseNodeChild, "class", "number", nDefenseBonusNumber);
+				DB.setValue(rDefenseNodeChild, "total", "number", nCurrentDefense + nDefenseBonusNumber);
+				ChatManager.SystemMessageResource("char_main_message_defensebonusadd", nDefenseBonusNumber, sDefenseName, rAdd.sCharName);
 			end
 		end
 		
-		-- Display a selection dialogue if there is a choice for ability score increase
-		if string.match(x, "or") then
-			local tOptions = StringManager.splitByPattern(x, "or", true);
-			local tDialogData = {
-				title = Interface.getString("char_build_title_selectraceabilitybonus"),
-				msg = Interface.getString("char_build_message_selectraceabilitybonus"),
-				options = tOptions,
-				callback = CharRaceManager.callbackResolveStatIncreaseOnRaceDrop,
-				custom = rAdd,
-			};
-			DialogManager.requestSelectionDialog(tDialogData);
-		end
-	end
-end
-function callbackResolveStatIncreaseOnRaceDrop(tSelection, rAdd, tSelectionLinks)
-	if not tSelectionLinks or (#tSelectionLinks ~= 1) then
-		CharManager.outputUserMessage("char_error_addrace");
-		return;
-	end
-	if not tSelection then
-		CharManager.outputUserMessage("char_error_addrace");
-		return;
-	end
-	local rAbilitiesNode = DB.findNode(DB.getPath(rAdd.nodeChar, "abilities"));
-	local sAbilityScore = string.lower(string.match(tSelection[1], "%a+"));
-	local nSelectionBonus = string.match(tSelection[1], "%d+");
-	if not nSelectionBonus then
-		nSelectionBonus = "2";
-	end
-	local rAbilitiesNodeChildren = DB.getChildren(rAbilitiesNode);
-	for _,x in pairs(rAbilitiesNodeChildren) do
-		if DB.getName(x) == sAbilityScore then
-			local nCurrentAbilityScore = DB.getValue(x, "score", 0);
-			DB.setValue(x, "race", "number", nSelectionBonus);
-			DB.setValue(x, "score", "number", nCurrentAbilityScore + nSelectionBonus);
-			ChatManager.SystemMessageResource("char_main_message_statbonusadd", nSelectionBonus, sAbilityScore, rAdd.sCharName);
-		end
+		-- Can add in logic to display a selection dialogue if there is a choice for defense increase
+		-- But so far, that doesn't seem to exist in any classes
 	end
 end
 
