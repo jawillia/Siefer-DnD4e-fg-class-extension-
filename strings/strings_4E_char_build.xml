@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- 
+  Please see the license.html file included with this distribution for 
+  attribution and copyright information.
+-->
+
+<root>
+  <!-- Character - Build -->
+  <string name="char_abilities_message_classadd">Class '%s' added to '%s'.</string>
+<!--   <string name="char_abilities_message_featureadd">Racial Trait '%s' added to '%s' special ability list.</string>
+  <string name="char_abilities_message_poweradd">Racial Power '%s' added to '%s' powers list.</string> -->
+  <string name="char_abilities_message_armorproficiencyadd">Armor Proficiency '%s' added to '%s' armor proficiency list.</string>
+  <string name="char_abilities_message_weaponproficiencyadd">Weapon Proficiency '%s' added to '%s' weapon proficiency list.</string>
+  <string name="char_abilities_message_implementproficiencyadd">Implement Proficiency '%s' added to '%s' weapon proficiency list.</string>  
+  <string name="char_combat_message_hitpointsatfirstleveladd">Hit Points set to '%s' for '%s'.</string>
+  <string name="char_combat_message_healingsurgesperdayadd">Healing Surges per day set to '%s' for '%s'.</string>   
+<!--   <string name="char_main_message_specialspeedadd">Special Movement set to '%s' for '%s'.</string>
+  <string name="char_notes_message_sizeadd">Size set to '%s' for '%s'.</string>
+  <string name="char_main_message_visionadd">Senses set to '%s' for '%s'.</string>
+  <string name="char_notes_message_languageadd">Language '%s' added to '%s' language list.</string> -->
+  <string name="char_skills_message_skilltrained">+%s skill trained for '%s'.</string>
+  <!-- <string name="char_main_message_statbonusadd">+%s %s bonus for '%s'.</string>  -->
+
+  <string name="char_build_title_selectclassskill">Train Skills</string>
+  <string name="char_build_message_selectclassskill">Select trained skills.</string>
+  <string name="char_error_addclassskill">Error training class skill.</string> 
+</root>
