@@ -15,13 +15,12 @@ What This Extension Does:
 
 
 
-Adds a record type for classes in the sidebar
+* Adds a record type for classes in the sidebar
+* Allows you to drag a class record to a character in order to add that class to your character sheet
+* Adds a link in the character sheet to your class and its associated record
+* When a class record is dragged to your character sheet, it will automatically add armor, weapon, and implement proficiencies, hit points at first level, max healing surges, defense bonuses, and trained skills.
 
-Allows you to drag a class record to a character in order to add that class to your character sheet
 
-Adds a link in the character sheet to your class and its associated record
-
-When a class record is dragged to your character sheet, it will automatically add armor, weapon, and implement proficiencies, hit points at first level, max healing surges, and trained skills.
 
 
 
@@ -29,15 +28,11 @@ What This Extension Does Not Do (but it might do one day):
 
 
 
-It does not have support for defenses yet.
-
-It does not add the text for implements to implements.
-
-It does not allow class support beyond first level.
-
-It does not add class features or powers yet.
-
-It doesn't support hybrid classes.
+* It does not allow class support beyond first level.
+* It does not add class features or powers yet.
+* It doesn't support hybrid classes.
+* It doesn't have a UI to add custom classes yet.
+* It only supports base classes, not paragon classes or epic destinies.
 
 
 
