@@ -26,7 +26,7 @@ function addClass(nodeChar, sRecord, tData)
 	addClassHealingSurges(rAdd, sRecord, sDescriptionText);
 
 	--Add Class Features
-	-- addRaceFeatures(rAdd, sRecord, sDescriptionText);
+	addClassFeatures(rAdd, sRecord, sDescriptionText, sClassName);
 
 	-- --Add Race Powers
 	-- addRacePowers(rAdd, sRecord, sDescriptionText);
@@ -190,48 +190,72 @@ function addClassHealingSurges(rAdd, sRecord, sDescriptionText)
 	end
 end
 
-function addRaceFeatures(rAdd, sRecord, sDescriptionText)
+function addClassFeatures(rAdd, sRecord, sDescriptionText, sClassName)
+	local sClassFeaturesValue = '';
 	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
 	---- first through the newly added feature tag
-	local sRecordFeatureNode = DB.findNode(DB.getPath(sRecord, "features"));
-	if sRecordFeatureNode then
-		local nodeFeatureChildren = DB.getChildren(sRecordFeatureNode);
-		for nodeName,nodeChild in pairs(nodeFeatureChildren) do
-			local isFeatureInList = false;
-			for _, featureNode in pairs(tCurrentFeatures) do
-				if DB.getText(featureNode, "value") == DB.getText(nodeChild, "name") then
-					isFeatureInList = true;
-					break;
-				end
-			end
-			if isFeatureInList == false then
-				local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-				DB.setValue(rCreatedIDChildNode, "description", "string", DB.getText(DB.getPath(nodeChild, "description")));
-	      		DB.createChild(rCreatedIDChildNode, "shortcut", "windowreference");
-	      		DB.setValue(rCreatedIDChildNode, "value", "string", DB.getText(DB.getPath(nodeChild, "name")));
-	      		local sRacialFeatureName = DB.getText(rCreatedIDChildNode, "value");
-	      		ChatManager.SystemMessageResource("char_abilities_message_featureadd", sRacialFeatureName, rAdd.sCharName);
-	      	end
-		end
-	elseif sDescriptionText then
+	-- local sRecordFeatureNode = DB.findNode(DB.getPath(sRecord, "features"));
+	-- if sRecordFeatureNode then
+	-- 	local nodeFeatureChildren = DB.getChildren(sRecordFeatureNode);
+	-- 	for nodeName,nodeChild in pairs(nodeFeatureChildren) do
+	-- 		local isFeatureInList = false;
+	-- 		for _, featureNode in pairs(tCurrentFeatures) do
+	-- 			if DB.getText(featureNode, "value") == DB.getText(nodeChild, "name") then
+	-- 				isFeatureInList = true;
+	-- 				break;
+	-- 			end
+	-- 		end
+	-- 		if isFeatureInList == false then
+	-- 			local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+	-- 			DB.setValue(rCreatedIDChildNode, "description", "string", DB.getText(DB.getPath(nodeChild, "description")));
+	--       		DB.createChild(rCreatedIDChildNode, "shortcut", "windowreference");
+	--       		DB.setValue(rCreatedIDChildNode, "value", "string", DB.getText(DB.getPath(nodeChild, "name")));
+	--       		local sRacialFeatureName = DB.getText(rCreatedIDChildNode, "value");
+	--       		ChatManager.SystemMessageResource("char_abilities_message_featureadd", sRacialFeatureName, rAdd.sCharName);
+	--       	end
+	-- 	end
+	-- elseif sDescriptionText then
+	if sDescriptionText then
 	-- then through the description text
-		local sPattern = '<link class="powerdesc" recordname="reference.features.(%w+)@([%w%s]+)">';
-		local sFeaturesLink = string.gmatch(sDescriptionText, sPattern);
-		for w,v in sFeaturesLink do
-			local sPattern = "reference.features." .. w .. "@" .. v;
-			local sRacialFeatureName = DB.getText(DB.getPath(sPattern, "name"));
+		local sClassFeaturesDescriptionTextLine = string.match(sDescriptionText, "<p>%s*<b>%s*Class features%s*:%s*</b>(.-)</p>");
+		if sClassFeaturesDescriptionTextLine then
+			sClassFeaturesValue = string.match(sClassFeaturesDescriptionTextLine, "[%a,'()%s]+");
+		end
+		local tClassFeatures = StringManager.split(sClassFeaturesValue, ',', true);
+		for w,v in pairs(tClassFeatures) do
+			Debug.console("Adding " .. v);
+			local sClassFeatureDescriptionPattern = '';
+			if w < #tClassFeatures then
+				sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v:gsub("of", "Of") .. "%s*</b></p>%s*(.-)<p><b>";
+			elseif w == #tClassFeatures then
+				-- On the last feature entry, first try reading to the class overview
+				sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v:gsub("of", "Of") .. "%s*</b></p>%s*(.-)<p>" .. sClassName:upper() .. " OVERVIEW</p>";
+				local sClassFeatureSpecificDescriptionText = string.match(sDescriptionText, sClassFeatureDescriptionPattern);
+				-- Then try reading to the end of the record if that didn't work
+				if sClassFeatureSpecificDescriptionText == nil then
+					sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v:gsub("of", "Of") .. "%s*</b></p>%s*(.+)</p>";
+				end
+			end
+			sClassFeatureSpecificDescriptionText = string.match(sDescriptionText, sClassFeatureDescriptionPattern);
+			if sClassFeatureSpecificDescriptionText then
+				sClassFeatureSpecificDescriptionText = string.gsub(sClassFeatureSpecificDescriptionText, "</p>", "\n");
+				sClassFeatureSpecificDescriptionText = string.gsub(sClassFeatureSpecificDescriptionText, "<p>", "    ");
+				sClassFeatureSpecificDescriptionText = string.gsub(sClassFeatureSpecificDescriptionText, "<linklist>.*</linklist>", "");
+			end
 			local isFeatureInList = false;
 			for _, featureNode in pairs(tCurrentFeatures) do
-				if DB.getText(DB.getPath(featureNode, "value")) == sRacialFeatureName then
+				if DB.getText(DB.getPath(featureNode, "value")) == v then
 					isFeatureInList = true;
 					break;
 				end
 			end
 			if isFeatureInList == false then
-				local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-				DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference", "powerdesc", sPattern);
-				DB.setValue(rCreatedIDChildNode, "value", "string", sRacialFeatureName);
-				ChatManager.SystemMessageResource("char_abilities_message_featureadd", sRacialFeatureName, rAdd.sCharName);
+				CharClassFeatureManager.addClassSpecificFeatures(sClassName, rAdd, v, sClassFeatureSpecificDescriptionText);
+				-- local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+				-- DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+				-- DB.setValue(rCreatedIDChildNode, "value", "string", v);
+				-- DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureSpecificDescriptionText);
+				-- ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", v, rAdd.sCharName);
 			end
 		end
 	end
@@ -490,7 +514,7 @@ function addClassSkill(rAdd, sRecord, sDescriptionText)
 		end
 		local tDialogData = {
 			title = Interface.getString("char_build_title_selectclassskill"),
-			msg = Interface.getString("char_build_message_selectclassskill"),
+			msg = Interface.getString("char_build_message_selectclassskill"):format(nNumberOfTrainedSkills),
 			options = tOptions,
 			min = nNumberOfTrainedSkills,
 			max = nNumberOfTrainedSkills,
@@ -499,20 +523,6 @@ function addClassSkill(rAdd, sRecord, sDescriptionText)
 		};
 		DialogManager.requestSelectionDialog(tDialogData);
 	end
-	-- if sSkillValue then
-	-- 	local tSkillList = StringManager.split(sSkillValue, ',', true);
-	-- 	for _,x in pairs(tSkillList) do
-	-- 		local skillBonus = string.match(x, '%d');
-	-- 		local skillName = string.match(x, '%a+');
-	-- 		local rCreatedIDChildren = DB.getChildren(rAdd.nodeChar, "skilllist");
-	-- 		for __,y in pairs(rCreatedIDChildren) do
-	-- 			if DB.getText(y, "label") == skillName then
-	-- 				DB.setValue(y, "race", "number", skillBonus);
-	-- 			end
-	-- 		end
-	-- 		ChatManager.SystemMessageResource("char_skills_message_skillbonusadd", skillBonus, skillName, rAdd.sCharName);
-	-- 	end
-	-- end
 end
 function callbackResolveSkillTrainOnClassDrop(tSelection, rAdd, tSelectionLinks)
 	if not tSelectionLinks then

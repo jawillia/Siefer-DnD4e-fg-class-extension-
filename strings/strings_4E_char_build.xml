@@ -8,8 +8,8 @@
 <root>
   <!-- Character - Build -->
   <string name="char_abilities_message_classadd">Class '%s' added to '%s'.</string>
-<!--   <string name="char_abilities_message_featureadd">Racial Trait '%s' added to '%s' special ability list.</string>
-  <string name="char_abilities_message_poweradd">Racial Power '%s' added to '%s' powers list.</string> -->
+  <string name="char_abilities_message_classfeatureadd">Class Feature '%s' added to '%s' special ability list.</string>
+  <string name="char_abilities_message_classpoweradd">Class Power '%s' added to '%s' powers list.</string>
   <string name="char_abilities_message_armorproficiencyadd">Armor Proficiency '%s' added to '%s' armor proficiency list.</string>
   <string name="char_abilities_message_weaponproficiencyadd">Weapon Proficiency '%s' added to '%s' weapon proficiency list.</string>
   <string name="char_abilities_message_implementproficiencyadd">Implement Proficiency '%s' added to '%s' weapon proficiency list.</string>  
@@ -24,6 +24,10 @@
   <!-- <string name="char_main_message_statbonusadd">+%s %s bonus for '%s'.</string>  -->
 
   <string name="char_build_title_selectclassskill">Train Skills</string>
-  <string name="char_build_message_selectclassskill">Select trained skills.</string>
+  <string name="char_build_message_selectclassskill">Choose %s trained skills from the list below..</string>
   <string name="char_error_addclassskill">Error training class skill.</string> 
+
+  <!-- Cleric Feature Strings -->
+  <string name="char_build_title_addhealerlore">Healer's Lore (default) or Substitute.</string> 
+  <string name="char_build_message_addhealerorbattlelore">Choose Healer's Lore or Battle Cleric's Lore.</string> 
 </root>
