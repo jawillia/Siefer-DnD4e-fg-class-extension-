@@ -26,8 +26,19 @@
   <string name="char_build_title_selectclassskill">Train Skills</string>
   <string name="char_build_message_selectclassskill">Choose %s trained skills from the list below..</string>
   <string name="char_error_addclassskill">Error training class skill.</string> 
+  <string name="char_error_addclasssfeature">Error adding class feature.</string> 
 
   <!-- Cleric Feature Strings -->
-  <string name="char_build_title_addhealerlore">Healer's Lore (default) or Substitute.</string> 
-  <string name="char_build_message_addhealerorbattlelore">Choose Healer's Lore or Battle Cleric's Lore.</string> 
+  <string name="char_build_title_addhealerlore">Healer's Lore or Alternate</string> 
+  <string name="char_build_message_addhealerorbattlelore">Choose Healer's Lore or Battle Cleric's Lore. Check the chat for detailed descriptions.</string> 
+  <!-- Fighter(Weaponmaster) Feature strings -->
+  <string name="char_build_title_addcombatsuperiority">Combat Superiority or Alternate</string> 
+  <string name="char_build_message_addcombatsuperiorityoragility">Choose Combat Superiority or Combat Agility. Check the chat for detailed descriptions.</string>
+  <string name="char_build_title_addfightertalents">Fighter Talents</string> 
+  <string name="char_build_message_addfightertalents">Choose one of the following Fighter Talents:</string> 
+  <!-- Ranger Feature strings -->  
+  <string name="char_build_title_addprimeshot">Prime Shot or Alternate</string> 
+  <string name="char_build_message_addprimeshotorrunningattack">Choose Prime Shot or Running Attack. Check the chat for detailed descriptions.</string>
+  <string name="char_build_title_addfightingstyle">Fighting Style</string> 
+  <string name="char_build_message_addfightingstyle">Choose one of the following Fighting Styles:</string>   
 </root>
