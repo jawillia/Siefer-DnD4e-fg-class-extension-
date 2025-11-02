@@ -20,6 +20,8 @@ What This Extension Does:
 * Allows you to drag a class record to a character in order to add that class to your character sheet
 * Adds a link in the character sheet to your class and its associated record
 * When a class record is dragged to your character sheet, it will automatically add armor, weapon, and implement proficiencies, hit points at first level, max healing surges, defense bonuses, and trained skills.
+* It adds the text for implements to implements (as of v.0.2.0)
+* It adds bonus to defenses (as of v.0.2.0)
 * It adds class features (as of v.0.2.0)
 
 
