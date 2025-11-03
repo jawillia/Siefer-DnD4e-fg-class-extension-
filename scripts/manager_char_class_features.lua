@@ -9,6 +9,7 @@ function addClassSpecificFeatures(sClassName, rAdd, sClassFeatureName, sClassFea
 		["CLERIC (TEMPLAR)"] = function() return addClericTemplarFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
 		["FIGHTER (WEAPONMASTER)"] = function() return addFighterWeaponmasterFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
 		["RANGER"] = function() return addRangerFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
+		["ROGUE (SCOUNDREL)"] = function() return addRogueScoundrelFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
 		default = function() return addDefaultClassFeature(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription) end
 	});
 end
@@ -574,6 +575,167 @@ function callbackResolveFightingStyleDialogSelection(tSelection, tData)
 end
 
 
+-------------------------------------------
+----- Rogue (Scoundrel) Class Features ----
+-------------------------------------------
+function addRogueScoundrelFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription)
+	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
+	if sClassFeatureName == "Scoundrel Weapon Talent" then
+		--Add the feature, but if you have also already added Sharpshooter Talent, choose between them
+		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
+		for _, featureNode in pairs(tCurrentFeatures) do
+			if DB.getText(DB.getPath(featureNode, "value")) == "Sharpshooter Talent" then
+				displayRogueScoundrelWeaponTalentDialog(rAdd);
+				break;
+			end
+		end
+	elseif sClassFeatureName == "Sharpshooter Talent" then
+		--Add the feature, but if you have also already added Scoundrel Weapon Talent, choose between them
+		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
+		for _, featureNode in pairs(tCurrentFeatures) do
+			if DB.getText(DB.getPath(featureNode, "value")) == "Scoundrel Weapon Talent" then
+				displayRogueScoundrelWeaponTalentDialog(rAdd);
+				break;
+			end
+		end
+	elseif sClassFeatureName == "Rogue Tactics" then
+		-- Add the feature and choose between all of the fighter talents
+		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureOriginalDescription);
+		displayRogueScoundrelRogueTacticsDialog(rAdd, sClassFeatureOriginalDescription);
+	elseif sClassFeatureName == "Sneak Attack" then
+		-- Add the feature and replace the html table with more clean text
+		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+		DB.setValue(rCreatedIDChildNode, "description", "string", convertHTMLTable(sClassFeatureOriginalDescription));
+	else
+		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
+		ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", sClassFeatureName, rAdd.sCharName);
+	end
+end
+
+function displayRogueScoundrelWeaponTalentDialog(rAdd, sClassFeatureOriginalDescription)
+	--Display information on the selections in chat
+	local sPattern = '<link class="powerdesc" recordname="reference.features.(%w+)@([%w%s]+)">';
+	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
+	for x,y in pairs(tCurrentFeatures) do
+		if DB.getText(DB.getPath(y, "value")) == "Scoundrel Weapon Talent" or DB.getText(DB.getPath(y, "value")) == "Sharpshooter Talent" then
+			local tMessageShortcuts = { { class="ref_ability", recordname=DB.getPath(y) } };
+			local tMessageData = {font = "systemfont", text = DB.getText(DB.getPath(y, "value")), shortcuts=tMessageShortcuts};
+			Comm.addChatMessage(tMessageData);
+		end
+	end
+	--Display a pop-up where we either choose Scoundrel Weapon Talent or Sharpshooter Talent
+	local tOptions = {}
+	tOptions[1] = "Scoundrel Weapon Talent";
+	tOptions[2] = "Sharpshooter Talent";
+	local tDialogData = {
+		title = Interface.getString("char_build_title_addscoundrelweapontalent"),
+		msg = Interface.getString("char_build_message_addscoundrelweapontalent"),
+		options = tOptions,
+		min = 1,
+		max = 1,
+		callback = CharClassFeatureManager.callbackResolveRogueScoundrelWeaponTalentDialogSelection,
+		custom = rAdd,
+	};
+	DialogManager.requestSelectionDialog(tDialogData);
+end
+function callbackResolveRogueScoundrelWeaponTalentDialogSelection(tSelection, rAdd)
+	if not tSelection or not tSelection[1] then
+		CharManager.outputUserMessage("char_error_addclasssfeature");
+		return;
+	end
+	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
+	if #tSelection == 1 then
+		if tSelection[1] == "Scoundrel Weapon Talent" then
+			for _, featureNode in pairs(tCurrentFeatures) do
+				if DB.getText(DB.getPath(featureNode, "value")) == "Sharpshooter Talent" then
+					DB.deleteNode(featureNode);
+					ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", tSelection[1], rAdd.sCharName);
+					break;
+				end
+			end
+		elseif tSelection[1] == "Sharpshooter Talent" then
+				for _, featureNode in pairs(tCurrentFeatures) do
+				if DB.getText(DB.getPath(featureNode, "value")) == "Scoundrel Weapon Talent" then
+					DB.deleteNode(featureNode);
+					ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", tSelection[1], rAdd.sCharName);
+					break;
+				end
+			end
+		end
+	end
+end
+
+function displayRogueScoundrelRogueTacticsDialog(rAdd, sClassFeatureOriginalDescription)
+	local tRogueTacticsOptions = {};
+	local tOptions = {};
+	--Display information on the selections in chat
+	local sPattern = '<link class="powerdesc" recordname="reference.features.(%w+)@([%w%s]+)">';
+	local sFeaturesLink = string.gmatch(sClassFeatureOriginalDescription, sPattern);
+	local nOptionsCount = 1;
+	for w,v in sFeaturesLink do
+		local sPattern = "reference.features." .. w .. "@" .. v;
+		local sClassFeatureName = DB.getText(DB.getPath(sPattern, "name"));
+		local sClassFeatureDescription = DB.getText(DB.getPath(sPattern, "description"));
+		tOptions[nOptionsCount] = sClassFeatureName;
+		nOptionsCount = nOptionsCount + 1;
+		tRogueTacticsOptions[sClassFeatureName] = DB.getPath(sPattern);
+		local tMessageShortcuts = { { class="powerdesc", recordname=DB.getPath(sPattern) } };
+		local tMessageData = {font = "systemfont", text = sClassFeatureName, shortcuts=tMessageShortcuts};
+		Comm.addChatMessage(tMessageData);
+	end
+	--Display a pop-up where we either choose from the fighter talents
+	local tDialogData = {
+		title = Interface.getString("char_build_title_addroguetactics"),
+		msg = Interface.getString("char_build_message_addroguetactics"),
+		options = tOptions,
+		min = 1,
+		max = 1,
+		callback = CharClassFeatureManager.callbackResolveRogueTacticsDialogSelection,
+		custom = { rAdd = rAdd, tRogueTacticsOptions = tRogueTacticsOptions }, 
+	};
+	DialogManager.requestSelectionDialog(tDialogData);	
+end
+function callbackResolveRogueTacticsDialogSelection(tSelection, tData)
+	if not tSelection or not tSelection[1] then
+		CharManager.outputUserMessage("char_error_addclasssfeature");
+		return;
+	end
+	local sSelectedRogueTacticsDBReference;
+	local tCurrentFeatures = DB.getChildren(tData.rAdd.nodeChar, "specialabilitylist");
+	if #tSelection == 1 then
+		for _, featureNode in pairs(tCurrentFeatures) do
+			if DB.getText(DB.getPath(featureNode, "value")) ~= tSelection[1] then
+				for x, y in pairs(tData.tRogueTacticsOptions) do
+					if DB.getText(DB.getPath(featureNode, "value")) == x then
+						DB.deleteNode(featureNode);
+						break;
+					end
+				end
+			end
+		end
+		sSelectedRogueTacticsDBReference = tData.tRogueTacticsOptions[tSelection[1]];
+		local rCreatedIDChildNode = DB.createChild(tData.rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference", "powerdesc", sSelectedRogueTacticsDBReference);
+		DB.setValue(rCreatedIDChildNode, "value", "string", tSelection[1]);
+		--DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureOriginalDescription);
+		ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", tSelection[1], tData.rAdd.sCharName);
+	end
+end
+
 ---------------------------------------
 -- Utility functions
 --
@@ -581,4 +743,20 @@ function switch(x, cases)
   local match = cases[x] or cases.default or function() end
 
   return match()
+end
+function convertHTMLTable(sHTMLTable)
+	sHTMLTable = string.gsub(sHTMLTable, "<table>", "\n");
+	sHTMLTable = string.gsub(sHTMLTable, "</table>", "\n\n");
+	sHTMLTable = string.gsub(sHTMLTable, "</p>", "\n");
+	sHTMLTable = string.gsub(sHTMLTable, "<p>", "    ");
+	sHTMLTable = string.gsub(sHTMLTable, "<p />", "\n");
+	sHTMLTable = string.gsub(sHTMLTable, "<tr>", "\n");
+	sHTMLTable = string.gsub(sHTMLTable, "</tr>", "");
+	sHTMLTable = string.gsub(sHTMLTable, "<td>", "");
+	sHTMLTable = string.gsub(sHTMLTable, "</td>", "");
+	sHTMLTable = string.gsub(sHTMLTable, "<b>", " - ");
+	sHTMLTable = string.gsub(sHTMLTable, "</b>", " - ");
+	sHTMLTable = string.gsub(sHTMLTable, "-", " - ");
+
+	return sHTMLTable;
 end

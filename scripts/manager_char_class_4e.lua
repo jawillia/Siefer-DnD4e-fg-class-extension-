@@ -4,7 +4,7 @@
 --
 
 function addClass(nodeChar, sRecord, tData)
-	local rAdd = CharBuildDropManager.helperBuildAddStructure(nodeChar, "powerdesc", sRecord, tData);
+	local rAdd = CharClassBuildDropManager.helperBuildAddStructure(nodeChar, "powerdesc", sRecord, tData);
 	local sClassName = DB.getText(DB.getPath(sRecord, "name"));
 
 	-- Get Class Node Information

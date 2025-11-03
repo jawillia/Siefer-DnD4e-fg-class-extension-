@@ -40,5 +40,10 @@
   <string name="char_build_title_addprimeshot">Prime Shot or Alternate</string> 
   <string name="char_build_message_addprimeshotorrunningattack">Choose Prime Shot or Running Attack. Check the chat for detailed descriptions.</string>
   <string name="char_build_title_addfightingstyle">Fighting Style</string> 
-  <string name="char_build_message_addfightingstyle">Choose one of the following Fighting Styles:</string>   
+  <string name="char_build_message_addfightingstyle">Choose one of the following Fighting Styles:</string>
+  <!-- Rogue (Scoundrel) Feature strings -->
+  <string name="char_build_title_addscoundrelweapontalent">Scoundrel Weapon Talent or Alternate</string> 
+  <string name="char_build_message_addscoundrelweapontalent">Choose Scoundrel Weapon Talent or Sharpshooter Talent. Check the chat for detailed descriptions.</string>
+  <string name="char_build_title_addroguetactics">Rogue Tactics</string> 
+  <string name="char_build_message_addroguetactics">Choose one of the following Rogue Tactics:</string>  
 </root>
