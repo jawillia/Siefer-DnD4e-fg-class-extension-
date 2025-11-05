@@ -90,6 +90,7 @@ function addClassArmorProficiencies(rAdd, sRecord, sDescriptionText)
 	end
 	local tCurrentArmorProficiencies = DB.getChildren(rAdd.nodeChar, "proficiencyarmor");
 	for _,x in pairs(tArmorProficiencies) do
+		x = x:gsub("^%s+", ""):gsub("%s+$", "");
 		local isArmorProficiencyInList = false;
 		for armorProficiencyName, armorProficiencyNode in pairs(tCurrentArmorProficiencies) do
 			if DB.getText(DB.getPath(armorProficiencyNode, "value")) == x then
@@ -139,6 +140,7 @@ function addClassWeaponProficiencies(rAdd, sRecord, sDescriptionText)
 	local tWeaponProficiencies = StringManager.split(sWeaponProficienciesValue, ',', true);
 	local tCurrentWeaponProficiencies = DB.getChildren(rAdd.nodeChar, "proficiencyweapon");
 	for _,x in pairs(tWeaponProficiencies) do
+		x = x:gsub("^%s+", ""):gsub("%s+$", "");
 		local isWeaponProficiencyInList = false;
 		for weaponProficiencyName, weaponProficiencyNode in pairs(tCurrentWeaponProficiencies) do
 			if DB.getText(DB.getPath(weaponProficiencyNode, "value")) == x then
@@ -244,14 +246,24 @@ function addClassFeatures(rAdd, sRecord, sDescriptionText, sClassName)
 		for w,v in pairs(tClassFeatures) do
 			local sClassFeatureDescriptionPattern = '';
 			if w < #tClassFeatures then
-				sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v:gsub("of", "Of") .. "%s*</b></p>%s*(.-)<p><b>";
+				sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v:gsub("(%a)([%w_']*)", titleCase) .. "%s*</b></p>%s*(.-)<p><b>";
 			elseif w == #tClassFeatures then
 				-- On the last feature entry, first try reading to the class overview
-				sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v:gsub("of", "Of") .. "%s*</b></p>%s*(.-)<p>" .. sClassName:upper() .. " OVERVIEW</p>";
+				sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v:gsub("(%a)([%w_']*)", titleCase) .. "%s*</b></p>%s*(.-)<p>" .. sClassName:upper() .. " OVERVIEW</p>";
 				sClassFeatureSpecificDescriptionText = string.match(sDescriptionText, sClassFeatureDescriptionPattern);
+				-- Then try reading to alternative features
+				if sClassFeatureSpecificDescriptionText == nil then
+					sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v:gsub("(%a)([%w_']*)", titleCase) .. "%s*</b></p>%s*(.-)<p><b>Alternative";
+					sClassFeatureSpecificDescriptionText = string.match(sDescriptionText, sClassFeatureDescriptionPattern);
+				end	
+				-- Or read to the Implements
+				if sClassFeatureSpecificDescriptionText == nil then
+					sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v:gsub("(%a)([%w_']*)", titleCase) .. "%s*</b></p>%s*(.-)<p><b>IMPLEMENTS</b></p>";
+					sClassFeatureSpecificDescriptionText = string.match(sDescriptionText, sClassFeatureDescriptionPattern);
+				end			
 				-- Then try reading to the end of the record if that didn't work
 				if sClassFeatureSpecificDescriptionText == nil then
-					sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v:gsub("of", "Of") .. "%s*</b></p>%s*(.+)</p>";
+					sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v:gsub("(%a)([%w_']*)", titleCase) .. "%s*</b></p>%s*(.+)</p>";
 				end
 			end
 			sClassFeatureSpecificDescriptionText = string.match(sDescriptionText, sClassFeatureDescriptionPattern);
@@ -269,11 +281,6 @@ function addClassFeatures(rAdd, sRecord, sDescriptionText, sClassName)
 			end
 			if isFeatureInList == false then
 				CharClassFeatureManager.addClassSpecificFeatures(sClassName, rAdd, v, sClassFeatureFilteredDescriptionText, sClassFeatureSpecificDescriptionText);
-				-- local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-				-- DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
-				-- DB.setValue(rCreatedIDChildNode, "value", "string", v);
-				-- DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureSpecificDescriptionText);
-				-- ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", v, rAdd.sCharName);
 			end
 		end
 	end
@@ -678,6 +685,13 @@ function helperResolveDefenseIncreaseOnRaceDrop(rAdd, sRecord, sDescriptionText)
 		-- Can add in logic to display a selection dialogue if there is a choice for defense increase
 		-- But so far, that doesn't seem to exist in any classes
 	end
+end
+
+-----------------------------------------------------------
+
+--Use like this: string.gsub(str, "(%a)([%w_']*)", titleCase)
+function titleCase( first, rest )
+   return first:upper()..rest:lower()
 end
 
 -----------------------------------------------------------
