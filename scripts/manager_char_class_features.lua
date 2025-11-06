@@ -12,6 +12,7 @@ function addClassSpecificFeatures(sClassName, rAdd, sClassFeatureName, sClassFea
 		["ROGUE (SCOUNDREL)"] = function() return addRogueScoundrelFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
 		["WARLOCK"] = function() return addWarlockFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
 		["WARLORD (MARSHAL)"] = function() return addWarlordMarshalFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
+		["WIZARD (ARCANIST)"] = function() return addWarlordMarshalFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
 		default = function() return addDefaultClassFeature(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription) end
 	});
 end
@@ -289,7 +290,7 @@ function addFighterWeaponmasterFeatures(sClassName, rAdd, sClassFeatureName, sCl
 		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
 		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
 		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureOriginalDescription);
+		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
 		displayFighterWeaponmasterFighterTalentsDialog(rAdd, sClassFeatureOriginalDescription);
 	else
 		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
@@ -447,7 +448,7 @@ function addRangerFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFil
 		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
 		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
 		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureOriginalDescription);
+		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
 		displayRangerFightingStyleDialog(rAdd, sClassFeatureOriginalDescription);
 	else
 		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
@@ -607,11 +608,11 @@ function addRogueScoundrelFeatures(sClassName, rAdd, sClassFeatureName, sClassFe
 			end
 		end
 	elseif sClassFeatureName == "Rogue Tactics" then
-		-- Add the feature and choose between all of the fighter talents
+		-- Add the feature and choose between all of the rogue tactics
 		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
 		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
 		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureOriginalDescription);
+		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
 		displayRogueScoundrelRogueTacticsDialog(rAdd, sClassFeatureOriginalDescription);
 	elseif sClassFeatureName == "Sneak Attack" then
 		-- Add the feature and replace the html table with more clean text
@@ -749,7 +750,7 @@ function addWarlockFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFi
 		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
 		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
 		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureOriginalDescription);
+		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
 		displayWarlockEldritchPactDialog(rAdd, sClassFeatureOriginalDescription);
 	else
 		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
@@ -904,8 +905,8 @@ function addWarlordMarshalFeatures(sClassName, rAdd, sClassFeatureName, sClassFe
 		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
 		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
 		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureOriginalDescription);
-		--displayFighterWeaponmasterFighterTalentsDialog(rAdd, sClassFeatureOriginalDescription);
+		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
+		displayWarlordMarshalPresenceDialog(rAdd, sClassFeatureOriginalDescription);
 	else
 		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
 		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
@@ -1050,6 +1051,62 @@ function callbackResolveWarlordMarshalCombatLeaderDialogSelection(tSelection, rA
 	end
 end
 
+function displayWarlordMarshalPresenceDialog(rAdd, sClassFeatureOriginalDescription)
+	local tWarlordPresenceOptions = {};
+	local tOptions = {};
+	--Display information on the selections in chat
+	local sPattern = '<link class="powerdesc" recordname="reference.features.(%w+)@([%w%s]+)">';
+	local sFeaturesLink = string.gmatch(sClassFeatureOriginalDescription, sPattern);
+	local nOptionsCount = 1;
+	for w,v in sFeaturesLink do
+		local sPattern = "reference.features." .. w .. "@" .. v;
+		local sClassFeatureName = DB.getText(DB.getPath(sPattern, "name"));
+		local sClassFeatureDescription = DB.getText(DB.getPath(sPattern, "description"));
+		tOptions[nOptionsCount] = sClassFeatureName;
+		nOptionsCount = nOptionsCount + 1;
+		tWarlordPresenceOptions[sClassFeatureName] = DB.getPath(sPattern);
+		local tMessageShortcuts = { { class="powerdesc", recordname=DB.getPath(sPattern) } };
+		local tMessageData = {font = "systemfont", text = sClassFeatureName, shortcuts=tMessageShortcuts};
+		Comm.addChatMessage(tMessageData);
+	end
+	--Display a pop-up where we either choose from the fighter talents
+	local tDialogData = {
+		title = Interface.getString("char_build_title_addwarlordpresence"),
+		msg = Interface.getString("char_build_message_addwarlordpresence"),
+		options = tOptions,
+		min = 1,
+		max = 1,
+		callback = CharClassFeatureManager.callbackResolveWarlordPresenceDialogSelection,
+		custom = { rAdd = rAdd, tWarlordPresenceOptions = tWarlordPresenceOptions }, 
+	};
+	DialogManager.requestSelectionDialog(tDialogData);	
+end
+function callbackResolveWarlordPresenceDialogSelection(tSelection, tData)
+	if not tSelection or not tSelection[1] then
+		CharManager.outputUserMessage("char_error_addclasssfeature");
+		return;
+	end
+	local sSelectedWarlordPresenceDBReference;
+	local tCurrentFeatures = DB.getChildren(tData.rAdd.nodeChar, "specialabilitylist");
+	if #tSelection == 1 then
+		for _, featureNode in pairs(tCurrentFeatures) do
+			if DB.getText(DB.getPath(featureNode, "value")) ~= tSelection[1] then
+				for x, y in pairs(tData.tWarlordPresenceOptions) do
+					if DB.getText(DB.getPath(featureNode, "value")) == x then
+						DB.deleteNode(featureNode);
+						break;
+					end
+				end
+			end
+		end
+		sSelectedWarlordPresenceDBReference = tData.tWarlordPresenceOptions[tSelection[1]];
+		local rCreatedIDChildNode = DB.createChild(tData.rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference", "powerdesc", sSelectedWarlordPresenceDBReference);
+		DB.setValue(rCreatedIDChildNode, "value", "string", tSelection[1]);
+		--DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureOriginalDescription);
+		ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", tSelection[1], tData.rAdd.sCharName);
+	end
+end
 
 
 ---------------------------------------

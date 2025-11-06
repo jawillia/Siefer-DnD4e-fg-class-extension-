@@ -47,5 +47,7 @@
   <string name="char_build_message_addwarlockpact">Choose one of the following Warlock Eldritch Pacts:</string>
   <!-- Warlord (Marshal) Feature strings -->
   <string name="char_build_title_addarcherwarlord">Standard Warlord or Archer Warlord</string> 
-  <string name="char_build_message_addarcherwarlord">Choose whether to use Archer Warlord feature or not:</string>  
+  <string name="char_build_message_addarcherwarlord">Choose whether to use Archer Warlord feature or not:</string>
+  <string name="char_build_title_addwarlordpresence">Warlord Commanding Presence</string> 
+  <string name="char_build_message_addwarlordpresence">Choose one of the following Commanding Presence:</string>  
 </root>
