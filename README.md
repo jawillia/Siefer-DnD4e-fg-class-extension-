@@ -5,10 +5,12 @@ The continuations of my DnD 4e extensions for Fantasy Grounds that add various c
 
 
 \#Release Notes  
-v.0.1.0 - 10/05/2025 - Initial Release. Basic UI display of classes in sidebar, adds link to record in character sheet, and includes support for armor, weapon, and implement proficiencies, hit points at first level, max healing surges, and trained skills for classes when dragging class onto sheet.
-v.0.2.0 - 11/1/2025 - Adds bonuses to defense. Adds support for shield proficiencies (they are added to the armor proficiencies section). Adds class-specific features. Offers choices for class-specific features that have multiple options for Cleric (Templar), Fighter (Weaponmaster), Paladin, and Ranger. Fixed up the way trained skills are added to accomodate these 4 classes.
-
-v.0.2.1 - 11/2/2025 - Fixed a bug preventing it from working with my DnD 4e Races Extension.
+v.0.1.0 - 10/05/2025 - Initial Release. Basic UI display of classes in sidebar, adds link to record in character sheet, and includes support for armor, weapon, and implement proficiencies, hit points at first level, max healing surges, and trained skills for classes when dragging class onto sheet.\
+v.0.2.0 - 11/1/2025 - Adds bonuses to defense. Adds support for shield proficiencies (they are added to the armor proficiencies section). Adds class-specific features. Offers choices for class-specific features that have multiple options for Cleric (Templar), Fighter (Weaponmaster), Paladin, and Ranger. Fixed up the way trained skills are added to accomodate these 4 classes.\
+v.0.2.1 - 11/2/2025 - Fixed a bug preventing it from working with my DnD 4e Races Extension.\
+v.0.3.0 - 11/6/2025 - Tested the rest of the PHB classes (Cleric, Fighter, Paladin, Ranger, Rogue, 
+Warlock, Warlord, Wizard) and made some minor changes to make it work with them.\
+v.0.3.1 - 11/10/2025 - Can now update by dragging onto skill sheet, instead of just the main sheet.\
 
 
 
