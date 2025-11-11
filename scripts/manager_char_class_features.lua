@@ -13,6 +13,7 @@ function addClassSpecificFeatures(sClassName, rAdd, sClassFeatureName, sClassFea
 		["WARLOCK"] = function() return addWarlockFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
 		["WARLORD (MARSHAL)"] = function() return addWarlordMarshalFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
 		["WIZARD (ARCANIST)"] = function() return addWizardArcanistFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
+		["AVENGER"] = function() return addAvengerFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,		
 		default = function() return addDefaultClassFeature(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription) end
 	});
 end
@@ -1193,6 +1194,85 @@ function callbackResolveWizardArcanistArcaneImplementMasteriesDialogSelection(tS
 end
 
 
+
+-------------------------------------------
+----- AVENGER Class Features ----
+-------------------------------------------
+function addAvengerFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription)
+	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
+	if sClassFeatureName == "Avenger's Censure" then
+		-- Add the feature and choose between all of the Avenger censures
+		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
+		displayAvengerCensuresDialog(rAdd, sClassFeatureOriginalDescription);
+	else
+		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
+		ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", sClassFeatureName, rAdd.sCharName);
+	end
+end
+function displayAvengerCensuresDialog(rAdd, sClassFeatureOriginalDescription)
+	local tAvengerCensureOptions = {};
+	local tOptions = {};
+	--Display information on the selections in chat
+	local sPattern = '<link class="powerdesc" recordname="reference.features.(%w+)@([%w%s]+)">';
+	local sFeaturesLink = string.gmatch(sClassFeatureOriginalDescription, sPattern);
+	local nOptionsCount = 1;
+	for w,v in sFeaturesLink do
+		local sPattern = "reference.features." .. w .. "@" .. v;
+		local sClassFeatureName = DB.getText(DB.getPath(sPattern, "name"));
+		local sClassFeatureDescription = DB.getText(DB.getPath(sPattern, "description"));
+		tOptions[nOptionsCount] = sClassFeatureName;
+		nOptionsCount = nOptionsCount + 1;
+		tAvengerCensureOptions[sClassFeatureName] = DB.getPath(sPattern);
+		local tMessageShortcuts = { { class="powerdesc", recordname=DB.getPath(sPattern) } };
+		local tMessageData = {font = "systemfont", text = sClassFeatureName, shortcuts=tMessageShortcuts};
+		Comm.addChatMessage(tMessageData);
+	end
+	--Display a pop-up where we either choose from the fighter talents
+	local tDialogData = {
+		title = Interface.getString("char_build_title_addwizardarcaneimplements"),
+		msg = Interface.getString("char_build_message_addwizardarcaneimplements"),
+		options = tOptions,
+		min = 1,
+		max = 1,
+		callback = CharClassFeatureManager.callbackResolveAvengerCensuresDialogSelection,
+		custom = { rAdd = rAdd, tAvengerCensureOptions = tAvengerCensureOptions }, 
+	};
+	DialogManager.requestSelectionDialog(tDialogData);	
+end
+function callbackResolveAvengerCensuresDialogSelection(tSelection, tData)
+	if not tSelection or not tSelection[1] then
+		CharManager.outputUserMessage("char_error_addclasssfeature");
+		return;
+	end
+	local sSelectedAvengerCensuresDBReference;
+	local tCurrentFeatures = DB.getChildren(tData.rAdd.nodeChar, "specialabilitylist");
+	if #tSelection == 1 then
+		for _, featureNode in pairs(tCurrentFeatures) do
+			if DB.getText(DB.getPath(featureNode, "value")) ~= tSelection[1] then
+				for x, y in pairs(tData.tAvengerCensureOptions) do
+					if DB.getText(DB.getPath(featureNode, "value")) == x then
+						DB.deleteNode(featureNode);
+						break;
+					end
+				end
+			end
+		end
+		sSelectedAvengerCensuresDBReference = tData.tAvengerCensureOptions[tSelection[1]];
+		local rCreatedIDChildNode = DB.createChild(tData.rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference", "powerdesc", sSelectedAvengerCensuresDBReference);
+		DB.setValue(rCreatedIDChildNode, "value", "string", tSelection[1]);
+		--DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureOriginalDescription);
+		ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", tSelection[1], tData.rAdd.sCharName);
+	end
+end
+
+
 ---------------------------------------
 -- Utility functions
 --
@@ -1209,11 +1289,6 @@ function convertHTMLTable(sHTMLTable)
 	sHTMLTable = string.gsub(sHTMLTable, "<p />", "\n");
 	sHTMLTable = string.gsub(sHTMLTable, "<tr>", "\n");
 	sHTMLTable = string.gsub(sHTMLTable, "</tr>", "");
-	-- sHTMLTable = string.gsub(sHTMLTable, "<td>", "");
-	-- sHTMLTable = string.gsub(sHTMLTable, "</td>", "");
-	-- sHTMLTable = string.gsub(sHTMLTable, "<b>", " - ");
-	-- sHTMLTable = string.gsub(sHTMLTable, "</b>", " - ");
-	-- sHTMLTable = string.gsub(sHTMLTable, "-", " - ");
 
 	sHTMLTable = string.gsub(sHTMLTable, "<td><b>(.-)</b></td>", function(rowText)
 		return string.format("%-15s", rowText);

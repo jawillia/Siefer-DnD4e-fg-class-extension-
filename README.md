@@ -11,6 +11,7 @@ v.0.2.1 - 11/2/2025 - Fixed a bug preventing it from working with my DnD 4e Race
 v.0.3.0 - 11/6/2025 - Tested the rest of the PHB classes (Cleric, Fighter, Paladin, Ranger, Rogue, 
 Warlock, Warlord, Wizard) and made some minor changes to make it work with them.\
 v.0.3.1 - 11/10/2025 - Can now update by dragging onto skill sheet, instead of just the main sheet.\
+v.0.4.0 - 11/10/2025 - Added filters for the class library for role, power source, book/publishing source, and class type (default, essentials, and hybrid). Added choices for Avengers features.
 
 
 

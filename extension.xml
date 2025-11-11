@@ -4,7 +4,7 @@
 	<announcement text="DnD 4e Classes extension made by SieferSeesSomething is activated. Last release 11/10/2025" font="emotefont" icon="rulesetlogo_CoreRPG"/>
 	<properties>
 		<name>DnD 4e - Character Classes Extension</name>
-		<version>0.3.1</version>
+		<version>0.4.0</version>
 		<author>Jason Williams</author>
 		<description>
 		Adds a character options menu for classes and a link to the character sheet.
@@ -16,7 +16,7 @@
 
 	<base>
 		<!-- Library Data -->
-		<script name="4eClassesExtensionLibraryData" file="scripts/data_library.lua" />
+		<script name="4eClassesExtensionLibraryData" file="scripts/data_library_4e_class.lua" />
 
 		<!-- Campaign -->
 		<includefile source="campaign/record_char_main.xml" />
