@@ -13,7 +13,14 @@ function addClassSpecificFeatures(sClassName, rAdd, sClassFeatureName, sClassFea
 		["WARLOCK"] = function() return addWarlockFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
 		["WARLORD (MARSHAL)"] = function() return addWarlordMarshalFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
 		["WIZARD (ARCANIST)"] = function() return addWizardArcanistFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
-		["AVENGER"] = function() return addAvengerFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,		
+		["AVENGER"] = function() return addAvengerFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
+		["BARBARIAN"] = function() return addBarbarianFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
+		["BARD"] = function() return addBardFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
+		["DRUID"] = function() return addDruidFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
+		["INVOKER"] = function() return addInvokerFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
+		["SHAMAN"] = function() return addShamanFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
+		["SORCERER"] = function() return addSorcererFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
+		["WARDEN"] = function() return addWardenFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
 		default = function() return addDefaultClassFeature(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription) end
 	});
 end
@@ -111,7 +118,7 @@ function displayClassFeatureSelectionsDialog(rAdd, sClassFeatureOriginalDescript
 		local tMessageData = {font = "systemfont", text = sClassFeatureName, shortcuts=tMessageShortcuts};
 		Comm.addChatMessage(tMessageData);
 	end
-	--Display a pop-up where we either choose from the fighter talents
+	--Display a pop-up where we either choose from the class feature options
 	local msg = string.format(Interface.getString("char_build_message_chooseclassfeatures"), sClassFeatureName);
 	local tDialogData = {
 		title = sClassFeatureName,
@@ -531,7 +538,7 @@ function displayRangerFightingStyleDialog(rAdd, sClassFeatureOriginalDescription
 		local tMessageData = {font = "systemfont", text = sClassFeatureName, shortcuts=tMessageShortcuts};
 		Comm.addChatMessage(tMessageData);
 	end
-	--Display a pop-up where we either choose from the fighter talents
+	--Display a pop-up where we choose from the fighting styles
 	local tDialogData = {
 		title = Interface.getString("char_build_title_addfightingstyle"),
 		msg = Interface.getString("char_build_message_addfightingstyle"),
@@ -566,9 +573,7 @@ function callbackResolveFightingStyleDialogSelection(tSelection, tData)
 		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference", "powerdesc", sSelectedFightingStyleDBReference);
 		DB.setValue(rCreatedIDChildNode, "value", "string", tSelection[1]);
 		--DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureOriginalDescription);
-		Debug.console("Selection", tSelection[1]);
 		if tSelection[1] == "Beast Mastery" then
-			Debug.console("Beast Mastery", tSelection[1]);
 			ChatManager.SystemMessageResource("char_abilities_message_beastmasteryclassfeatureadd", tSelection[1], tData.rAdd.sCharName);
 		else
 			ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", tSelection[1], tData.rAdd.sCharName);
@@ -882,6 +887,297 @@ function addAvengerFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFi
 end
 
 
+-------------------------------------------
+----- BARBARIAN Class Features ----
+-------------------------------------------
+function addBarbarianFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription)
+	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
+	if sClassFeatureName == "Feral Might" then
+		-- Add the feature and choose between all of the Barbarian Feral Mights
+		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
+		displayClassFeatureSelectionsDialog(rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
+	else
+		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
+		ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", sClassFeatureName, rAdd.sCharName);
+	end
+end
+
+-------------------------------------------
+----- BARBARIAN Class Features ----
+-------------------------------------------
+function addBarbarianFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription)
+	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
+	if sClassFeatureName == "Feral Might" then
+		-- Add the feature and choose between all of the Barbarian Feral Mights
+		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
+		displayClassFeatureSelectionsDialog(rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
+	else
+		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
+		ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", sClassFeatureName, rAdd.sCharName);
+	end
+end
+
+
+-------------------------------------------
+----- BARD Class Features ----
+-------------------------------------------
+function addBardFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription)
+	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
+	if sClassFeatureName == "Bardic Virtue" then
+		-- Add the feature and choose between all of the Bard Bardic Virtues
+		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
+		displayClassFeatureSelectionsDialog(rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
+	else
+		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
+		ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", sClassFeatureName, rAdd.sCharName);
+	end
+end
+
+-------------------------------------------
+----- DRUID Class Features ----
+-------------------------------------------
+function addDruidFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription)
+	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
+	if sClassFeatureName == "Primal Aspect" then
+		-- Add the feature and choose between all of the Druid Primal Aspects
+		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
+		displayClassFeatureSelectionsDialog(rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
+	elseif sClassFeatureName == "Wild Shape" then
+		local sWildShapeText, sDruidsRitualsText = string.match(sClassFeatureOriginalDescription, "(.+)<p>DRUIDS AND RITUALS</p>(.+)")
+		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+		DB.setValue(rCreatedIDChildNode, "description", "string", convertHTMLTable(sWildShapeText));
+		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+		DB.setValue(rCreatedIDChildNode, "value", "string", "Druids and Rituals");
+		DB.setValue(rCreatedIDChildNode, "description", "string", removeLinkLists(convertHTMLTable(sDruidsRitualsText)));	
+	else
+		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
+		ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", sClassFeatureName, rAdd.sCharName);
+	end
+end
+
+
+-------------------------------------------
+----- INVOKER Class Features ----
+-------------------------------------------
+function addInvokerFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription)
+	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
+	if sClassFeatureName == "Divine Covenant" then
+		-- Add the feature and choose between all of the Invoker Divine Covenants
+		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
+		displayClassFeatureSelectionsDialog(rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
+	else
+		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
+		ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", sClassFeatureName, rAdd.sCharName);
+	end
+end
+
+-------------------------------------------
+----- SHAMAN Class Features ----
+-------------------------------------------
+function addShamanFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription)
+	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
+	if sClassFeatureName == "Companion Spirit" then
+		-- Add the feature and choose between all of the Shaman Companion Spirit
+		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
+		displayClassFeatureSelectionsDialog(rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
+	elseif sClassFeatureName == "Speak with Spirits" then
+		local speakWithSpiritsText = string.match(sClassFeatureOriginalDescription, "(.+)<p>Shaman Overview</p>")
+		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+		DB.setValue(rCreatedIDChildNode, "description", "string", removeLinkLists(convertHTMLTable(speakWithSpiritsText)));
+	else
+		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
+		ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", sClassFeatureName, rAdd.sCharName);
+	end
+end
+
+
+-------------------------------------------
+----- SORCERER Class Features ----
+-------------------------------------------
+function addSorcererFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription)
+	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
+	if sClassFeatureName == "Spell Source" then
+		-- Add the feature and choose between all of the Shaman Companion Spirit
+		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
+		displaySorcererSpellSourceDialog(rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
+	else
+		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
+		ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", sClassFeatureName, rAdd.sCharName);
+	end
+end
+function displaySorcererSpellSourceDialog(rAdd, sClassFeatureOriginalDescription)
+	local tSpellSourceOptions = {};
+	local tOptions = {};
+	local tAllOptions = {};
+	local tAllDBReferenceOptions = {};
+	--Start with the Sorcerer class features we already know about
+	local tExistingSpellSources = { "Cosmic Magic", "Dragon Magic", "Storm Magic", "Wild Magic" };
+	--Display information on the selections in chat
+	local sPattern = '<link class="powerdesc" recordname="reference.features.(%w+)@([%w%s]+)">';
+	local sFeaturesLink = string.gmatch(sClassFeatureOriginalDescription, sPattern);
+	local nOptionsCount = 1;
+	local nAllOptionsCount = 1;
+	for w,v in sFeaturesLink do
+		local sPattern = "reference.features." .. w .. "@" .. v;
+		local sClassFeatureName = DB.getText(DB.getPath(sPattern, "name"));
+		local sClassFeatureDescription = DB.getText(DB.getPath(sPattern, "description"));
+		local spellSourceSet = createSet(tExistingSpellSources);
+		if spellSourceSet[sClassFeatureName] then
+			tOptions[nOptionsCount] = sClassFeatureName;
+			nOptionsCount = nOptionsCount + 1;
+			tSpellSourceOptions[sClassFeatureName] = DB.getPath(sPattern);
+			local tMessageShortcuts = { { class="powerdesc", recordname=DB.getPath(sPattern) } };
+			local tMessageData = {font = "systemfont", text = sClassFeatureName, shortcuts=tMessageShortcuts};
+			Comm.addChatMessage(tMessageData);
+		else
+			tAllOptions[nAllOptionsCount] = sClassFeatureName;
+			nAllOptionsCount = nAllOptionsCount + 1;
+			tAllDBReferenceOptions[sClassFeatureName] = DB.getPath(sPattern);
+		end
+	end
+	--Display a pop-up where we choose from the sorcerer spell sources
+	local tDialogData = {
+		title = Interface.getString("char_build_title_addfightingstyle"),
+		msg = Interface.getString("char_build_message_addfightingstyle"),
+		options = tOptions,
+		min = 1,
+		max = 1,
+		callback = CharClassFeatureManager.callbackResolveSorcererSpellSourceSelectionsDialogSelection,
+		custom = { rAdd = rAdd, tClassFeatureOptions = tSpellSourceOptions, tAllOptions=tAllOptions, tAllDBReferenceOptions=tAllDBReferenceOptions }, 
+	};
+	DialogManager.requestSelectionDialog(tDialogData);	
+end
+function callbackResolveSorcererSpellSourceSelectionsDialogSelection(tSelection, tData)
+	if not tSelection or not tSelection[1] then
+		CharManager.outputUserMessage("char_error_addclasssfeature");
+		return;
+	end
+	local sSelectedClassFeatureSelectionsDBReference;
+	local tCurrentFeatures = DB.getChildren(tData.rAdd.nodeChar, "specialabilitylist");
+	if #tSelection == 1 then
+		local keyWord = {};
+		if tSelection[1] == "Cosmic Magic" then
+			keyWord[1] = "Cosmic";
+		elseif tSelection[1] == "Dragon Magic" then
+			keyWord[1] = "Dragon";
+		elseif tSelection[1] == "Storm Magic" then
+			keyWord[1] = "Storm";
+		elseif tSelection[1] == "Wild Magic" then
+			keyWord[1] = "Chaos";
+			keyWord[2] = "Unfettered";
+			keyWord[3] = "Wild";
+		end		
+		for _, featureNode in pairs(tCurrentFeatures) do
+			if DB.getText(DB.getPath(featureNode, "value")) ~= tSelection[1] then
+				for x, y in pairs(tData.tClassFeatureOptions) do
+					if DB.getText(DB.getPath(featureNode, "value")) == x then
+						DB.deleteNode(featureNode);
+						break;
+					end
+				end
+			end
+		end
+		for _,subSpellSource in pairs(tData.tAllOptions) do
+			Debug.console("All options", subSpellSource);
+			local isInList = false;
+			local isCorrectSubSpellSource = false;
+			for _, featureNode in pairs(tCurrentFeatures) do
+				if DB.getText(DB.getPath(featureNode, "value")) == subSpellSource then
+					isInList = true;
+				end
+			end
+			for x, y in pairs(keyWord) do
+				if string.find(subSpellSource, y) then
+					isCorrectSubSpellSource = true;
+				end
+			end
+			if isCorrectSubSpellSource and not isInList then
+				sSelectedClassFeatureSelectionsDBReference = tData.tAllDBReferenceOptions[subSpellSource];
+				local rCreatedIDChildNode = DB.createChild(tData.rAdd.nodeChar.getPath("specialabilitylist"));
+				DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference", "powerdesc", sSelectedClassFeatureSelectionsDBReference);
+				DB.setValue(rCreatedIDChildNode, "value", "string", subSpellSource);
+				ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", tSelection[1], tData.rAdd.sCharName);
+			end
+		end
+		-- sSelectedClassFeatureSelectionsDBReference = tData.tClassFeatureOptions[tSelection[1]];
+		-- local rCreatedIDChildNode = DB.createChild(tData.rAdd.nodeChar.getPath("specialabilitylist"));
+		-- DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference", "powerdesc", sSelectedClassFeatureSelectionsDBReference);
+		-- DB.setValue(rCreatedIDChildNode, "value", "string", tSelection[1]);
+		--DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureOriginalDescription);
+		-- ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", tSelection[1], tData.rAdd.sCharName);
+	end
+end
+
+
+-------------------------------------------
+----- WARDEN Class Features ----
+-------------------------------------------
+function addWardenFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription)
+	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
+	if sClassFeatureName == "Guardian Might" then
+		-- Add the feature and choose between all of the Shaman Companion Spirit
+		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
+		displayClassFeatureSelectionsDialog(rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
+	else
+		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
+		ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", sClassFeatureName, rAdd.sCharName);
+	end
+end
+
+
 ---------------------------------------
 -- Utility functions
 --
@@ -907,4 +1203,15 @@ function convertHTMLTable(sHTMLTable)
 	end)
 
 	return sHTMLTable;
+end
+function removeLinkLists(sText)
+	return string.gsub(sText, "<linklist>.*</linklist>", "");
+end
+
+function createSet(tbl)
+	local set = {};
+	for _, v in ipairs(tbl) do
+		set[v] = true;
+	end
+	return set;
 end
