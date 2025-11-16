@@ -9,6 +9,8 @@
   <!-- Character - Build -->
   <string name="char_abilities_message_classadd">Class '%s' added to '%s'.</string>
   <string name="char_abilities_message_classfeatureadd">Class Feature '%s' added to '%s' special ability list.</string>
+  <string name="char_abilities_message_classfeaturedialoguetitle">Choose a Class Feature</string>
+  <string name="char_abilities_message_classfeaturedialoguemsg">Choose one. Check the chat to see more details.</string>
   <string name="char_abilities_message_classpoweradd">Class Power '%s' added to '%s' powers list.</string>
   <string name="char_abilities_message_armorproficiencyadd">Armor Proficiency '%s' added to '%s' armor proficiency list.</string>
   <string name="char_abilities_message_armorproficiencyremove">Armor Proficiency '%s' removed from '%s' armor proficiency list.</string>
@@ -25,32 +27,23 @@
   <string name="char_error_addclasssfeature">Error adding class feature.</string> 
 
   <!-- Cleric Feature Strings -->
+  <string name="char_build_message_chooseclassfeatures">Choose one of the following %s:</string> 
   <string name="char_build_title_addhealerlore">Healer's Lore or Alternate</string> 
   <string name="char_build_message_addhealerorbattlelore">Choose Healer's Lore or Battle Cleric's Lore. Check the chat for detailed descriptions.</string> 
   <!-- Fighter(Weaponmaster) Feature strings -->
   <string name="char_build_title_addcombatsuperiority">Combat Superiority or Alternate</string> 
-  <string name="char_build_message_addcombatsuperiorityoragility">Choose Combat Superiority or Combat Agility. Check the chat for detailed descriptions.</string>
-  <string name="char_build_title_addfightertalents">Fighter Talents</string> 
-  <string name="char_build_message_addfightertalents">Choose one of the following Fighter Talents:</string> 
+  <string name="char_build_message_addcombatsuperiorityoragility">Choose Combat Superiority or Combat Agility. Check the chat for detailed descriptions.</string> 
   <!-- Ranger Feature strings -->  
   <string name="char_build_title_addprimeshot">Prime Shot or Alternate</string> 
   <string name="char_build_message_addprimeshotorrunningattack">Choose Prime Shot or Running Attack. Check the chat for detailed descriptions.</string>
   <string name="char_build_title_addfightingstyle">Fighting Style</string> 
   <string name="char_build_message_addfightingstyle">Choose one of the following Fighting Styles:</string>
+  <string name="char_abilities_message_beastmasteryclassfeatureadd">Class Feature '%s' added to '%s' special ability list. You must select the Beast Mastery Fighting Style and Beast Mastery Prime Shot alternative class feature for this character to be legal and correct.</string>  
   <!-- Rogue (Scoundrel) Feature strings -->
   <string name="char_build_title_addscoundrelweapontalent">Scoundrel Weapon Talent or Alternate</string> 
   <string name="char_build_message_addscoundrelweapontalent">Choose Scoundrel Weapon Talent or Sharpshooter Talent. Check the chat for detailed descriptions.</string>
-  <string name="char_build_title_addroguetactics">Rogue Tactics</string> 
-  <string name="char_build_message_addroguetactics">Choose one of the following Rogue Tactics:</string> 
   <!-- Warlock Feature strings -->
-  <string name="char_build_title_addwarlockpact">Warlock Pact</string> 
-  <string name="char_build_message_addwarlockpact">Choose one of the following Warlock Eldritch Pacts:</string>
   <!-- Warlord (Marshal) Feature strings -->
   <string name="char_build_title_addarcherwarlord">Standard Warlord or Archer Warlord</string> 
   <string name="char_build_message_addarcherwarlord">Choose whether to use Archer Warlord feature or not:</string>
-  <string name="char_build_title_addwarlordpresence">Warlord Commanding Presence</string> 
-  <string name="char_build_message_addwarlordpresence">Choose one of the following Commanding Presence:</string>
-  <!-- Wizard (Arcanist) Feature strings -->
-  <string name="char_build_title_addwizardarcaneimplements">Wizard Arcane Implements</string> 
-  <string name="char_build_message_addwizardarcaneimplements">Choose one of the following Arcane Implement Masteries:</string>  
 </root>
