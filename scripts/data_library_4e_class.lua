@@ -25,7 +25,7 @@ function getPowerSourceValue(node)
 	if sDescriptionText then
 		local sPowerSourceDescriptionTextLine = string.match(sDescriptionText, "<p>%s*<b>%s*Power Source%s*:%s*</b>%s*(.-).</p>");
 		if sPowerSourceDescriptionTextLine then
-			sPowerSourceValue = string.match(sPowerSourceDescriptionTextLine, "[%w]+");
+			sPowerSourceValue = string.match(sPowerSourceDescriptionTextLine, "[%w%s]+");
 		end
 	end
 	return StringManager.trim(sPowerSourceValue);
