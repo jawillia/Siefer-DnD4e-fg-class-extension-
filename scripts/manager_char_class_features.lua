@@ -30,6 +30,12 @@ function addClassSpecificFeatures(sClassName, rAdd, sClassFeatureName, sClassFea
 		["PSION"] = function() return addPsionFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
 		["RUNEPRIEST"] = function() return addRunepriestFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
 		["SEEKER"] = function() return addSeekerFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,		
+		--Dragon Magazine
+		["ASSASSIN"] = function() return addAssassinFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
+		--EPG
+		["ARTIFICER"] = function() return addArtificerFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,		
+		--FPG
+		["SWORDMAGE"] = function() return addSwordmageFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
 		default = function() return addDefaultClassFeature(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription) end
 	});
 end
@@ -1291,7 +1297,6 @@ end
 function addRunepriestFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription)
 	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
 	if sClassFeatureName == "Runic Artistry" then
-		-- Add the feature and choose between all of the warlock pacts
 		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
 		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
 		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
@@ -1349,6 +1354,149 @@ function addSeekerFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFil
 end
 
 
+
+-------------------------------------------
+----- ASSASSIN Class Features ----
+-------------------------------------------
+function addAssassinFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription)
+	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
+	if sClassFeatureName == "Guild Training" then
+		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
+		displayClassFeatureSelectionsDialog(rAdd, sClassFeatureOriginalDescription, sClassFeatureName);	
+	else
+		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
+		ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", sClassFeatureName, rAdd.sCharName);
+	end
+end
+
+
+
+-------------------------------------------
+----- ARTIFICER Class Features ----
+-------------------------------------------
+function addArtificerFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription)
+	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
+	if sClassFeatureName == "Arcane Empowerment" then
+		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+		DB.setValue(rCreatedIDChildNode, "description", "string", removeLinkLists(sClassFeatureOriginalDescription));
+	elseif sClassFeatureName == "Healing Infusion" then
+		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+		DB.setValue(rCreatedIDChildNode, "description", "string", removeLinkLists(sClassFeatureOriginalDescription));		
+		displayArtificerHealingInfusionDialog(rAdd);
+	else
+		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
+		ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", sClassFeatureName, rAdd.sCharName);
+	end
+end
+function displayArtificerHealingInfusionDialog(rAdd)
+	--Display information on the selections in chat
+	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
+	for x,y in pairs(tCurrentFeatures) do
+		if DB.getText(DB.getPath(y, "value")) == "Battle Cleric's Lore" or DB.getText(DB.getPath(y, "value")) == "Healer's Lore" then
+			local tMessageShortcuts = { { class="ref_ability", recordname=DB.getPath(y) } };
+			if sbattleClericLoreReference and DB.getText(DB.getPath(y, "value")) == "Battle Cleric's Lore" then
+				tMessageShortcuts = {{ class="powerdesc", recordname=sbattleClericLoreReference }}
+			end
+			local tMessageData = {font = "systemfont", text = DB.getText(DB.getPath(y, "value")), shortcuts=tMessageShortcuts};
+			Comm.addChatMessage(tMessageData);
+		end
+	end
+
+	--Display a pop-up where we either choose Resistive Formula or Shielding Elixer healing infusion
+	local tOptions = {}
+	tOptions[1] = "Healing Infusion: Resistive Formula";
+	tOptions[2] = "Healing Infusion: Shielding Elixir";
+	local tDialogData = {
+		title = Interface.getString("char_build_title_addartificerhealinginfusion"),
+		msg = Interface.getString("char_build_message_addartificerhealinginfusion"),
+		options = tOptions,
+		min = 1,
+		max = 1,
+		callback = CharClassFeatureManager.callbackResolveArtificerHealingInfusion,
+		custom = rAdd,
+	};
+	DialogManager.requestSelectionDialog(tDialogData);
+end
+function callbackResolveArtificerHealingInfusion(tSelection, rAdd, tSelectionLinks)
+	if not tSelectionLinks then
+		CharManager.outputUserMessage("char_error_addclasssfeature");
+		return;
+	end
+	if not tSelection then
+		CharManager.outputUserMessage("char_error_addclasssfeature");
+		return;
+	end
+	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
+	local isHasDefaultHealingInfusion = false;
+	local isHasSelectedHealingInfusion = false;
+	if #tSelection == 1 then
+		local sHealingInfusionTitleName = tSelection[1];
+		for x,y in pairs(tCurrentFeatures) do
+			if DB.getText(DB.getPath(y, "value")) == sHealingInfusionTitleName then
+				isHasSelectedHealingInfusion = true;
+			end
+		end
+		if not isHasSelectedHealingInfusion then
+			local tHealingInfusionNameSplit =  StringManager.split(tSelection[1], ';', true);
+			local sHealingInfusionName = '';
+			if #tHealingInfusionNameSplit > 1 then
+				sHealingInfusionName = tHealingInfusionNameSplit[2];
+			end
+			local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+			DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+			DB.setValue(rCreatedIDChildNode, "value", "string", sHealingInfusionTitleName);
+			DB.setValue(rCreatedIDChildNode, "description", "string", "You gain the " .. sHealingInfusionTitleName .. " healing infusion power. You can create up to two healing infusions that last until your next extended rest each extended rest.");
+		end
+	end
+	local sDefaultHealingInfusionTitleName = "Healing Infusion: Curative Admixture";
+	for x,y in pairs(tCurrentFeatures) do
+		if DB.getText(DB.getPath(y, "value")) == sDefaultHealingInfusionTitleName then
+			isHasDefaultHealingInfusion = true;
+		end
+	end
+	if not isHasDefaultHealingInfusion then
+		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+		DB.setValue(rCreatedIDChildNode, "value", "string", sDefaultHealingInfusionTitleName);
+		DB.setValue(rCreatedIDChildNode, "description", "string", "You gain the " .. sDefaultHealingInfusionTitleName .. " healing infusion power. You can create up to two healing infusions that last until your next extended rest each extended rest.");
+	end
+end
+
+
+-------------------------------------------
+----- SWORDMAGE Class Features ----
+-------------------------------------------
+function addSwordmageFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription)
+	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
+	if sClassFeatureName == "Swordmage Aegis" then
+		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+		DB.setValue(rCreatedIDChildNode, "description", "string", removeLinkLists(sClassFeatureOriginalDescription));
+		displayClassFeatureSelectionsDialog(rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
+	else
+		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
+		ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", sClassFeatureName, rAdd.sCharName);
+	end
+end
+
+
 ---------------------------------------
 -- Utility functions
 --
@@ -1376,7 +1524,15 @@ function convertHTMLTable(sHTMLTable)
 	return sHTMLTable;
 end
 function removeLinkLists(sText)
-	return string.gsub(sText, "<linklist>.*</linklist>", "");
+	sText = string.gsub(sText, "</p>", "\n");
+	sText = string.gsub(sText, "<p>", "    ");
+	sText = string.gsub(sText, "<p />", "\n");
+
+	sText = string.gsub(sText, "<link.->", "\n - ");
+	sText = string.gsub(sText, "</link>", "\n");
+	sText = string.gsub(sText, "<linklist>", "");
+	sText = string.gsub(sText, "</linklist>", "");
+	return sText;
 end
 
 function createSet(tbl)
