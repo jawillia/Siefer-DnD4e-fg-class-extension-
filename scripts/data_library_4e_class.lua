@@ -78,7 +78,7 @@ aRecordOverrides = {
 	["class"] = {
 		aDataMap = { "class", "reference.classes" }, 
 		sListDisplayClass = "masterindexitem_id",
-		sRecordDisplayClass = "powerdesc", 
+		sRecordDisplayClass = "reference_class", 
 		tOptions = {
 			bExport = true,
 		},

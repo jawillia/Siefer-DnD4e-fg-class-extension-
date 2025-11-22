@@ -20,7 +20,8 @@
 
 		<!-- Campaign -->
 		<includefile source="campaign/record_char_main.xml" />
-		<includefile source="campaign/record_char_skills.xml" /> 
+		<includefile source="campaign/record_char_skills.xml" />
+		<includefile source="campaign/record_class.xml" /> 
 
 		<!-- High-Level Scripts -->
 		<script name="CharManagerWith4EClassExtension" file="scripts/manager_char_4e.lua" />
