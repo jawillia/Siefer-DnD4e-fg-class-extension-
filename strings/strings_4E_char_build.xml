@@ -52,4 +52,7 @@
    <!-- Cleric (Warpriest) Feature strings -->
   <string name="char_build_title_addclericdomain">Cleric Domains</string> 
   <string name="char_build_message_addclericdomains">Choose a Cleric domain. These determine your channel divinity and class feature powers.</string> 
+   <!-- Fighter (Knight) Feature strings -->
+  <string name="char_build_title_addfighterknightbattleguardian">Battle Guardian or Feywild Guardian</string> 
+  <string name="char_build_message_addfighterknightbattleguardian">Eladrin can choose to gain the Feywild Guardian power instead of Battle Guardian.</string>   
 </root>

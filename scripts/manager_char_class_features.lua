@@ -38,6 +38,8 @@ function addClassSpecificFeatures(sClassName, rAdd, sClassFeatureName, sClassFea
 		["SWORDMAGE"] = function() return addSwordmageFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
 		--HoFL
 		["CLERIC (WARPRIEST)"] = function() return addClericWarpriestFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
+		["FIGHTER (KNIGHT)"] = function() return addFighterKnightFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
+		["WIZARD (MAGE)"] = function() return addWizardMageFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
 		default = function() return addDefaultClassFeature(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription) end
 	});
 end
@@ -649,12 +651,6 @@ function addRogueScoundrelFeatures(sClassName, rAdd, sClassFeatureName, sClassFe
 		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
 		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
 		displayClassFeatureSelectionsDialog(rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
-	elseif sClassFeatureName == "Sneak Attack" then
-		-- Add the feature and replace the html table with more clean text
-		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
-		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-		DB.setValue(rCreatedIDChildNode, "description", "string", convertHTMLTable(sClassFeatureOriginalDescription));
 	else
 		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
 		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
@@ -871,12 +867,6 @@ function addWizardArcanistFeatures(sClassName, rAdd, sClassFeatureName, sClassFe
 		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
 		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
 		displayClassFeatureSelectionsDialog(rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
-	elseif sClassFeatureName == "Arcanist's Spellbook" then
-		-- Add the feature and replace the html table with more clean text
-		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
-		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-		DB.setValue(rCreatedIDChildNode, "description", "string", convertHTMLTable(sClassFeatureOriginalDescription));		
 	else
 		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
 		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
@@ -1235,11 +1225,6 @@ function addBattlemindFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatur
 		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
 		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
 		displayClassFeatureSelectionsDialog(rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
-	elseif sClassFeatureName == "Psionic Augmentation" then
-		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
-		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-		DB.setValue(rCreatedIDChildNode, "description", "string", convertHTMLTable(sClassFeatureFilteredDescription));
 	else
 		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
 		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
@@ -1284,11 +1269,6 @@ function addPsionFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilt
 		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
 		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
 		displayClassFeatureSelectionsDialog(rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
-	elseif sClassFeatureName == "Psionic Augmentation" then
-		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
-		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-		DB.setValue(rCreatedIDChildNode, "description", "string", convertHTMLTable(sClassFeatureFilteredDescription));
 	else
 		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
 		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
@@ -1728,6 +1708,93 @@ function addClericWarpriestChannelDivinity(rAdd, sClassFeatureOriginalDescriptio
 				break;
 			end
 		end
+	end
+end
+
+
+-------------------------------------------
+----- FIGHTER (KNIGHT) Class Features ----
+-------------------------------------------
+function addFighterKnightFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription)
+	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
+	if sClassFeatureName == "Battle Guardian" then
+		local sCharRace = DB.getValue(rAdd.nodeChar, "race", "");
+		if sCharRace and sCharRace:upper() == "ELADRIN" then
+			displayFighterKnightFeywildGuardianDialog(rAdd, removeLinkLists(sClassFeatureOriginalDescription));
+		else
+			local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+			DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+			DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+			DB.setValue(rCreatedIDChildNode, "description", "string", removeLinkLists(sClassFeatureOriginalDescription));
+		end
+	else
+		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
+		ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", sClassFeatureName, rAdd.sCharName);
+	end
+end
+function displayFighterKnightFeywildGuardianDialog(rAdd, sClassFeatureOriginalDescription)
+	--Display a pop-up where we either choose from the Battle Guardian or Feywild Guardian
+	local tOptions = {}
+	tOptions[1] = "Battle Guardian";
+	tOptions[2] = "Feywild Guardian";
+	local tDialogData = {
+		title = Interface.getString("char_build_title_addfighterknightbattleguardian"),
+		msg = Interface.getString("char_build_message_addfighterknightbattleguardian"),
+		options = tOptions,
+		min = 1,
+		max = 1,
+		callback = CharClassFeatureManager.callbackResolveFighterKnightBattleGuardianSelection,
+		custom = { rAdd=rAdd, sClassFeatureOriginalDescription=sClassFeatureOriginalDescription },
+	};
+	DialogManager.requestSelectionDialog(tDialogData);
+end
+function callbackResolveFighterKnightBattleGuardianSelection(tSelection, tData)
+	if not tSelection and #tSelection == 1 then
+		CharManager.outputUserMessage("char_error_addclasssfeature");
+		return;
+	end
+	if #tSelection == 1 then
+		local tCurrentFeatures = DB.getChildren(tData.rAdd.nodeChar, "specialabilitylist");
+		--Clear all existing Battle Guardian nodes, then add them
+		for _, featureNode in pairs(tCurrentFeatures) do
+			if (DB.getText(DB.getPath(featureNode, "value")) == "Battle Guardian")
+				or (DB.getText(DB.getPath(featureNode, "value")) == "Feywild Guardian") then
+				DB.deleteNode(featureNode);
+			end
+		end
+		local sClassFeatureName = tSelection[1];
+		local sClassFeatureDescription = tData.sClassFeatureOriginalDescription;
+		if tSelection[1] == "Feywild Guardian" then
+			sClassFeatureDescription = "Eladrin can choose to gain the Feywild Guardian power in place of Battle Guardian.\n\n - Feywild Guardian";
+		end
+		local rCreatedIDChildNode = DB.createChild(tData.rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureDescription);
+	end
+end
+
+
+-------------------------------------------
+----- WIZARD (MAGE) Class Features ----
+-------------------------------------------
+function addWizardMageFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription)
+	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
+	if sClassFeatureName == "Level 1 Apprentice Mage" then
+		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+		DB.setValue(rCreatedIDChildNode, "description", "string", removeLinkLists(sClassFeatureOriginalDescription));
+		displayClassFeatureSelectionsDialog(rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
+	else
+		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
+		ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", sClassFeatureName, rAdd.sCharName);
 	end
 end
 
