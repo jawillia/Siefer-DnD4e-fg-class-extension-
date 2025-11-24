@@ -250,6 +250,7 @@ function addClassFeatures(rAdd, sRecord, sDescriptionText, sClassName)
 		--Pre-Feature Class Feature added here, features that must be chosen before other features, like warpriest domains
 		local tClassesWithPreFeatures = {};
 		tClassesWithPreFeatures["CLERIC (WARPRIEST)"] = true;
+		tClassesWithPreFeatures["DRUID (SENTINEL)"] = true;
 		if tClassesWithPreFeatures[sClassName:upper()] then
 			CharClassFeatureManager.addClassSpecificPreFeatures(sClassName, rAdd, sDescriptionText, tClassFeatures);
 		else
