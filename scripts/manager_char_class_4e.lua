@@ -31,9 +31,6 @@ function addClass(nodeChar, sRecord, tData)
 	-- --Add Race Powers
 	-- addRacePowers(rAdd, sRecord, sDescriptionText);
 
-	-- --Add Traits
-	-- addRaceTraits(rAdd, sRecord, sDescriptionText);
-
 	-- --Add skill bonuses
 	addClassSkill(rAdd, sRecord, sDescriptionText);
 
@@ -244,7 +241,7 @@ function addClassFeatures(rAdd, sRecord, sDescriptionText, sClassName)
 			sDescriptionText = string.match(sDescriptionText, "(.-)<p><b>Level 2:</b></p>");
 		end
 		if sClassFeaturesDescriptionTextLine then
-			sClassFeaturesValue = string.match(sClassFeaturesDescriptionTextLine, "[%w,'()%-%s]+");
+			sClassFeaturesValue = string.match(sClassFeaturesDescriptionTextLine, "[%w,'%(%)%-%s]+");
 		end
 		local tClassFeatures = StringManager.split(sClassFeaturesValue, ',', true);
 		--Pre-Feature Class Feature added here, features that must be chosen before other features, like warpriest domains
@@ -256,35 +253,39 @@ function addClassFeatures(rAdd, sRecord, sDescriptionText, sClassName)
 		else
 			for w,v in pairs(tClassFeatures) do
 				local sClassFeatureDescriptionPattern = '';
+				v = v:gsub("[%(%)%-]", "%%%0");
+				v = v:gsub("(%a)([%w_']*)", titleCase);
 				if w < #tClassFeatures then
-					sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v:gsub("(%a)([%w_']*)", titleCase) .. "%s*</b></p>%s*(.-)<p><b>";
+					sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v .. "%s*</b></p>%s*(.-)<p><b>";
 				elseif w == #tClassFeatures then
 					-- On the last feature entry, first try reading to the class overview
-					sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v:gsub("(%a)([%w_']*)", titleCase) .. "%s*</b></p>%s*(.-)<p>" .. sClassName:upper() .. " OVERVIEW</p>";
+					sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v .. "%s*</b></p>%s*(.-)<p>" .. sClassName:upper() .. " OVERVIEW</p>";
 					sClassFeatureSpecificDescriptionText = string.match(sDescriptionText, sClassFeatureDescriptionPattern);
 					-- Then try reading to alternative features
 					if sClassFeatureSpecificDescriptionText == nil then
-						sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v:gsub("(%a)([%w_']*)", titleCase) .. "%s*</b></p>%s*(.-)<p><b>Alternative";
+						sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v .. "%s*</b></p>%s*(.-)<p><b>Alternative";
 						sClassFeatureSpecificDescriptionText = string.match(sDescriptionText, sClassFeatureDescriptionPattern);
 					end	
 					-- Or read to the Implements
 					if sClassFeatureSpecificDescriptionText == nil then
-						sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v:gsub("(%a)([%w_']*)", titleCase) .. "%s*</b></p>%s*(.-)<p><b>IMPLEMENTS</b></p>";
+						sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v .. "%s*</b></p>%s*(.-)<p><b>IMPLEMENTS</b></p>";
 						sClassFeatureSpecificDescriptionText = string.match(sDescriptionText, sClassFeatureDescriptionPattern);
 					end			
 					-- Then try reading to the end of the record if that didn't work
 					if sClassFeatureSpecificDescriptionText == nil then
-						sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v:gsub("(%a)([%w_']*)", titleCase) .. "%s*</b></p>%s*(.+)</p>";
+						sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v .. "%s*</b></p>%s*(.+)</p>";
 					end
 					-- If that didn't work, try really reading to the end of the record
 					if sClassFeatureSpecificDescriptionText == nil then
-						sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v:gsub("(%a)([%w_']*)", titleCase) .. "%s*</b></p>%s*(.+)";
+						sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v .. "%s*</b></p>%s*(.+)";
 					end
 				end
 				sClassFeatureSpecificDescriptionText = string.match(sDescriptionText, sClassFeatureDescriptionPattern);
 				if sClassFeatureSpecificDescriptionText then
 					sClassFeatureFilteredDescriptionText = convertHTMLTable(removeLinkLists(sClassFeatureSpecificDescriptionText));
 				end
+				--Revert v back to unescaped version
+				v = v:gsub("%%", "");
 				local isFeatureInList = false;
 				for _, featureNode in pairs(tCurrentFeatures) do
 					if DB.getText(DB.getPath(featureNode, "value")) == v then
@@ -371,132 +372,6 @@ function addRacePowers(rAdd, sRecord, sDescriptionText)
 				CharManager.parseDescription(rCreatedIDChildNode);
 				ChatManager.SystemMessageResource("char_abilities_message_poweradd", sRacialPowerName, rAdd.sCharName);
 			end
-		end
-	end
-end
-
-function addRaceTraits(rAdd, sRecord, sDescriptionText)
-	-- Parsing Order for these: 
-	--- 1) First checks race speed node, 
-	--- 2) Then traits nodes, 
-	--- 3) Then description text
-	addRaceSpeed(rAdd, sRecord, sDescriptionText);
-	addRaceSize(rAdd, sRecord, sDescriptionText);
-	addRaceVision(rAdd, sRecord, sDescriptionText);
-	addRaceLanguages(rAdd, sRecord, sDescriptionText);
-end
-
-function addRaceSpeed(rAdd, sRecord, sDescriptionText)
-	local nSpeedValue = '';
-	local sSpecialSpeed = '';
-	local rSpeedNode = DB.findNode(DB.getPath(sRecord, "speed"));
-	if rSpeedNode then
-			sSpecialSpeed = string.match(DB.getText(rSpeedNode), "%.(.*)");
-			nSpeedValue = string.match(DB.getText(rSpeedNode), "%d+");
-	elseif DB.findNode(DB.getPath(sRecord, "traits")) then
-		local rRecordTraitsNode = DB.findNode(DB.getPath(sRecord, "traits"));
-		local rSpeedTraitsNode = DB.getChild(rRecordTraitsNode, "speed");
-		if rSpeedTraitsNode then
-			local sSpeedText = DB.getChild(rSpeedTraitsNode, "text");
-			sSpecialSpeed = string.match(DB.getText(sSpeedText), "%.(.*)");
-			nSpeedValue = string.match(DB.getText(sSpeedText), "%d+");
-		end
-	elseif sDescriptionText then
-		local sSpeedDescriptionTextLine = string.match(sDescriptionText, "<p>%s*<b>%s*Speed%s*</b>%s*:%s*(.-)</p>");
-		nSpeedValue = string.match(sSpeedDescriptionTextLine, "%d+");
-		sSpecialSpeed = string.match(sSpeedDescriptionTextLine, "%.(.*)");
-	end
-	local rCharacterSpeedNode = DB.findNode(rAdd.nodeChar.getPath("speed"));
-	if rCharacterSpeedNode and nSpeedValue then
-		DB.setValue(rCharacterSpeedNode, "base", "number", nSpeedValue);
-		ChatManager.SystemMessageResource("char_combat_message_speedadd", nSpeedValue, rAdd.sCharName);
-	end
-	if rCharacterSpeedNode and sSpecialSpeed then
-		DB.setValue(rCharacterSpeedNode, "special", "string", sSpecialSpeed);
-		ChatManager.SystemMessageResource("char_main_message_specialspeedadd", sSpecialSpeed, rAdd.sCharName);
-	end
-end
-
-function addRaceSize(rAdd, sRecord, sDescriptionText)
-	local sSizeValue = '';
-	local rSizeNode = DB.findNode(DB.getPath(sRecord, "size"));
-	if rSizeNode then
-			sSizeValue = DB.getText(rSizeNode);
-	elseif DB.findNode(DB.getPath(sRecord, "traits")) then
-		local rRecordTraitsNode = DB.findNode(DB.getPath(sRecord, "traits"));
-		if rRecordTraitsNode then
-			local rSizeTraitsNode = DB.getChild(rRecordTraitsNode, "size");
-			if rSizeTraitsNode then
-				local rSizeTextNode = DB.getChild(rSizeTraitsNode, "text");
-				sSizeValue = DB.getText(rSizeTextNode);
-			end
-		end
-	elseif sDescriptionText then
-		local sSizeDescriptionTextLine = string.match(sDescriptionText, "<p>%s*<b>%s*Size%s*</b>%s*:%s*(.-)</p>");
-		sSizeValue = string.match(sSizeDescriptionTextLine, "%a+");
-	end
-	if sSizeValue then
-		DB.setValue(rAdd.nodeChar, "size", "string", sSizeValue);
-		ChatManager.SystemMessageResource("char_notes_message_sizeadd", sSizeValue, rAdd.sCharName);
-	end
-end
-
-function addRaceVision(rAdd, sRecord, sDescriptionText)
-	local sVisionValue = '';
-	local rVisionNode = DB.findNode(DB.getPath(sRecord, "vision"));
-	if rVisionNode then
-			sVisionValue = DB.getText(rVisionNode);
-	elseif DB.findNode(DB.getPath(sRecord, "traits")) then
-		local rRecordTraitsNode = DB.findNode(DB.getPath(sRecord, "traits"));
-		if rRecordTraitsNode then
-			local rVisionTraitsNode = DB.getChild(rRecordTraitsNode, "vision");
-			if rVisionTraitsNode then
-				local rVisionTextNode = DB.getChild(rVisionTraitsNode, "text");
-				sVisionValue = DB.getText(rVisionTextNode);
-			end
-		end
-	elseif sDescriptionText then
-		local sVisionDescriptionTextLine = string.match(sDescriptionText, "<p>%s*<b>%s*Vision%s*</b>%s*:%s*(.-)</p>");
-		sVisionValue = string.match(sVisionDescriptionTextLine, "[%a-]+");
-	end
-	if sVisionValue then
-		DB.setValue(rAdd.nodeChar, "senses", "string", sVisionValue);
-		ChatManager.SystemMessageResource("char_main_message_visionadd", sVisionValue, rAdd.sCharName);
-	end
-end
-
-function addRaceLanguages(rAdd, sRecord, sDescriptionText)
-	local sLanguagesValue = '';
-	local rLanguagesNode = DB.findNode(DB.getPath(sRecord, "languages"));
-	if rLanguagesNode then
-			sLanguagesValue = DB.getText(rLanguagesNode);
-	elseif DB.findNode(DB.getPath(sRecord, "traits")) then
-		local rRecordTraitsNode = DB.findNode(DB.getPath(sRecord, "traits"));
-		if rRecordTraitsNode then
-			local rLanguagesTraitsNode = DB.getChild(rRecordTraitsNode, "languages");
-			if rLanguagesTraitsNode then
-				local rLanguageTextNode = DB.getChild(rLanguagesTraitsNode, "text");
-				sLanguagesValue = DB.getText(rLanguageTextNode);
-			end
-		end
-	elseif sDescriptionText then
-		local sLanguagesDescriptionTextLine = string.match(sDescriptionText, "<p>%s*<b>%s*Languages%s*</b>%s*:%s*(.-)</p>");
-		sLanguagesValue = string.match(sLanguagesDescriptionTextLine, "[%a,%s]+");
-	end
-	local tLanguages = StringManager.split(sLanguagesValue, ',', true);
-	local tCurrentLanguages = DB.getChildren(rAdd.nodeChar, "languagelist");
-	for _,x in pairs(tLanguages) do
-		local isLanguageInList = false;
-		for languageName, languageNode in pairs(tCurrentLanguages) do
-			if DB.getText(DB.getPath(languageNode, "name")) == x then
-				isLanguageInList = true;
-				break;
-			end
-		end
-		if isLanguageInList == false then
-			local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("languagelist"));
-			DB.setValue(rCreatedIDChildNode, "name", "string", x);
-			ChatManager.SystemMessageResource("char_notes_message_languageadd", x, rAdd.sCharName);
 		end
 	end
 end

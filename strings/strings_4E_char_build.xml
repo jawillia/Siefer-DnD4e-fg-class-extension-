@@ -26,7 +26,7 @@
   <string name="char_error_addclassskill">Error training class skill.</string> 
   <string name="char_error_addclasssfeature">Error adding class feature.</string> 
 
-  <string name="char_build_message_chooseclassfeatures">Choose one of the following %s:</string> 
+  <string name="char_build_message_chooseclassfeatures">Choose %s of the following %s:</string> 
   <!-- Cleric Feature Strings -->
   <string name="char_build_title_addhealerlore">Healer's Lore or Alternate</string> 
   <string name="char_build_message_addhealerorbattlelore">Choose Healer's Lore or Battle Cleric's Lore. Check the chat for detailed descriptions.</string> 
