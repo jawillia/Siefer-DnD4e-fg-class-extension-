@@ -36,7 +36,16 @@ function addClassSpecificFeatures(sClassName, rAdd, sClassFeatureName, sClassFea
 		["ARTIFICER"] = function() return addArtificerFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,		
 		--FPG
 		["SWORDMAGE"] = function() return addSwordmageFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
+		--HoFL
+		["CLERIC (WARPRIEST)"] = function() return addClericWarpriestFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
 		default = function() return addDefaultClassFeature(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription) end
+	});
+end
+
+function addClassSpecificPreFeatures(sClassName, rAdd, sDescriptionText, tClassFeatures)
+	switch(sClassName:upper(), 
+	{
+		["CLERIC (WARPRIEST)"] = function() return addClericWarpriestPreFeatures(sClassName, rAdd, sDescriptionText, tClassFeatures) end
 	});
 end
 
@@ -1140,7 +1149,6 @@ function callbackResolveSorcererSpellSourceSelectionsDialogSelection(tSelection,
 			end
 		end
 		for _,subSpellSource in pairs(tData.tAllOptions) do
-			Debug.console("All options", subSpellSource);
 			local isInList = false;
 			local isCorrectSubSpellSource = false;
 			for _, featureNode in pairs(tCurrentFeatures) do
@@ -1497,6 +1505,233 @@ function addSwordmageFeatures(sClassName, rAdd, sClassFeatureName, sClassFeature
 end
 
 
+-------------------------------------------
+----- CLERIC (WARPRIEST) Class Features ----
+-------------------------------------------
+function addClericWarpriestPreFeatures(sClassName, rAdd, sDescriptionText, tClassFeatures)
+	--First, see if you have a domain already selected. If you don't, select one, then go through the rest of the features.
+	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
+	local sAlreadyTakenDomain = nil;
+	local tDomainNames = { "Correlon", "Death", "Domination", "Earth", "Oghma", "Selune", "Storm", "Sun", "Torm" };
+	for _, featureNode in pairs(tCurrentFeatures) do
+		for x,domainName in ipairs(tDomainNames) do
+			local sFeatureName = DB.getText(DB.getPath(featureNode, "value"));
+			if sFeatureName then
+				if string.find(sFeatureName, domainName) then
+					sAlreadyTakenDomain = domainName;
+					break;
+				end
+			end
+		end
+	end
+	if not sAlreadyTakenDomain or sAlreadyTakenDomain == "" then
+		--Display a pop-up where we either choose from the Warpriest domains
+		local tOptions = {}
+		tOptions[1] = "Correlon";
+		tOptions[2] = "Death";
+		tOptions[3] = "Domination";
+		tOptions[4] = "Earth";
+		tOptions[5] = "Oghma";
+		tOptions[6] = "Selune";
+		tOptions[7] = "Storm";
+		tOptions[8] = "Sun";
+		tOptions[9] = "Torm";
+		local tDialogData = {
+			title = Interface.getString("char_build_title_addclericdomain"),
+			msg = Interface.getString("char_build_message_addclericdomains"),
+			options = tOptions,
+			min = 1,
+			max = 1,
+			callback = CharClassFeatureManager.callbackResolveClericWarpriestPreFeatureSelection,
+			custom = { sClassName=sClassName, rAdd=rAdd, sDescriptionText=sDescriptionText, tClassFeatures=tClassFeatures },
+		};
+		DialogManager.requestSelectionDialog(tDialogData);
+	end
+end
+function addClericWarpriestFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription)
+	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
+
+	if sClassFeatureName == "Channel Divinity Powers" then
+		--Add the feature, but if you have also already added Channel Divinity Powers, narrow domain and channel divinity features
+		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
+		displayClericWarpriestDomainDialog(sClassName, rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
+	elseif sClassFeatureName == "Domain Features" then
+		--Add the feature, but if you have also already added Channel Divinity Powers, narrow domain and channel divinity features
+		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
+		displayClericWarpriestDomainDialog(sClassName, rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
+	else
+		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
+		ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", sClassFeatureName, rAdd.sCharName);
+	end
+end
+function callbackResolveClericWarpriestPreFeatureSelection(tSelection, tData)
+	if not tSelection and #tSelection == 1 then
+		CharManager.outputUserMessage("char_error_addclasssfeature");
+		return;
+	end
+
+	local sDomainDescription = "You have selected the " .. tSelection[1] .. " domain.";
+	local rCreatedIDChildNode = DB.createChild(tData.rAdd.nodeChar.getPath("specialabilitylist"));
+	DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+	DB.setValue(rCreatedIDChildNode, "value", "string", tSelection[1] .. " Domain");
+	DB.setValue(rCreatedIDChildNode, "description", "string", sDomainDescription);
+
+	local tCurrentFeatures = DB.getChildren(tData.rAdd.nodeChar, "specialabilitylist");
+	for w,v in pairs(tData.tClassFeatures) do
+		local sClassFeatureDescriptionPattern = '';
+		if w < #tData.tClassFeatures then
+			sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v:gsub("(%a)([%w_']*)", titleCase) .. "%s*</b></p>%s*(.-)<p><b>";
+		elseif w == #tData.tClassFeatures then
+			-- On the last feature entry, first try reading to the end of the description we're given
+			sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v:gsub("(%a)([%w_']*)", titleCase) .. "%s*</b></p>%s*(.+)";
+		end
+		sClassFeatureSpecificDescriptionText = string.match(tData.sDescriptionText, sClassFeatureDescriptionPattern);
+		if sClassFeatureSpecificDescriptionText then
+			sClassFeatureFilteredDescriptionText = removeLinkLists(sClassFeatureSpecificDescriptionText);
+		end
+		local isFeatureInList = false;
+		for _, featureNode in pairs(tCurrentFeatures) do
+			if DB.getText(DB.getPath(featureNode, "value")) == v then
+				isFeatureInList = true;
+				break;
+			end
+		end
+		if isFeatureInList == false then
+			CharClassFeatureManager.addClassSpecificFeatures(tData.sClassName, tData.rAdd, v, sClassFeatureFilteredDescriptionText, sClassFeatureSpecificDescriptionText);
+		end
+	end
+end
+function displayClericWarpriestDomainDialog(sClassName, rAdd, sClassFeatureOriginalDescription, sClassFeatureName)
+	--Find out if you have a domain feature already, and if so, add the domain feature already
+	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
+	local sAlreadyTakenDomain = "";
+	local tDomainNames = { "Correlon", "Death", "Domination", "Earth", "Oghma", "Selune", "Storm", "Sun", "Torm" };
+	for _, featureNode in pairs(tCurrentFeatures) do
+		for x,domainName in ipairs(tDomainNames) do
+			local sFeatureName = DB.getText(DB.getPath(featureNode, "value"));
+			if sFeatureName then
+				if string.find(sFeatureName, domainName) then
+					sAlreadyTakenDomain = domainName;
+					break;
+				end
+			end
+		end
+	end
+
+	if sAlreadyTakenDomain and sAlreadyTakenDomain ~= "" then
+		if sClassFeatureName == "Domain Features" and sClassFeatureOriginalDescription then
+			addClericWarpriestDomain(rAdd, sClassFeatureOriginalDescription, sAlreadyTakenDomain);
+		elseif sClassFeatureName == "Channel Divinity Powers" and sClassFeatureOriginalDescription then
+			addClericWarpriestChannelDivinity(rAdd, sClassFeatureOriginalDescription, sAlreadyTakenDomain);
+		end
+	else
+		--Display a pop-up where we either choose from the Warpriest domains
+		local tOptions = {}
+		tOptions[1] = "Correlon";
+		tOptions[2] = "Death";
+		tOptions[3] = "Domination";
+		tOptions[4] = "Earth";
+		tOptions[5] = "Oghma";
+		tOptions[6] = "Selune";
+		tOptions[7] = "Storm";
+		tOptions[8] = "Sun";
+		tOptions[9] = "Torm";
+		local tDialogData = {
+			title = Interface.getString("char_build_title_addclericdomain"),
+			msg = Interface.getString("char_build_message_addclericdomains"),
+			options = tOptions,
+			min = 1,
+			max = 1,
+			callback = CharClassFeatureManager.callbackResolveClericWarpriestDomainSelection,
+			custom = { rAdd=rAdd, sClassFeatureOriginalDescription=sClassFeatureOriginalDescription, sClassFeatureName=sClassFeatureName },
+		};
+		DialogManager.requestSelectionDialog(tDialogData);
+	end
+end
+function callbackResolveClericWarpriestDomainSelection(tSelection, tData)
+	if not tSelection and #tSelection == 1 then
+		CharManager.outputUserMessage("char_error_addclasssfeature");
+		return;
+	end
+	if #tSelection == 1 then
+		if tData.sClassFeatureName == "Domain Features" and tData.sClassFeatureOriginalDescription then
+			addClericWarpriestDomain(tData.rAdd, tData.sClassFeatureOriginalDescription, tSelection[1]);
+		elseif tData.sClassFeatureName == "Channel Divinity Powers" and tData.sClassFeatureOriginalDescription then
+			addClericWarpriestChannelDivinity(tData.rAdd, tData.sClassFeatureOriginalDescription, tSelection[1]);
+		else
+			local sDomainDescription = "You have selected the " .. tSelection[1] .. " domain.";
+			local rCreatedIDChildNode = DB.createChild(tData.rAdd.nodeChar.getPath("specialabilitylist"));
+			DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+			DB.setValue(rCreatedIDChildNode, "value", "string", tSelection[1] .. " Domain");
+			DB.setValue(rCreatedIDChildNode, "description", "string", sDomainDescription);
+		end
+	end
+end
+function addClericWarpriestDomain(rAdd, sClassFeatureOriginalDescription, sSelectedDomain)
+	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
+	local isNotInList = false;
+	for _, featureNode in pairs(tCurrentFeatures) do
+		if DB.getText(DB.getPath(featureNode, "value")) == sSelectedDomain .. " Domain Features and Powers" then
+			isNotInList = true;
+			break;
+		end
+	end
+	if not isNotInList then
+		local sPattern = '<link class="powerdesc" recordname="reference.features.(%w+)@([%w%s]+)">';
+		local sFeaturesLink = string.gmatch(sClassFeatureOriginalDescription, sPattern);
+		for w,v in sFeaturesLink do
+			local sPattern = "reference.features." .. w .. "@" .. v;
+			local sClassFeatureName = DB.getText(DB.getPath(sPattern, "name"));
+			local sClassFeatureDescription = DB.getText(DB.getPath(sPattern, "description"));
+			if sClassFeatureName == sSelectedDomain .. " Domain Features and Powers" then
+				local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+				DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference", "powerdesc", sPattern);
+				DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+				--DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureOriginalDescription);
+				ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", sClassFeatureName, rAdd.sCharName);
+				break;
+			end
+		end
+	end
+end
+function addClericWarpriestChannelDivinity(rAdd, sClassFeatureOriginalDescription, sSelectedDomain)
+	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
+	local isNotInList = false;
+	for _, featureNode in pairs(tCurrentFeatures) do
+		if DB.getText(DB.getPath(featureNode, "value")) == "Channel Divinity (" .. sSelectedDomain .. ")" then
+			isNotInList = true;
+			break;
+		end
+	end
+	if not isNotInList then
+		local sPattern = '<link class="powerdesc" recordname="reference.features.(%w+)@([%w%s]+)">';
+		local sFeaturesLink = string.gmatch(sClassFeatureOriginalDescription, sPattern);
+		for w,v in sFeaturesLink do
+			local sPattern = "reference.features." .. w .. "@" .. v;
+			local sClassFeatureName = DB.getText(DB.getPath(sPattern, "name"));
+			local sClassFeatureDescription = DB.getText(DB.getPath(sPattern, "description"));
+			if sClassFeatureName == "Channel Divinity (" .. sSelectedDomain .. ")" then
+				local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+				DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference", "powerdesc", sPattern);
+				DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+				--DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureOriginalDescription);
+				ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", sClassFeatureName, rAdd.sCharName);
+				break;
+			end
+		end
+	end
+end
+
+
 ---------------------------------------
 -- Utility functions
 --
@@ -1528,10 +1763,10 @@ function removeLinkLists(sText)
 	sText = string.gsub(sText, "<p>", "    ");
 	sText = string.gsub(sText, "<p />", "\n");
 
-	sText = string.gsub(sText, "<link.->", "\n - ");
-	sText = string.gsub(sText, "</link>", "\n");
 	sText = string.gsub(sText, "<linklist>", "");
 	sText = string.gsub(sText, "</linklist>", "");
+	sText = string.gsub(sText, "<link.->", "\n - ");
+	sText = string.gsub(sText, "</link>", "\n");	
 	return sText;
 end
 
@@ -1541,4 +1776,9 @@ function createSet(tbl)
 		set[v] = true;
 	end
 	return set;
+end
+
+--Use like this: string.gsub(str, "(%a)([%w_']*)", titleCase)
+function titleCase( first, rest )
+   return first:upper()..rest:lower()
 end

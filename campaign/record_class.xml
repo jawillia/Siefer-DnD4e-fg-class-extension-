@@ -8,28 +8,28 @@
 <root>
   <windowclass name="reference_class" copy="record_window_tabbed">
     <tab>
-      <name>notes</name>
-      <resource>tab_main</resource>
-      <class>reference_race_main</class>
-      <embed />
-    </tab>
-    <tab merge="add">
       <name>main</name>
-      <resource>tab_other</resource>
-      <class>reference_race_traits</class>
+      <resource>tab_main</resource>
+      <class>reference_class_description</class>
       <embed />
     </tab>
     <tab merge="add">
       <name>features</name>
-      <resource>tab_abilities</resource>
-      <class>reference_race_features</class>
+      <resource>tab_features</resource>
+      <class>reference_class_features</class>
+      <embed />
+    </tab>
+    <tab merge="add">
+      <name>other</name>
+      <resource>tab_traits</resource>
+      <class>reference_class_traits</class>
       <embed />
     </tab>    
   </windowclass>
 
-  <windowclass name="reference_race_header" copy="record_header" />
+  <windowclass name="reference_class_header" copy="record_header" />
 
-  <windowclass name="reference_race_main">
+  <windowclass name="reference_class_description">
     <script>
       function onInit()
         update();
@@ -81,178 +81,272 @@
     </sheetdata>
   </windowclass>  
 
-  <windowclass name="reference_race_traits">
-<!--     <script>
-      function onInit()
-        self.update();
-      end
-      function onVersionChanged()
-        self.update();
-      end
-      function update()
-        local nodeRecord = getDatabaseNode();
-        local bIs2024 = (DB.getValue(nodeRecord, "version", "") == "2024");
-        if bIs2024 then
-          sub_content.setValue("reference_race_main_2024", nodeRecord);
-        else
-          sub_content.setValue("reference_race_main_2014", nodeRecord);
-        end
-        WindowManager.callSafeControlUpdate(self, "sub_content", bReadOnly);
-      end
-      function onDrop(x, y, draginfo)
-        if WindowManager.getReadOnlyState(getDatabaseNode()) then
-          return true;
-        end
-        if draginfo.isType("shortcut") then
-          local sClass = draginfo.getShortcutData();
-          local nodeSource = draginfo.getDatabaseNode();
-          
-          if sClass == "reference_racialtrait" or sClass == "reference_subracialtrait" then
-            self.addTrait(DB.getValue(nodeSource, "name", ""), DB.getText(nodeSource, "text", ""));
-          end
-          return true;
-        end
-      end
-      function addTrait(sName, sText)
-        local nodeTrait = DB.createChild(DB.getPath(getDatabaseNode(), "traits"));
-        if nodeTrait then
-          DB.setValue(nodeTrait, "name", "string", sName);
-          DB.setValue(nodeTrait, "text", "formattedtext", sText);
-        end
-      end
-    </script> -->
+  <windowclass name="reference_class_features">
+    <margins control="0,0,0,5" />
     <script>
       function onInit()
-        self.update();
+        self.onLockModeChanged(WindowManager.getWindowReadOnlyState(self));
       end
-      function update()
-        local nodeRecord = getDatabaseNode();
-        RaceManager.checkForSpeed(nodeRecord);
-        RaceManager.checkForSize(nodeRecord);
-        RaceManager.checkForAbilityScores(nodeRecord);
-        RaceManager.checkForVision(nodeRecord);
-        RaceManager.checkForLanguages(nodeRecord);
-        RaceManager.checkForSkillBonuses(nodeRecord);
-        local bReadOnly = WindowManager.getReadOnlyState(getDatabaseNode());
-        local tFields = { "abilityscores", "size", "speed", "vision", "languages", "skillbonuses", "list" };
-        WindowManager.callSafeControlsUpdate(self, tFields, bReadOnly);
-      end    
+      function onLockModeChanged(bReadOnly)
+        local tControls = { "features_iadd", "featurechoices_iadd", };
+        WindowManager.callSafeControlsSetLockMode(self, tControls, bReadOnly);
+      end
+      function onDrop(x, y, draginfo)
+        if draginfo.isType("shortcut") then
+          local sClass,sRecord = draginfo.getShortcutData();
+          if sClass == "reference_classfeature" then
+            local bReadOnly = WindowManager.getReadOnlyState(getDatabaseNode());
+            if not bReadOnly then
+              local w = features.createWindow();
+              if w then
+                local node = w.getDatabaseNode();
+                DB.setValue(node, "name", "string", DB.getValue(DB.getPath(sRecord, "name"), 0));
+                DB.setValue(node, "level", "number", DB.getValue(DB.getPath(sRecord, "level"), 0));
+                DB.setValue(node, "text", "formattedtext", DB.getValue(DB.getPath(sRecord, "text"), ""));
+              end
+              return true;
+            end
+          elseif sClass == "reference_classfeaturechoice" then
+            local bReadOnly = WindowManager.getReadOnlyState(getDatabaseNode());
+            if not bReadOnly then
+              local w = featurechoices.createWindow();
+              if w then
+                local node = w.getDatabaseNode();
+                DB.setValue(node, "name", "string", DB.getValue(DB.getPath(sRecord, "name"), 0));
+                DB.setValue(node, "level", "number", DB.getValue(DB.getPath(sRecord, "level"), ""));
+                DB.setValue(node, "text", "formattedtext", DB.getValue(DB.getPath(sRecord, "text"), ""));
+                DB.setValue(node, "choicetype", "string", DB.getValue(DB.getPath(sRecord, "choicetype"), ""));
+                DB.setValue(node, "prerequisite", "string", DB.getValue(DB.getPath(sRecord, "prerequisite"), ""));
+              end
+              return true;
+            end
+          end
+        end
+      end
     </script>
     <sheetdata>
       <anchor_content_top />
 
-      <label_content_column name="abilityScores_label">
-        <static textres="race_label_abilityScores" />
-      </label_content_column>
-      <string_content_columnh name="abilityscores" />      
-
-      <label_content_column name="size_label">
-        <static textres="race_label_size" />
-      </label_content_column>
-      <string_content_columnh name="size" />
-
-      <label_content_column name="speed_label">
-        <static textres="race_label_speed" />
-      </label_content_column>
-      <string_content_columnh name="speed" />
-
-      <label_content_column name="vision_label">
-        <static textres="race_label_vision" />
-      </label_content_column>
-      <string_content_columnh name="vision" /> 
-
-      <label_content_column name="languages_label">
-        <static textres="race_label_languages" />
-      </label_content_column>
-      <string_content_columnh name="languages" />
-
-      <label_content_column name="skillbonuses_label">
-        <static textres="race_label_skillbonuses" />
-      </label_content_column>
-      <string_content_columnh name="skillbonuses" />          
-      
-      <header_content_framed_headersimple name="list_header">
-        <static textres="race_header_traits"/>
+      <header_content_framed_headersimple name="features_header">
+        <static textres="class_header_features"/>
       </header_content_framed_headersimple>
-      <button_iedit name="list_iedit">
-        <anchored to="list_header" position="insidetopright" offset="2,0" />
-        <edittarget>list</edittarget>
-      </button_iedit>
-      <button_iadd name="list_iadd">
-        <anchored to="list_header" position="insidetopright" offset="22,0" />
+      <button_iadd name="features_iadd">
+        <anchored to="features_header" position="insidetopright" offset="2,0" />
+        <target>features</target>
       </button_iadd>
-      <list_content_column name="list">
-        <datasource>.traits</datasource>
-        <class>reference_racialtrait_listitem</class>
-        <sortby><field>name</field></sortby>
+      <list_content_column name="features">
+        <datasource>.features</datasource>
+        <class>reference_classfeature_listitem</class>
+        <sortby><field>level</field><field>name</field></sortby>
+      </list_content_column>
+
+      <header_content_framed_headersimple name="featurechoices_header">
+        <static textres="class_header_featurechoices"/>
+      </header_content_framed_headersimple>
+      <button_iadd name="featurechoices_iadd">
+        <anchored to="featurechoices_header" position="insidetopright" offset="2,0" />
+        <target>featurechoices</target>
+      </button_iadd>
+      <list_content_column name="featurechoices">
+        <datasource>.featurechoices</datasource>
+        <class>reference_classfeaturechoice_listitem</class>
+        <sortby><field>choicetype</field><field>level</field><field>name</field></sortby>
       </list_content_column>
     </sheetdata>
   </windowclass>
-
-  <windowclass name="reference_racialtrait_listitem">
+  <windowclass name="reference_classfeature_listitem">
     <margins control="0,0,0,2" />
     <script>
-      function update(bReadOnly)
-        WindowManager.callSafeControlUpdate(self, "name", bReadOnly);
+      function onInit()
+        self.onLockModeChanged(WindowManager.getWindowReadOnlyState(self));
+      end
+      function onLockModeChanged(bReadOnly)
+        local tControls = { "level", "name", "idelete", };
+        WindowManager.callSafeControlsSetLockMode(self, tControls, bReadOnly);
       end
     </script>
     <sheetdata>
       <anchor_listitem_left_sm name="leftanchor" />
       <anchor_listitem_right_sm name="rightanchor" />
 
-      <linkc_listitem_right name="shortcut">
-        <class>reference_racialtrait</class>
-      </linkc_listitem_right>
-      <button_listitem_idelete name="idelete">
-        <editmode>list_iedit</editmode>
-      </button_listitem_idelete>
+      <button_listitem_idelete_left name="idelete" />
+      <linkc_listitem_left name="shortcut">
+        <class>reference_classfeature</class>
+      </linkc_listitem_left>
+      <number_listitem_left name="level">
+        <nodrag />
+      </number_listitem_left>
 
       <string_listitem_center name="name">
-        <empty textres="library_recordtype_empty_racialtrait" />
+        <empty textres="library_recordtype_empty_classfeature" />
+        <font>sheetlabel</font>
+      </string_listitem_center>
+    </sheetdata>
+  </windowclass>
+  <windowclass name="reference_classfeaturechoice_listitem">
+    <margins control="0,0,0,2" />
+    <script>
+      function onInit()
+        self.onLockModeChanged(WindowManager.getWindowReadOnlyState(self));
+      end
+      function onLockModeChanged(bReadOnly)
+        local tControls = { "choicetype", "level", "name", "idelete", };
+        WindowManager.callSafeControlsSetLockMode(self, tControls, bReadOnly);
+      end
+    </script>
+    <sheetdata>
+      <anchor_listitem_left_sm name="leftanchor" />
+      <anchor_listitem_right_sm name="rightanchor" />
+
+      <button_listitem_idelete_left name="idelete" />
+      <linkc_listitem_left name="shortcut">
+        <class>reference_classfeaturechoice</class>
+      </linkc_listitem_left>
+      <string_listitem_left name="choicetype">
+        <anchored width="180" />
+        <font>sheetlabel</font>
+        <empty textres="classfeaturechoice_empty_choicetype" />
+      </string_listitem_left>
+      <number_listitem_left name="level">
+        <nodrag />
+      </number_listitem_left>
+
+      <string_listitem_center name="name">
+        <empty textres="library_recordtype_empty_classfeaturechoice" />
         <font>sheetlabel</font>
       </string_listitem_center>
     </sheetdata>
   </windowclass>
 
-  <windowclass name="reference_racialtrait" copy="record_window_text" />
-  <windowclass name="reference_racialtrait_header" copy="record_header">
-    <name_emptyres>library_recordtype_empty_racialtrait</name_emptyres>
-  </windowclass>  
-
-  <windowclass name="reference_race_features">
+  <windowclass name="reference_class_traits">
+    <margins control="0,0,0,5" />
     <script>
       function onInit()
-        self.update();
+        self.onLockModeChanged(WindowManager.getWindowReadOnlyState(self));
+        local node = getDatabaseNode();
+        self.updateClassFieldsFromDescription(node);
       end
-      function update()
-        local nodeRecord = getDatabaseNode();
-        local bReadOnly = WindowManager.getReadOnlyState(getDatabaseNode());
-        local tFields = { "featureslist", "powerslist" };
-        WindowManager.callSafeControlsUpdate(self, tFields, bReadOnly);
+      function onLockModeChanged(bReadOnly)
+        local tFields = { "role", "powersource", "keyabilities", "armorproficiencies", "weaponproficiencies", "defensebonus", "hitpointsfirstlevel", "hpPerLevel", "healingsurges", "trainedskills", };
+        WindowManager.callSafeControlsSetLockMode(self, tFields, bReadOnly);
+      end
+
+      function updateClassFieldsFromDescription(nodeRecord)
+        local sDescriptionText = DB.getValue(nodeRecord, "description", "");
+        if sDescriptionText then
+          if not DB.getPath(nodeRecord, "role") or not DB.getValue(nodeRecord, "role") or DB.getValue(nodeRecord, "role") == "" then
+            Debug.console("role not found.");
+            local sRoleDescriptionTextLine = string.match(sDescriptionText, "&lt;p&gt;%s*&lt;b&gt;%s*Role%s*:%s*&lt;/b&gt;%s*(.-)&lt;/p&gt;");
+            Debug.console("sRoleDescriptionTextLine", sRoleDescriptionTextLine);
+            if sRoleDescriptionTextLine then
+              DB.setValue(node, "role", "string", sRoleDescriptionTextLine);
+            end
+          else
+            Debug.console("role found", DB.getValue(nodeRecord, "role"));
+          end
+        end
       end
     </script>
     <sheetdata>
       <anchor_content_top />
 
-      <header_content_framed_headersimple name="featureslist_header">
-        <static textres="race_header_features"/>
-      </header_content_framed_headersimple>       
-      <button_iedit name="featureslist_iedit">
-        <anchored to="featureslist_header" position="insidetopright" offset="5,0" />
-        <edittarget>featureslist</edittarget>
-      </button_iedit>
-      <button_iadd name="featureslist_iadd">
-        <anchored to="featureslist_header" position="insidetopright" offset="30,0" />
-        <target>featureslist</target>
-      </button_iadd>
-      <list_content_column name="featureslist">
-        <datasource>.features</datasource>
-        <class>reference_racialfeature_listitem</class>
-        <sortby><field>name</field></sortby>
-      </list_content_column>
+      <label_content_column name="role_label">
+        <static textres="class_label_role" />
+      </label_content_column>
+      <string_content_columnh name="role" />
+
+      <label_content_column name="powersource_label">
+        <static textres="class_label_powersource" />
+      </label_content_column>
+      <string_content_columnh name="powersource" />
+
+      <label_content_column name="keyabilities_label">
+        <static textres="class_label_keyabilities" />
+      </label_content_column>
+      <string_content_columnh name="keyabilities" />      
+
+      <header_content_framed_headersimple name="proficiencies_header">
+        <static textres="class_header_proficiencies"/>
+      </header_content_framed_headersimple>
+      <label_content_column name="armorproficiencies_label">
+        <static textres="class_label_armorproficiencies" />
+        <tooltip textres="class_tooltip_armorproficiencies" />
+      </label_content_column>
+      <string_content_columnh name="armorproficiencies" source="armorproficiencies" />
+      <label_content_column name="weaponproficiencies_label">
+        <static textres="class_label_weaponproficiencies" />
+        <tooltip textres="class_tooltip_weaponproficiencies" />
+      </label_content_column>
+      <string_content_columnh name="weaponproficiencies" source="weaponproficiencies" />
+      <label_content_column name="defensebonus_label">
+        <static textres="class_label_defensebonuses" />
+        <tooltip textres="class_tooltip_defensebonuses" />
+      </label_content_column>
+      <string_content_columnh name="defensebonus" source="defensebonus" />      
+      <label_content_column name="hitpointsfirstlevel_label">
+        <static textres="class_label_hitpointsfirstlevel" />
+        <tooltip textres="class_tooltip_weaponproficiencies" />
+      </label_content_column>
+      <string_content_columnh name="hitpointsfirstlevel" source="hitpointsfirstlevel" />
+      <label_content_column name="hitpointsperlevel_label">
+        <static textres="class_label_hitpointsperlevel" />
+        <tooltip textres="class_tooltip_hitpointsfirstlevel" />
+      </label_content_column>
+      <number_content_columnh name="hpPerLevel" source="hitpointsperlevel" />
+      <label_content_column name="healingsurges_label">
+        <static textres="class_label_healingsurgesperday" />
+        <tooltip textres="class_tooltip_healingsurgesperday" />
+      </label_content_column>
+      <string_content_columnh name="healingsurges" source="healingsurges" />
+      <label_content_column name="trainedskills_label">
+        <static textres="class_label_trainedskills" />
+      </label_content_column>
+      <string_content_columnh name="trainedskills" source="trainedskills" />
+    </sheetdata>
+  </windowclass>
+
+  <windowclass name="reference_classfeature" copy="record_window">
+    <script>
+      function onInit()
+        super.onInit();
+
+        local node = getDatabaseNode();
+        local nodeContainerRecord = DB.getChild(node, "...");
+        local sRecordType = LibraryData.getRecordTypeFromRecordPath(DB.getPath(nodeContainerRecord));
+        if sRecordType == "class" then
+          content.setValue("reference_classfeature_stats", getDatabaseNode());
+        end
+      end
+    </script>
+  </windowclass>
+  <windowclass name="reference_classfeature_header" copy="record_header">
+    <name_emptyres>library_recordtype_empty_classfeature</name_emptyres>
+  </windowclass>
+  <windowclass name="reference_classfeature_stats">
+    <margins control="0,0,0,5" />
+    <script>
+      function onInit()
+        self.onLockModeChanged(WindowManager.getWindowReadOnlyState(self));
+      end
+      function onLockModeChanged(bReadOnly)
+        local tFields = { "level", "text", };
+        WindowManager.callSafeControlsSetLockMode(self, tFields, bReadOnly);
+      end
+    </script>
+    <sheetdata>
+      <anchor_content_top />
+
+      <label_content_column name="level_label">
+        <static textres="level" />
+      </label_content_column>
+      <number_content_column name="level">
+        <nodrag />
+      </number_content_column>
+
+      <ft_content_column_full name="text" />
 
       <header_content_framed_headersimple name="powerslist_header">
-        <static textres="race_header_featurepowers"/>
+        <static textres="class_header_featurepowers"/>
       </header_content_framed_headersimple>
       <button_iedit name="powerslist_iedit">
         <anchored to="powerslist_header" position="insidetopright" offset="5,0" />
@@ -264,49 +358,30 @@
       </button_iadd>
       <list_content_column name="powerslist">
         <datasource>.powers</datasource>
-        <class>reference_racialpower_listitem</class>
+        <class>reference_classpower_listitem</class>
         <sortby><field>name</field></sortby>
-      </list_content_column>      
+      </list_content_column>
+
+      <header_content_framed_headersimple name="powerchoiceslist_header">
+        <static textres="class_header_featurepowerschoice"/>
+      </header_content_framed_headersimple>
+      <button_iedit name="powerschoicelist_iedit">
+        <anchored to="powerchoiceslist_header" position="insidetopright" offset="5,0" />
+        <edittarget>powerschoicelist</edittarget>
+      </button_iedit>
+      <button_iadd name="powerschoicelist_iadd">
+        <anchored to="powerchoiceslist_header" position="insidetopright" offset="30,0" />
+        <target>powerschoicelist</target>
+      </button_iadd>
+      <list_content_column name="powerschoicelist">
+        <datasource>.powers</datasource>
+        <class>reference_classpower_listitem</class>
+        <sortby><field>name</field></sortby>
+      </list_content_column>       
     </sheetdata>
   </windowclass>
 
-  <windowclass name="reference_racialfeature_listitem">
-    <margins control="0,0,0,2" />
-    <script>
-      function update(bReadOnly)
-        WindowManager.callSafeControlUpdate(self, "name", bReadOnly);
-      end
-    </script>
-    <sheetdata>
-      <anchor_listitem_left_sm name="leftanchor" />
-      <anchor_listitem_right_sm name="rightanchor" />
-
-      <linkc_listitem_right name="shortcut">
-        <class>reference_racialfeature</class>
-      </linkc_listitem_right>
-      <button_listitem_idelete name="idelete">
-        <editmode>featureslist_iedit</editmode>
-      </button_listitem_idelete>
-
-      <string_listitem_center name="name">
-        <empty textres="library_recordtype_empty_racialfeature" />
-        <font>sheetlabel</font>
-      </string_listitem_center>
-    </sheetdata>
-  </windowclass>
-
-  <windowclass name="reference_racialfeature" copy="record_window">
-    <sheetdata>
-      <sub_content_framed_groupbox name="content">
-        <class>record_content_description</class>
-      </sub_content_framed_groupbox>
-    </sheetdata>
-  </windowclass>
-  <windowclass name="reference_racialfeature_header" copy="record_header">
-    <name_emptyres>library_recordtype_empty_racialfeature</name_emptyres>
-  </windowclass>
-
-  <windowclass name="reference_racialpower_listitem">
+  <windowclass name="reference_classpower_listitem">
     <margins control="0,0,0,2" />
     <script>
       function update(bReadOnly)
@@ -325,9 +400,9 @@
       </button_listitem_idelete>
 
       <string_listitem_center name="name">
-        <empty textres="library_recordtype_empty_racialfeature" />
+        <empty textres="library_recordtype_empty_classfeaturepower" />
         <font>sheetlabel</font>
       </string_listitem_center>
     </sheetdata>
-  </windowclass>  
+  </windowclass>   
 </root>
