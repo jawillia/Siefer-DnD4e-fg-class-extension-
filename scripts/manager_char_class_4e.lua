@@ -239,48 +239,68 @@ function addClassFeatures(rAdd, sRecord, sDescriptionText, sClassName)
 	if sDescriptionText then
 	-- then through the description text
 		local sClassFeaturesDescriptionTextLine = string.match(sDescriptionText, "<p>%s*<b>%s*Class features%s*:%s*</b>(.-)</p>");
+		--If it's an essentials class, keep the text down to just level 1 (for now)
+		if sDescriptionText and string.find(sDescriptionText, "<p><b>Level 1:</b></p>") then
+			sDescriptionText = string.match(sDescriptionText, "(.-)<p><b>Level 2:</b></p>");
+		end
 		if sClassFeaturesDescriptionTextLine then
-			sClassFeaturesValue = string.match(sClassFeaturesDescriptionTextLine, "[%a,'()%s]+");
+			sClassFeaturesValue = string.match(sClassFeaturesDescriptionTextLine, "[%w,'()%s]+");
 		end
 		local tClassFeatures = StringManager.split(sClassFeaturesValue, ',', true);
-		for w,v in pairs(tClassFeatures) do
-			local sClassFeatureDescriptionPattern = '';
-			if w < #tClassFeatures then
-				sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v:gsub("(%a)([%w_']*)", titleCase) .. "%s*</b></p>%s*(.-)<p><b>";
-			elseif w == #tClassFeatures then
-				-- On the last feature entry, first try reading to the class overview
-				sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v:gsub("(%a)([%w_']*)", titleCase) .. "%s*</b></p>%s*(.-)<p>" .. sClassName:upper() .. " OVERVIEW</p>";
+		--Pre-Feature Class Feature added here, features that must be chosen before other features, like warpriest domains
+		local tClassesWithPreFeatures = {};
+		tClassesWithPreFeatures["CLERIC (WARPRIEST)"] = true;
+		if tClassesWithPreFeatures[sClassName:upper()] then
+			Debug.console("pre feature used", sClassName);
+			CharClassFeatureManager.addClassSpecificPreFeatures(sClassName, rAdd, sDescriptionText, tClassFeatures);
+		else
+			Debug.console("normal feature used", sClassName);
+			for w,v in pairs(tClassFeatures) do
+				local sClassFeatureDescriptionPattern = '';
+				if w < #tClassFeatures then
+					sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v:gsub("(%a)([%w_']*)", titleCase) .. "%s*</b></p>%s*(.-)<p><b>";
+				elseif w == #tClassFeatures then
+					-- On the last feature entry, first try reading to the class overview
+					sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v:gsub("(%a)([%w_']*)", titleCase) .. "%s*</b></p>%s*(.-)<p>" .. sClassName:upper() .. " OVERVIEW</p>";
+					sClassFeatureSpecificDescriptionText = string.match(sDescriptionText, sClassFeatureDescriptionPattern);
+					-- Then try reading to alternative features
+					if sClassFeatureSpecificDescriptionText == nil then
+						sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v:gsub("(%a)([%w_']*)", titleCase) .. "%s*</b></p>%s*(.-)<p><b>Alternative";
+						sClassFeatureSpecificDescriptionText = string.match(sDescriptionText, sClassFeatureDescriptionPattern);
+					end	
+					-- Or read to the Implements
+					if sClassFeatureSpecificDescriptionText == nil then
+						sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v:gsub("(%a)([%w_']*)", titleCase) .. "%s*</b></p>%s*(.-)<p><b>IMPLEMENTS</b></p>";
+						sClassFeatureSpecificDescriptionText = string.match(sDescriptionText, sClassFeatureDescriptionPattern);
+					end			
+					-- Then try reading to the end of the record if that didn't work
+					if sClassFeatureSpecificDescriptionText == nil then
+						sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v:gsub("(%a)([%w_']*)", titleCase) .. "%s*</b></p>%s*(.+)</p>";
+					end
+					-- If that didn't work, try really reading to the end of the record
+					if sClassFeatureSpecificDescriptionText == nil then
+						sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v:gsub("(%a)([%w_']*)", titleCase) .. "%s*</b></p>%s*(.+)";
+					end
+				end
 				sClassFeatureSpecificDescriptionText = string.match(sDescriptionText, sClassFeatureDescriptionPattern);
-				-- Then try reading to alternative features
-				if sClassFeatureSpecificDescriptionText == nil then
-					sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v:gsub("(%a)([%w_']*)", titleCase) .. "%s*</b></p>%s*(.-)<p><b>Alternative";
-					sClassFeatureSpecificDescriptionText = string.match(sDescriptionText, sClassFeatureDescriptionPattern);
-				end	
-				-- Or read to the Implements
-				if sClassFeatureSpecificDescriptionText == nil then
-					sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v:gsub("(%a)([%w_']*)", titleCase) .. "%s*</b></p>%s*(.-)<p><b>IMPLEMENTS</b></p>";
-					sClassFeatureSpecificDescriptionText = string.match(sDescriptionText, sClassFeatureDescriptionPattern);
-				end			
-				-- Then try reading to the end of the record if that didn't work
-				if sClassFeatureSpecificDescriptionText == nil then
-					sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v:gsub("(%a)([%w_']*)", titleCase) .. "%s*</b></p>%s*(.+)</p>";
+				if sClassFeatureSpecificDescriptionText then
+					sClassFeatureFilteredDescriptionText = string.gsub(sClassFeatureSpecificDescriptionText, "</p>", "\n");
+					sClassFeatureFilteredDescriptionText = string.gsub(sClassFeatureFilteredDescriptionText, "<p>", "    ");
+					sClassFeatureFilteredDescriptionText = string.gsub(sClassFeatureFilteredDescriptionText, "<linklist>", "");
+					sClassFeatureFilteredDescriptionText = string.gsub(sClassFeatureFilteredDescriptionText, "</linklist>", "");
+					sClassFeatureFilteredDescriptionText = string.gsub(sClassFeatureFilteredDescriptionText, "<link.->", "\n - ");
+					sClassFeatureFilteredDescriptionText = string.gsub(sClassFeatureFilteredDescriptionText, "</link>", "\n");
 				end
-			end
-			sClassFeatureSpecificDescriptionText = string.match(sDescriptionText, sClassFeatureDescriptionPattern);
-			if sClassFeatureSpecificDescriptionText then
-				sClassFeatureFilteredDescriptionText = string.gsub(sClassFeatureSpecificDescriptionText, "</p>", "\n");
-				sClassFeatureFilteredDescriptionText = string.gsub(sClassFeatureFilteredDescriptionText, "<p>", "    ");
-				sClassFeatureFilteredDescriptionText = string.gsub(sClassFeatureFilteredDescriptionText, "<linklist>.*</linklist>", "");
-			end
-			local isFeatureInList = false;
-			for _, featureNode in pairs(tCurrentFeatures) do
-				if DB.getText(DB.getPath(featureNode, "value")) == v then
-					isFeatureInList = true;
-					break;
+				local isFeatureInList = false;
+				for _, featureNode in pairs(tCurrentFeatures) do
+					if DB.getText(DB.getPath(featureNode, "value")) == v then
+						isFeatureInList = true;
+						break;
+					end
 				end
-			end
-			if isFeatureInList == false then
-				CharClassFeatureManager.addClassSpecificFeatures(sClassName, rAdd, v, sClassFeatureFilteredDescriptionText, sClassFeatureSpecificDescriptionText);
+				if isFeatureInList == false then
+					CharClassFeatureManager.addClassSpecificFeatures(sClassName, rAdd, v, sClassFeatureFilteredDescriptionText, sClassFeatureSpecificDescriptionText);
+				end
 			end
 		end
 	end
@@ -767,4 +787,3 @@ function helperAddSpeciesMainStats(rAdd)
 		CharBuildDropManager.handleSpeciesLanguage2024(rAdd);
 	end
 end
-

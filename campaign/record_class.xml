@@ -223,10 +223,28 @@
     <script>
       function onInit()
         self.onLockModeChanged(WindowManager.getWindowReadOnlyState(self));
+        local node = getDatabaseNode();
+        self.updateClassFieldsFromDescription(node);
       end
       function onLockModeChanged(bReadOnly)
         local tFields = { "role", "powersource", "keyabilities", "armorproficiencies", "weaponproficiencies", "defensebonus", "hitpointsfirstlevel", "hpPerLevel", "healingsurges", "trainedskills", };
         WindowManager.callSafeControlsSetLockMode(self, tFields, bReadOnly);
+      end
+
+      function updateClassFieldsFromDescription(nodeRecord)
+        local sDescriptionText = DB.getValue(nodeRecord, "description", "");
+        if sDescriptionText then
+          if not DB.getPath(nodeRecord, "role") or not DB.getValue(nodeRecord, "role") or DB.getValue(nodeRecord, "role") == "" then
+            Debug.console("role not found.");
+            local sRoleDescriptionTextLine = string.match(sDescriptionText, "&lt;p&gt;%s*&lt;b&gt;%s*Role%s*:%s*&lt;/b&gt;%s*(.-)&lt;/p&gt;");
+            Debug.console("sRoleDescriptionTextLine", sRoleDescriptionTextLine);
+            if sRoleDescriptionTextLine then
+              DB.setValue(node, "role", "string", sRoleDescriptionTextLine);
+            end
+          else
+            Debug.console("role found", DB.getValue(nodeRecord, "role"));
+          end
+        end
       end
     </script>
     <sheetdata>

@@ -26,8 +26,8 @@
   <string name="char_error_addclassskill">Error training class skill.</string> 
   <string name="char_error_addclasssfeature">Error adding class feature.</string> 
 
-  <!-- Cleric Feature Strings -->
   <string name="char_build_message_chooseclassfeatures">Choose one of the following %s:</string> 
+  <!-- Cleric Feature Strings -->
   <string name="char_build_title_addhealerlore">Healer's Lore or Alternate</string> 
   <string name="char_build_message_addhealerorbattlelore">Choose Healer's Lore or Battle Cleric's Lore. Check the chat for detailed descriptions.</string> 
   <!-- Fighter(Weaponmaster) Feature strings -->
@@ -48,5 +48,8 @@
   <string name="char_build_message_addarcherwarlord">Choose whether to use Archer Warlord feature or not:</string>
   <!-- Artificer Feature strings -->
   <string name="char_build_title_addartificerhealinginfusion">Resistive or Shielding Healing Infusion</string> 
-  <string name="char_build_message_addartificerhealinginfusion">Choose whether to use the default Resistive Formula or the Shielding Elixer healing infusion:</string>  
+  <string name="char_build_message_addartificerhealinginfusion">Choose whether to use the default Resistive Formula or the Shielding Elixer healing infusion:</string>
+   <!-- Cleric (Warpriest) Feature strings -->
+  <string name="char_build_title_addclericdomain">Cleric Domains</string> 
+  <string name="char_build_message_addclericdomains">Choose a Cleric domain. These determine your channel divinity and class feature powers.</string> 
 </root>
