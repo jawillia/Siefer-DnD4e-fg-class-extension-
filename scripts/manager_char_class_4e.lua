@@ -244,17 +244,15 @@ function addClassFeatures(rAdd, sRecord, sDescriptionText, sClassName)
 			sDescriptionText = string.match(sDescriptionText, "(.-)<p><b>Level 2:</b></p>");
 		end
 		if sClassFeaturesDescriptionTextLine then
-			sClassFeaturesValue = string.match(sClassFeaturesDescriptionTextLine, "[%w,'()%s]+");
+			sClassFeaturesValue = string.match(sClassFeaturesDescriptionTextLine, "[%w,'()%-%s]+");
 		end
 		local tClassFeatures = StringManager.split(sClassFeaturesValue, ',', true);
 		--Pre-Feature Class Feature added here, features that must be chosen before other features, like warpriest domains
 		local tClassesWithPreFeatures = {};
 		tClassesWithPreFeatures["CLERIC (WARPRIEST)"] = true;
 		if tClassesWithPreFeatures[sClassName:upper()] then
-			Debug.console("pre feature used", sClassName);
 			CharClassFeatureManager.addClassSpecificPreFeatures(sClassName, rAdd, sDescriptionText, tClassFeatures);
 		else
-			Debug.console("normal feature used", sClassName);
 			for w,v in pairs(tClassFeatures) do
 				local sClassFeatureDescriptionPattern = '';
 				if w < #tClassFeatures then
@@ -284,12 +282,7 @@ function addClassFeatures(rAdd, sRecord, sDescriptionText, sClassName)
 				end
 				sClassFeatureSpecificDescriptionText = string.match(sDescriptionText, sClassFeatureDescriptionPattern);
 				if sClassFeatureSpecificDescriptionText then
-					sClassFeatureFilteredDescriptionText = string.gsub(sClassFeatureSpecificDescriptionText, "</p>", "\n");
-					sClassFeatureFilteredDescriptionText = string.gsub(sClassFeatureFilteredDescriptionText, "<p>", "    ");
-					sClassFeatureFilteredDescriptionText = string.gsub(sClassFeatureFilteredDescriptionText, "<linklist>", "");
-					sClassFeatureFilteredDescriptionText = string.gsub(sClassFeatureFilteredDescriptionText, "</linklist>", "");
-					sClassFeatureFilteredDescriptionText = string.gsub(sClassFeatureFilteredDescriptionText, "<link.->", "\n - ");
-					sClassFeatureFilteredDescriptionText = string.gsub(sClassFeatureFilteredDescriptionText, "</link>", "\n");
+					sClassFeatureFilteredDescriptionText = convertHTMLTable(removeLinkLists(sClassFeatureSpecificDescriptionText));
 				end
 				local isFeatureInList = false;
 				for _, featureNode in pairs(tCurrentFeatures) do
@@ -712,6 +705,37 @@ end
 --Use like this: string.gsub(str, "(%a)([%w_']*)", titleCase)
 function titleCase( first, rest )
    return first:upper()..rest:lower()
+end
+
+function convertHTMLTable(sHTMLTable)
+	sHTMLTable = string.gsub(sHTMLTable, "<table>", "\n");
+	sHTMLTable = string.gsub(sHTMLTable, "</table>", "\n\n");
+	sHTMLTable = string.gsub(sHTMLTable, "</p>", "\n");
+	sHTMLTable = string.gsub(sHTMLTable, "<p>", "    ");
+	sHTMLTable = string.gsub(sHTMLTable, "<p />", "\n");
+	sHTMLTable = string.gsub(sHTMLTable, "<tr>", "\n");
+	sHTMLTable = string.gsub(sHTMLTable, "</tr>", "");
+
+	sHTMLTable = string.gsub(sHTMLTable, "<td><b>(.-)</b></td>", function(rowText)
+		return string.format("%-15s", rowText);
+	end)
+	sHTMLTable = string.gsub(sHTMLTable, "<td>(.-)</td>", function(rowText)
+		return string.format("%-20s", rowText);
+	end)
+
+	return sHTMLTable;
+end
+
+function removeLinkLists(sText)
+	sText = string.gsub(sText, "</p>", "\n");
+	sText = string.gsub(sText, "<p>", "    ");
+	sText = string.gsub(sText, "<p />", "\n");
+
+	sText = string.gsub(sText, "<linklist>", "");
+	sText = string.gsub(sText, "</linklist>", "");
+	sText = string.gsub(sText, "<link.->", "\n - ");
+	sText = string.gsub(sText, "</link>", "\n");	
+	return sText;
 end
 
 -----------------------------------------------------------
