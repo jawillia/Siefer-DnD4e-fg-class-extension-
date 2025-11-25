@@ -26,7 +26,7 @@
   <string name="char_error_addclassskill">Error training class skill.</string> 
   <string name="char_error_addclasssfeature">Error adding class feature.</string> 
 
-  <string name="char_build_message_chooseclassfeatures">Choose one of the following %s:</string> 
+  <string name="char_build_message_chooseclassfeatures">Choose %s of the following %s:</string> 
   <!-- Cleric Feature Strings -->
   <string name="char_build_title_addhealerlore">Healer's Lore or Alternate</string> 
   <string name="char_build_message_addhealerorbattlelore">Choose Healer's Lore or Battle Cleric's Lore. Check the chat for detailed descriptions.</string> 
@@ -51,8 +51,14 @@
   <string name="char_build_message_addartificerhealinginfusion">Choose whether to use the default Resistive Formula or the Shielding Elixer healing infusion:</string>
    <!-- Cleric (Warpriest) Feature strings -->
   <string name="char_build_title_addclericdomain">Cleric Domains</string> 
-  <string name="char_build_message_addclericdomains">Choose a Cleric domain. These determine your channel divinity and class feature powers.</string> 
+  <string name="char_build_message_addclericdomains">Choose a Cleric domain. These determine your channel divinity and class feature powers.</string>
    <!-- Fighter (Knight) Feature strings -->
   <string name="char_build_title_addfighterknightbattleguardian">Battle Guardian or Feywild Guardian</string> 
-  <string name="char_build_message_addfighterknightbattleguardian">Eladrin can choose to gain the Feywild Guardian power instead of Battle Guardian.</string>   
+  <string name="char_build_message_addfighterknightbattleguardian">Eladrin can choose to gain the Feywild Guardian power instead of Battle Guardian.</string>
+   <!-- Druid (Sentinel) Feature strings -->
+  <string name="char_build_title_adddruidseason">Druid Seasons</string> 
+  <string name="char_build_message_adddruidseason">Choose a Druid season. These determine some of your class features, including the animal companion you gain.</string>
+   <!-- Warlock (Hexblade) Feature strings -->
+  <string name="char_build_title_adddhexbladepact">Hexblade Pact</string> 
+  <string name="char_build_message_addhexbladepac">Choose a Hexblade Pact. These determine some of your class features, including a pact boon power, a new feature, and a pact weapon.</string>   
 </root>
