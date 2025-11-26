@@ -123,7 +123,7 @@ function addClassWeaponProficiencies(rAdd, sRecord, sDescriptionText)
 	-- elseif sDescriptionText then
 	if sDescriptionText then
 		local sWeaponProficiencyDescriptionTextLine = string.match(sDescriptionText, "<p>%s*<b>%s*Weapon Proficiencies%s*:%s*</b>(.-)</p>");
-		sWeaponProficienciesValue = string.match(sWeaponProficiencyDescriptionTextLine, "[%a,%s]+");
+		sWeaponProficienciesValue = string.match(sWeaponProficiencyDescriptionTextLine, "[%a,%s%-]+");
 		local sImplementProficiencyDescriptionTextLine = string.match(sDescriptionText, "<p>%s*<b>%s*Implement%s*:%s*</b>(.-)</p>");
 		if sImplementProficiencyDescriptionTextLine then
 			sImplementsProficienciesValue = string.match(sImplementProficiencyDescriptionTextLine, "[%a,%s]+");
@@ -249,6 +249,7 @@ function addClassFeatures(rAdd, sRecord, sDescriptionText, sClassName)
 		tClassesWithPreFeatures["CLERIC (WARPRIEST)"] = true;
 		tClassesWithPreFeatures["DRUID (SENTINEL)"] = true;
 		tClassesWithPreFeatures["WARLOCK (HEXBLADE)"] = true;
+		tClassesWithPreFeatures["WARLOCK (BINDER)"] = true;
 		if tClassesWithPreFeatures[sClassName:upper()] then
 			CharClassFeatureManager.addClassSpecificPreFeatures(sClassName, rAdd, sDescriptionText, tClassFeatures);
 		else
