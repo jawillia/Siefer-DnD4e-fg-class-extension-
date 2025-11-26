@@ -46,6 +46,9 @@ function addClassSpecificFeatures(sClassName, rAdd, sClassFeatureName, sClassFea
 		["RANGER (HUNTER)"] = function() return addRangerHunterFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
 		["RANGER (SCOUT)"] = function() return addRangerScoutFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
 		["WARLOCK (HEXBLADE)"] = function() return addWarlockHexbladeFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,		
+		--HoS
+		["ASSASSIN (EXECUTIONER)"] = function() return addAssassinExecutionerFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
+		["PALADIN (BLACKGUARD)"] = function() return addPaladinBlackguardFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
 		default = function() return addDefaultClassFeature(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription) end
 	});
 end
@@ -2310,6 +2313,149 @@ function addWarlockHexbladePactFeature(rAdd, sClassFeatureOriginalDescription, s
 				break;
 			end
 		end
+	end
+end
+
+
+-------------------------------------------
+----- ASSASSIN (EXECUTIONER) Class Features ----
+-------------------------------------------
+function addAssassinExecutionerFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription)
+	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
+	if sClassFeatureName == "Guild Attacks" then
+		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+		DB.setValue(rCreatedIDChildNode, "description", "string", removeLinkLists(sClassFeatureOriginalDescription));
+		displayAssassinExecutionerGuildAttacksSelectionsDialog(rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
+	else
+		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
+		ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", sClassFeatureName, rAdd.sCharName);
+	end
+end
+function displayAssassinExecutionerGuildAttacksSelectionsDialog(rAdd, sClassFeatureOriginalDescription, sClassFeatureName, nMaxSelections)
+	local tClassFeatureOptions = {};
+	local tOptions = {};
+	--Display information on the selections in chat
+	local sPattern = '<link class="powerdesc" recordname="reference.features.(%w+)@([%w%s]+)">';
+	local sFeaturesLink = string.gmatch(sClassFeatureOriginalDescription, sPattern);
+	local nOptionsCount = 1;
+	for w,v in sFeaturesLink do
+		local sPattern = "reference.features." .. w .. "@" .. v;
+		local sClassFeatureName = DB.getText(DB.getPath(sPattern, "name"));
+		local sClassFeatureDescription = DB.getText(DB.getPath(sPattern, "description"));
+		tOptions[nOptionsCount] = sClassFeatureName;
+		nOptionsCount = nOptionsCount + 1;
+		tClassFeatureOptions[sClassFeatureName] = DB.getPath(sPattern);
+		local tMessageShortcuts = { { class="powerdesc", recordname=DB.getPath(sPattern) } };
+		local tMessageData = {font = "systemfont", text = sClassFeatureName, shortcuts=tMessageShortcuts};
+		Comm.addChatMessage(tMessageData);
+	end
+	--Display a pop-up where we choose from the class feature options
+	if not nMaxSelections or nMaxSelections < 1 then
+		nMaxSelections = 1;
+	end
+	local msg = string.format(Interface.getString("char_build_message_chooseclassfeatures"), nMaxSelections, sClassFeatureName);
+	local tDialogData = {
+		title = sClassFeatureName,
+		msg = msg,
+		options = tOptions,
+		min = nMaxSelections,
+		max = nMaxSelections,
+		callback = CharClassFeatureManager.callbackResolveAssassinExecutionerGuildAttacksSelectionsDialogSelection,
+		custom = { rAdd = rAdd, tClassFeatureOptions = tClassFeatureOptions }, 
+	};
+	DialogManager.requestSelectionDialog(tDialogData);	
+end
+function callbackResolveAssassinExecutionerGuildAttacksSelectionsDialogSelection(tSelection, tData)
+	if not tSelection or not tSelection[1] then
+		CharManager.outputUserMessage("char_error_addclasssfeature");
+		return;
+	end
+	local sSelectedClassFeatureSelectionsDBReference;
+	local tCurrentFeatures = DB.getChildren(tData.rAdd.nodeChar, "specialabilitylist");
+	local rAttackFinesseFeature = "";
+	local rPoisonUseFeature = "";
+	for _,selectedSkill in ipairs(tSelection) do
+		for _, featureNode in pairs(tCurrentFeatures) do
+			if string.find(DB.getText(DB.getPath(featureNode, "value")), "Attack Finesse") then
+				rAttackFinesseFeature = featureNode;
+			elseif string.find(DB.getText(DB.getPath(featureNode, "value")), "Poison Use") then
+				rPoisonUseFeature = featureNode;
+			end
+			if DB.getText(DB.getPath(featureNode, "value")) ~= selectedSkill then
+				for x, y in pairs(tData.tClassFeatureOptions) do
+					if DB.getText(DB.getPath(featureNode, "value")) == x then
+						DB.deleteNode(featureNode);
+						break;
+					end
+				end
+			end
+		end
+		--Way of the Ninja also adds proficiency with shuriken and the kusari-gama, 
+		if selectedSkill == "Way of the Ninja" then
+			local tWeaponProficiencies = { "shuriken", "kusari-gama" };
+			local tCurrentWeaponProficiencies = DB.getChildren(tData.rAdd.nodeChar, "proficiencyweapon");
+			for _,x in pairs(tWeaponProficiencies) do
+				x = x:gsub("^%s+", ""):gsub("%s+$", "");
+				local isWeaponProficiencyInList = false;
+				for weaponProficiencyName, weaponProficiencyNode in pairs(tCurrentWeaponProficiencies) do
+					if DB.getText(DB.getPath(weaponProficiencyNode, "value")) == x then
+						isWeaponProficiencyInList = true;
+						break;
+					end
+				end
+				if isWeaponProficiencyInList == false then
+					local rCreatedIDChildNode = DB.createChild(tData.rAdd.nodeChar.getPath("proficiencyweapon"));
+					DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+					DB.setValue(rCreatedIDChildNode, "value", "string", x);
+					ChatManager.SystemMessageResource("char_abilities_message_weaponproficiencyadd", x, tData.rAdd.sCharName);
+				end
+			end
+			-- your Attack Finesse class feature also applies to kusari-gama and shuriken
+			if rAttackFinesseFeature then
+				local sAttackFinesseDescription = DB.getText(rAttackFinesseFeature, "description");
+				sAttackFinesseDescription = sAttackFinesseDescription .. "\n\n This class feature also applies to kusari-gama and shuriken (from Way of the Ninja).";
+				DB.setValue(rAttackFinesseFeature, "description", "string", sAttackFinesseDescription);
+			end
+			-- your assassin poisons that can be applied to ammunition can also be applied to your shuriken.
+			if rPoisonUseFeature then
+				local sPoisonUseDescription = DB.getText(rPoisonUseFeature, "description");
+				sPoisonUseDescription = sPoisonUseDescription .. "\n\n Your assassin poisons that can be applied to ammunition can also be applied to your shuriken (from Way of the Ninja).";
+				DB.setValue(rPoisonUseFeature, "description", "string", sPoisonUseDescription);
+			end
+		end
+			
+		sSelectedClassFeatureSelectionsDBReference = tData.tClassFeatureOptions[selectedSkill];
+		local rCreatedIDChildNode = DB.createChild(tData.rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference", "powerdesc", sSelectedClassFeatureSelectionsDBReference);
+		DB.setValue(rCreatedIDChildNode, "value", "string", selectedSkill);
+		--DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureOriginalDescription);
+		ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", selectedSkill, tData.rAdd.sCharName);
+	end
+end
+
+
+-------------------------------------------
+----- PALADIN (BLACKGUARD) Class Features ----
+-------------------------------------------
+function addPaladinBlackguardFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription)
+	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
+	if sClassFeatureName == "Spirit Of Vice" then
+		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+		DB.setValue(rCreatedIDChildNode, "description", "string", removeLinkLists(sClassFeatureOriginalDescription));
+		displayClassFeatureSelectionsDialog(rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
+	else
+		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
+		ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", sClassFeatureName, rAdd.sCharName);
 	end
 end
 
