@@ -249,6 +249,7 @@ function addClassFeatures(rAdd, sRecord, sDescriptionText, sClassName)
 		tClassesWithPreFeatures["CLERIC (WARPRIEST)"] = true;
 		tClassesWithPreFeatures["DRUID (SENTINEL)"] = true;
 		tClassesWithPreFeatures["WARLOCK (HEXBLADE)"] = true;
+		tClassesWithPreFeatures["WARLOCK (BINDER)"] = true;
 		if tClassesWithPreFeatures[sClassName:upper()] then
 			CharClassFeatureManager.addClassSpecificPreFeatures(sClassName, rAdd, sDescriptionText, tClassFeatures);
 		else
