@@ -49,7 +49,11 @@ function addClassSpecificFeatures(sClassName, rAdd, sClassFeatureName, sClassFea
 		--HoS
 		["ASSASSIN (EXECUTIONER)"] = function() return addAssassinExecutionerFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
 		["PALADIN (BLACKGUARD)"] = function() return addPaladinBlackguardFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
-		["WARLOCK (BINDER)"] = function() return addWarlockBinderFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,		
+		["WARLOCK (BINDER)"] = function() return addWarlockBinderFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
+		--HoF
+		["BARBARIAN (BERSERKER)"] = function() return addBarbarianBerserkerFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
+		["DRUID (PROTECTOR)"] = function() return addDruidProtectorFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
+		["WIZARD (WITCH)"] = function() return addWizardWitchFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
 		default = function() return addDefaultClassFeature(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription) end
 	});
 end
@@ -60,7 +64,8 @@ function addClassSpecificPreFeatures(sClassName, rAdd, sDescriptionText, tClassF
 		["CLERIC (WARPRIEST)"] = function() return addClericWarpriestPreFeatures(sClassName, rAdd, sDescriptionText, tClassFeatures) end,
 		["DRUID (SENTINEL)"] = function() return addDruidSentinelPreFeatures(sClassName, rAdd, sDescriptionText, tClassFeatures) end,
 		["WARLOCK (HEXBLADE)"] = function() return addWarlockHexbladePreFeatures(sClassName, rAdd, sDescriptionText, tClassFeatures) end,
-		["WARLOCK (BINDER)"] = function() return addWarlockBinderPreFeatures(sClassName, rAdd, sDescriptionText, tClassFeatures) end		
+		["WARLOCK (BINDER)"] = function() return addWarlockBinderPreFeatures(sClassName, rAdd, sDescriptionText, tClassFeatures) end,
+		["DRUID (PROTECTOR)"] = function() return addDruidProtectorPreFeatures(sClassName, rAdd, sDescriptionText, tClassFeatures) end		
 	});
 end
 
@@ -2569,6 +2574,271 @@ function displayWarlockBinderPactDialog(sClassName, rAdd, sClassFeatureOriginalD
 	end
 end
 
+
+-------------------------------------------
+----- BARBARIAN (BERSERKER) Class Features ----
+-------------------------------------------
+function addBarbarianBerserkerFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription)
+	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
+	if sClassFeatureName == "Heartland" then
+		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+		DB.setValue(rCreatedIDChildNode, "description", "string", removeLinkLists(sClassFeatureOriginalDescription));
+		displayClassFeatureSelectionsDialog(rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
+	else
+		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
+		ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", sClassFeatureName, rAdd.sCharName);
+	end
+end
+
+-------------------------------------------
+----- DRUID (PROTECTOR) Class Features ----
+-------------------------------------------
+function addDruidProtectorPreFeatures(sClassName, rAdd, sDescriptionText, tClassFeatures)
+	--First, see if you have a druid circle already selected. If you don't, select one, then go through the rest of the features.
+	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
+	local sAlreadyTakenCircle = nil;
+	local tCircleNames = { "Circle of Renewal", "Circle of Shelter" };
+	for _, featureNode in pairs(tCurrentFeatures) do
+		for x,circleName in ipairs(tCircleNames) do
+			local sFeatureName = DB.getText(DB.getPath(featureNode, "value"));
+			if sFeatureName then
+				if string.find(sFeatureName, circleName) then
+					sAlreadyTakenCircle = circleName;
+					break;
+				end
+			end
+		end
+	end
+	if not sAlreadyTakenCircle or sAlreadyTakenCircle == "" then
+		--Display a pop-up where we choose from the Druid (Protector) circles
+		local tOptions = {}
+		tOptions[1] = "Circle of Renewal (Primal Guardian)";
+		tOptions[2] = "Circle of Shelter (Primal Predator)";
+		local tDialogData = {
+			title = Interface.getString("char_build_title_addddruidprotectorcircle"),
+			msg = Interface.getString("char_build_message_adddruidprotectorcircle"),
+			options = tOptions,
+			min = 1,
+			max = 1,
+			callback = CharClassFeatureManager.callbackResolveDruidProtectorPreFeatureSelection,
+			custom = { sClassName=sClassName, rAdd=rAdd, sDescriptionText=sDescriptionText, tClassFeatures=tClassFeatures },
+		};
+		DialogManager.requestSelectionDialog(tDialogData);
+	end
+end
+function callbackResolveDruidProtectorPreFeatureSelection(tSelection, tData)
+	if not tSelection and #tSelection == 1 then
+		CharManager.outputUserMessage("char_error_addclasssfeature");
+		return;
+	end
+
+	local sCircleName = tSelection[1];
+	local sCircleDescription = "You have selected the " .. sCircleName .. ". This determines your Druid Circle and Summon Natural Ally.";
+	local rCreatedIDChildNode = DB.createChild(tData.rAdd.nodeChar.getPath("specialabilitylist"));
+	DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+	DB.setValue(rCreatedIDChildNode, "value", "string", sCircleName);
+	DB.setValue(rCreatedIDChildNode, "description", "string", sCircleDescription);
+
+	local tCurrentFeatures = DB.getChildren(tData.rAdd.nodeChar, "specialabilitylist");
+	for w,v in pairs(tData.tClassFeatures) do
+		local sClassFeatureDescriptionPattern = '';
+		v = v:gsub("[%(%)%-]", "%%%0");
+		if w < #tData.tClassFeatures then
+			sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v:gsub("(%a)([%w_']*)", titleCase) .. "%s*</b></p>%s*(.-)<p><b>";
+		elseif w == #tData.tClassFeatures then
+			-- On the last feature entry, first try reading to the end of the description we're given
+			sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v:gsub("(%a)([%w_']*)", titleCase) .. "%s*</b></p>%s*(.+)";
+		end
+		sClassFeatureSpecificDescriptionText = string.match(tData.sDescriptionText, sClassFeatureDescriptionPattern);
+		if sClassFeatureSpecificDescriptionText then
+			sClassFeatureFilteredDescriptionText = removeLinkLists(sClassFeatureSpecificDescriptionText);
+		end
+		--Revert v back to unescaped version
+		v = v:gsub("%%", "")
+		local isFeatureInList = false;
+		for _, featureNode in pairs(tCurrentFeatures) do
+			if DB.getText(DB.getPath(featureNode, "value")) == v then
+				isFeatureInList = true;
+				break;
+			end
+		end
+		if isFeatureInList == false then
+			CharClassFeatureManager.addClassSpecificFeatures(tData.sClassName, tData.rAdd, v, sClassFeatureFilteredDescriptionText, sClassFeatureSpecificDescriptionText);
+		end
+	end
+end
+function addDruidProtectorFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription)
+	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
+
+	if sClassFeatureName:upper() == "DRUID CIRCLE" then
+		--Add the feature, but if you have also already added a pact, narrow pact-based features
+		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
+		displayDruidProtectorCircleDialog(sClassName, rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
+	elseif sClassFeatureName:upper() == "SUMMON NATURAL ALLY" then
+		--Add the feature, but if you have also already added a pact, narrow pact-based features
+		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
+		displayDruidProtectorCircleDialog(sClassName, rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
+	else
+		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
+		ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", sClassFeatureName, rAdd.sCharName);
+	end
+end
+function displayDruidProtectorCircleDialog(sClassName, rAdd, sClassFeatureOriginalDescription, sClassFeatureName)
+	--Find out if you have a pact feature already, and if so, add the pact-based feature already
+	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
+	local sAlreadyTakenCircle = nil;
+	local tCircleNames = { "Circle of Renewal", "Circle of Shelter" };
+	for _, featureNode in pairs(tCurrentFeatures) do
+		for x,circleName in ipairs(tCircleNames) do
+			local sFeatureName = DB.getText(DB.getPath(featureNode, "value"));
+			if sFeatureName then
+				if string.find(sFeatureName, circleName) then
+					sAlreadyTakenCircle = circleName;
+					break;
+				end
+			end
+		end
+	end
+
+	if sAlreadyTakenCircle and sAlreadyTakenCircle ~= "" then
+		if sClassFeatureName == "Druid Circle" and sClassFeatureOriginalDescription then
+			addDruidProtectorDruidCircle(rAdd, sClassFeatureOriginalDescription, sAlreadyTakenCircle);
+		elseif sClassFeatureName == "Summon Natural Ally" and sClassFeatureOriginalDescription then
+			addDruidProtectorNaturalAlly(rAdd, sClassFeatureOriginalDescription, sAlreadyTakenCircle);
+		end
+	else
+		--Display a pop-up where we choose from the Binder pacts
+		local tOptions = {}
+		tOptions[1] = "Circle of Renewal (Primal Guardian)";
+		tOptions[2] = "Circle of Shelter (Primal Predator)";
+		local tDialogData = {
+			title = Interface.getString("char_build_title_addddruidprotectorcircle"),
+			msg = Interface.getString("char_build_message_adddruidprotectorcircle"),
+			options = tOptions,
+			min = 1,
+			max = 1,
+			callback = CharClassFeatureManager.callbackResolveDruidProtectorCircleSelection,
+			custom = { rAdd=rAdd, sClassFeatureOriginalDescription=sClassFeatureOriginalDescription, sClassFeatureName=sClassFeatureName },
+		};
+		DialogManager.requestSelectionDialog(tDialogData);
+	end
+end
+function callbackResolveDruidProtectorCircleSelection(tSelection, tData)
+	if not tSelection and #tSelection == 1 then
+		CharManager.outputUserMessage("char_error_addclasssfeature");
+		return;
+	end
+	if #tSelection == 1 then
+		if (tData.sClassFeatureName == "Druid Circle" and tData.sClassFeatureOriginalDescription) then
+			addDruidProtectorDruidCircle(tData.rAdd, tData.sClassFeatureOriginalDescription, tSelection[1]);
+		elseif (tData.sClassFeatureName == "Summon Natural Ally" and tData.sClassFeatureOriginalDescription) then
+			addDruidProtectorNaturalAlly(tData.rAdd, tData.sClassFeatureOriginalDescription, tSelection[1]);
+		else
+			local sCircleName = tSelection[1];
+			local sCircleDescription = "You have selected the " .. sCircleName .. ". This determines your Druid Circle and Summon Natural Ally.";
+			local rCreatedIDChildNode = DB.createChild(tData.rAdd.nodeChar.getPath("specialabilitylist"));
+			DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+			DB.setValue(rCreatedIDChildNode, "value", "string", sCircleName);
+			DB.setValue(rCreatedIDChildNode, "description", "string", sCircleDescription);
+		end
+	end
+end
+function addDruidProtectorDruidCircle(rAdd, sClassFeatureOriginalDescription, selectedCircle)
+	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
+	local isInList = false;
+	selectedCircle = selectedCircle:gsub("%(.+%)", "");
+	for _, featureNode in pairs(tCurrentFeatures) do
+		if DB.getText(DB.getPath(featureNode, "value")) == selectedCircle then
+			isInList = true;
+			break;
+		end
+	end
+	if not isInList then
+		local sPattern = '<link class="powerdesc" recordname="reference.features.(%w+)@([%w%s]+)">';
+		local sFeaturesLink = string.gmatch(sClassFeatureOriginalDescription, sPattern);
+		for w,v in sFeaturesLink do
+			local sPattern = "reference.features." .. w .. "@" .. v;
+			local sClassFeatureName = DB.getText(DB.getPath(sPattern, "name"));
+			local sClassFeatureDescription = DB.getText(DB.getPath(sPattern, "description"));
+			if string.find(sClassFeatureName, selectedCircle, 1, true) then
+				local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+				DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference", "powerdesc", sPattern);
+				DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+				--DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureOriginalDescription);
+				ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", sClassFeatureName, rAdd.sCharName);
+				break;
+			end
+		end
+	end
+end
+function addDruidProtectorNaturalAlly(rAdd, sClassFeatureOriginalDescription, selectedCircle)
+	local sPrimal = "";
+	if selectedCircle:upper() == "CIRCLE OF RENEWAL" then
+		sPrimal = "Primal Guardian";
+	elseif selectedCircle:upper() == "CIRCLE OF SHELTER" then
+		sPrimal = "Primal Predator";
+	end
+	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
+	local isInList = false;
+	for _, featureNode in pairs(tCurrentFeatures) do
+		if string.find(DB.getText(DB.getPath(featureNode, "value")), "Summon Natural Ally" .. " (" .. sPrimal .. ")") then
+			isInList = true;
+			break;
+		end
+	end
+	if not isInList then
+		local sPattern = '<link class="powerdesc" recordname="reference.features.(%w+)@([%w%s]+)">';
+		local sFeaturesLink = string.gmatch(sClassFeatureOriginalDescription, sPattern);
+		for w,v in sFeaturesLink do
+			local sPattern = "reference.features." .. w .. "@" .. v;
+			local sClassFeatureName = DB.getText(DB.getPath(sPattern, "name"));
+			local sClassFeatureDescription = DB.getText(DB.getPath(sPattern, "description"));
+			if string.find(sClassFeatureName, "Summon Natural Ally" .. " (" .. sPrimal .. ")", 1, true) then
+				local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+				DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference", "powerdesc", sPattern);
+				DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+				--DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureOriginalDescription);
+				ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", sClassFeatureName, rAdd.sCharName);
+				break;
+			end
+		end
+	end
+end
+
+
+-------------------------------------------
+----- WIZARD (WITCH) Class Features ----
+-------------------------------------------
+function addWizardWitchFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription)
+	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
+	if sClassFeatureName == "Moon Coven" then
+		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+		DB.setValue(rCreatedIDChildNode, "description", "string", removeLinkLists(sClassFeatureOriginalDescription));
+		displayClassFeatureSelectionsDialog(rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
+	else
+		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
+		ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", sClassFeatureName, rAdd.sCharName);
+	end
+end
 
 
 ---------------------------------------
