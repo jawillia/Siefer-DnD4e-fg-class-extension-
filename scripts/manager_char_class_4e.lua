@@ -237,7 +237,7 @@ function addClassFeatures(rAdd, sRecord, sDescriptionText, sClassName)
 	-- then through the description text
 		local sClassFeaturesDescriptionTextLine = string.match(sDescriptionText, "<p>%s*<b>%s*Class features%s*:%s*</b>(.-)</p>");
 		--If it's an essentials class, keep the text down to just level 1 (for now)
-		if sDescriptionText and string.find(sDescriptionText, "<p><b>Level 1:</b></p>") then
+		if sDescriptionText and string.find(sDescriptionText, "<p><b>Level 1:</b></p>") and string.find(sDescriptionText, "<p><b>Level 2:</b></p>") then
 			sDescriptionText = string.match(sDescriptionText, "(.-)<p><b>Level 2:</b></p>");
 		end
 		if sClassFeaturesDescriptionTextLine then
@@ -246,10 +246,7 @@ function addClassFeatures(rAdd, sRecord, sDescriptionText, sClassName)
 		local tClassFeatures = StringManager.split(sClassFeaturesValue, ',', true);
 		--Pre-Feature Class Feature added here, features that must be chosen before other features, like warpriest domains
 		local tClassesWithPreFeatures = {};
-		tClassesWithPreFeatures["CLERIC (WARPRIEST)"] = true;
-		tClassesWithPreFeatures["DRUID (SENTINEL)"] = true;
-		tClassesWithPreFeatures["WARLOCK (HEXBLADE)"] = true;
-		tClassesWithPreFeatures["WARLOCK (BINDER)"] = true;
+		tClassesWithPreFeatures = tLoadClassesWithPreFeatures(tClassesWithPreFeatures);
 		if tClassesWithPreFeatures[sClassName:upper()] then
 			CharClassFeatureManager.addClassSpecificPreFeatures(sClassName, rAdd, sDescriptionText, tClassFeatures);
 		else
@@ -276,6 +273,7 @@ function addClassFeatures(rAdd, sRecord, sDescriptionText, sClassName)
 					-- Then try reading to the end of the record if that didn't work
 					if sClassFeatureSpecificDescriptionText == nil then
 						sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v .. "%s*</b></p>%s*(.+)</p>";
+						sClassFeatureSpecificDescriptionText = string.match(sDescriptionText, sClassFeatureDescriptionPattern);
 					end
 					-- If that didn't work, try really reading to the end of the record
 					if sClassFeatureSpecificDescriptionText == nil then
@@ -301,6 +299,15 @@ function addClassFeatures(rAdd, sRecord, sDescriptionText, sClassName)
 			end
 		end
 	end
+end
+function tLoadClassesWithPreFeatures(tClassesWithPreFeatures)
+	tClassesWithPreFeatures["CLERIC (WARPRIEST)"] = true;
+	tClassesWithPreFeatures["DRUID (SENTINEL)"] = true;
+	tClassesWithPreFeatures["WARLOCK (HEXBLADE)"] = true;
+	tClassesWithPreFeatures["WARLOCK (BINDER)"] = true;
+	tClassesWithPreFeatures["DRUID (PROTECTOR)"] = true;
+
+	return tClassesWithPreFeatures;
 end
 
 function addRacePowers(rAdd, sRecord, sDescriptionText)
