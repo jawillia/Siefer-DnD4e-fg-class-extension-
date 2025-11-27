@@ -54,6 +54,8 @@ function addClassSpecificFeatures(sClassName, rAdd, sClassFeatureName, sClassFea
 		["BARBARIAN (BERSERKER)"] = function() return addBarbarianBerserkerFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
 		["DRUID (PROTECTOR)"] = function() return addDruidProtectorFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
 		["WIZARD (WITCH)"] = function() return addWizardWitchFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
+		--HoEC
+		["SORCERER (ELEMENTALIST)"] = function() return addSorcererElementalistFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
 		default = function() return addDefaultClassFeature(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription) end
 	});
 end
@@ -2826,6 +2828,27 @@ end
 function addWizardWitchFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription)
 	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
 	if sClassFeatureName == "Moon Coven" then
+		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+		DB.setValue(rCreatedIDChildNode, "description", "string", removeLinkLists(sClassFeatureOriginalDescription));
+		displayClassFeatureSelectionsDialog(rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
+	else
+		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
+		ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", sClassFeatureName, rAdd.sCharName);
+	end
+end
+
+
+-------------------------------------------
+----- SORCERER (ELEMENTALIST) Class Features ----
+-------------------------------------------
+function addSorcererElementalistFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription)
+	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
+	if sClassFeatureName == "Elemental Specialty" then
 		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
 		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
 		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
