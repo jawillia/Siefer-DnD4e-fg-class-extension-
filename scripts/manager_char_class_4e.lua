@@ -246,7 +246,7 @@ function addClassFeatures(rAdd, sRecord, sDescriptionText, sClassName)
 		local tClassFeatures = StringManager.split(sClassFeaturesValue, ',', true);
 		--Pre-Feature Class Feature added here, features that must be chosen before other features, like warpriest domains
 		local tClassesWithPreFeatures = {};
-		tClassesWithPreFeatures = tLoadClassesWithPreFeatures(tClassesWithPreFeatures);
+		tClassesWithPreFeatures = loadClassesWithPreFeatures(tClassesWithPreFeatures);
 		if tClassesWithPreFeatures[sClassName:upper()] then
 			CharClassFeatureManager.addClassSpecificPreFeatures(sClassName, rAdd, sDescriptionText, tClassFeatures);
 		else
@@ -256,31 +256,10 @@ function addClassFeatures(rAdd, sRecord, sDescriptionText, sClassName)
 				v = v:gsub("(%a)([%w_']*)", titleCase);
 				if w < #tClassFeatures then
 					sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v .. "%s*</b></p>%s*(.-)<p><b>";
-				elseif w == #tClassFeatures then
-					-- On the last feature entry, first try reading to the class overview
-					sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v .. "%s*</b></p>%s*(.-)<p>" .. sClassName:upper() .. " OVERVIEW</p>";
 					sClassFeatureSpecificDescriptionText = string.match(sDescriptionText, sClassFeatureDescriptionPattern);
-					-- Then try reading to alternative features
-					if sClassFeatureSpecificDescriptionText == nil then
-						sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v .. "%s*</b></p>%s*(.-)<p><b>Alternative";
-						sClassFeatureSpecificDescriptionText = string.match(sDescriptionText, sClassFeatureDescriptionPattern);
-					end	
-					-- Or read to the Implements
-					if sClassFeatureSpecificDescriptionText == nil then
-						sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v .. "%s*</b></p>%s*(.-)<p><b>IMPLEMENTS</b></p>";
-						sClassFeatureSpecificDescriptionText = string.match(sDescriptionText, sClassFeatureDescriptionPattern);
-					end			
-					-- Then try reading to the end of the record if that didn't work
-					if sClassFeatureSpecificDescriptionText == nil then
-						sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v .. "%s*</b></p>%s*(.+)</p>";
-						sClassFeatureSpecificDescriptionText = string.match(sDescriptionText, sClassFeatureDescriptionPattern);
-					end
-					-- If that didn't work, try really reading to the end of the record
-					if sClassFeatureSpecificDescriptionText == nil then
-						sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v .. "%s*</b></p>%s*(.+)";
-					end
+				elseif w == #tClassFeatures then
+					sClassFeatureSpecificDescriptionText, sClassFeatureDescriptionPattern = cutoffLastClassFeatureDescription(sDescriptionText, sClassFeatureSpecificDescriptionText, v, sClassName);
 				end
-				sClassFeatureSpecificDescriptionText = string.match(sDescriptionText, sClassFeatureDescriptionPattern);
 				if sClassFeatureSpecificDescriptionText then
 					sClassFeatureFilteredDescriptionText = convertHTMLTable(removeLinkLists(sClassFeatureSpecificDescriptionText));
 				end
@@ -300,7 +279,7 @@ function addClassFeatures(rAdd, sRecord, sDescriptionText, sClassName)
 		end
 	end
 end
-function tLoadClassesWithPreFeatures(tClassesWithPreFeatures)
+function loadClassesWithPreFeatures(tClassesWithPreFeatures)
 	tClassesWithPreFeatures["CLERIC (WARPRIEST)"] = true;
 	tClassesWithPreFeatures["DRUID (SENTINEL)"] = true;
 	tClassesWithPreFeatures["WARLOCK (HEXBLADE)"] = true;
@@ -308,6 +287,43 @@ function tLoadClassesWithPreFeatures(tClassesWithPreFeatures)
 	tClassesWithPreFeatures["DRUID (PROTECTOR)"] = true;
 
 	return tClassesWithPreFeatures;
+end
+function cutoffLastClassFeatureDescription(sDescriptionText, sClassFeatureSpecificDescriptionText, sClassFeatureName, sClassName)
+	-- On the last feature entry, first try reading to the class overview
+	local sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. sClassFeatureName .. "%s*</b></p>%s*(.-)<p>" .. sClassName:upper() .. " OVERVIEW</p>";
+	sClassFeatureSpecificDescriptionText = string.match(sDescriptionText, sClassFeatureDescriptionPattern);
+	-- Then try reading to alternative features
+	if sClassFeatureSpecificDescriptionText == nil then
+		sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. sClassFeatureName .. "%s*</b></p>%s*(.-)<p><b>Alternative";
+		sClassFeatureSpecificDescriptionText = string.match(sDescriptionText, sClassFeatureDescriptionPattern);
+	end	
+	-- Or read to the Implements
+	if sClassFeatureSpecificDescriptionText == nil then
+		sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. sClassFeatureName .. "%s*</b></p>%s*(.-)<p><b>IMPLEMENTS</b></p>";
+		sClassFeatureSpecificDescriptionText = string.match(sDescriptionText, sClassFeatureDescriptionPattern);
+	end		
+	-- Or read to the Ability Scores
+	if sClassFeatureSpecificDescriptionText == nil then
+		sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. sClassFeatureName .. "%s*</b></p>%s*(.-)<p>Ability Scores</p>";
+		sClassFeatureSpecificDescriptionText = string.match(sDescriptionText, sClassFeatureDescriptionPattern);
+	end	
+	-- Or read to the publish text
+	if sClassFeatureSpecificDescriptionText == nil then
+		sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. sClassFeatureName .. "%s*</b></p>%s*(.-)<p>Published in";
+		sClassFeatureSpecificDescriptionText = string.match(sDescriptionText, sClassFeatureDescriptionPattern);
+	end	
+	-- Then try reading to the end of the record if that didn't work
+	if sClassFeatureSpecificDescriptionText == nil then
+		sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. sClassFeatureName .. "%s*</b></p>%s*(.+)</p>";
+		sClassFeatureSpecificDescriptionText = string.match(sDescriptionText, sClassFeatureDescriptionPattern);
+	end
+	-- If that didn't work, try really reading to the end of the record
+	if sClassFeatureSpecificDescriptionText == nil then
+		sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. sClassFeatureName .. "%s*</b></p>%s*(.+)";
+		sClassFeatureSpecificDescriptionText = string.match(sDescriptionText, sClassFeatureDescriptionPattern);
+	end
+
+	return sClassFeatureSpecificDescriptionText, sClassFeatureDescriptionPattern;
 end
 
 function addRacePowers(rAdd, sRecord, sDescriptionText)
