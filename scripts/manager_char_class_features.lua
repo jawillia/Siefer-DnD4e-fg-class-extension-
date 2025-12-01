@@ -1097,7 +1097,7 @@ function displaySorcererSpellSourceDialog(rAdd, sClassFeatureOriginalDescription
 	local tAllDBReferenceOptions = {};
 	--Start with the Sorcerer class features we already know about
 	local tExistingSpellSources = { "Cosmic Magic", "Dragon Magic", "Storm Magic", "Wild Magic" };
-	--Display information on the selections in chat
+	--Display links to the selections
 	local sPattern = '<link class="powerdesc" recordname="reference.features.(%w+)@([%w%s]+)">';
 	local sFeaturesLink = string.gmatch(sClassFeatureOriginalDescription, sPattern);
 	local nOptionsCount = 1;
@@ -1108,12 +1108,9 @@ function displaySorcererSpellSourceDialog(rAdd, sClassFeatureOriginalDescription
 		local sClassFeatureDescription = DB.getText(DB.getPath(sPattern, "description"));
 		local spellSourceSet = createSet(tExistingSpellSources);
 		if spellSourceSet[sClassFeatureName] then
-			tOptions[nOptionsCount] = sClassFeatureName;
-			nOptionsCount = nOptionsCount + 1;
 			tSpellSourceOptions[sClassFeatureName] = DB.getPath(sPattern);
-			local tMessageShortcuts = { { class="powerdesc", recordname=DB.getPath(sPattern) } };
-			local tMessageData = {font = "systemfont", text = sClassFeatureName, shortcuts=tMessageShortcuts};
-			Comm.addChatMessage(tMessageData);
+			table.insert(tOptions, { text = sClassFeatureName, linkclass = "powerdesc", linkrecord = DB.getPath(sPattern), });
+			nOptionsCount = nOptionsCount + 1;
 		else
 			tAllOptions[nAllOptionsCount] = sClassFeatureName;
 			nAllOptionsCount = nAllOptionsCount + 1;
@@ -1121,9 +1118,10 @@ function displaySorcererSpellSourceDialog(rAdd, sClassFeatureOriginalDescription
 		end
 	end
 	--Display a pop-up where we choose from the sorcerer spell sources
+	local msg = string.format(Interface.getString("char_build_message_chooseclassfeatures"), "1", "Spell Source");
 	local tDialogData = {
-		title = Interface.getString("char_build_title_addfightingstyle"),
-		msg = Interface.getString("char_build_message_addfightingstyle"),
+		title = "Sorcerer Spell Source",
+		msg = msg,
 		options = tOptions,
 		min = 1,
 		max = 1,
@@ -1414,23 +1412,20 @@ function addArtificerFeatures(sClassName, rAdd, sClassFeatureName, sClassFeature
 	end
 end
 function displayArtificerHealingInfusionDialog(rAdd)
-	--Display information on the selections in chat
-	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
-	for x,y in pairs(tCurrentFeatures) do
-		if DB.getText(DB.getPath(y, "value")) == "Battle Cleric's Lore" or DB.getText(DB.getPath(y, "value")) == "Healer's Lore" then
-			local tMessageShortcuts = { { class="ref_ability", recordname=DB.getPath(y) } };
-			if sbattleClericLoreReference and DB.getText(DB.getPath(y, "value")) == "Battle Cleric's Lore" then
-				tMessageShortcuts = {{ class="powerdesc", recordname=sbattleClericLoreReference }}
-			end
-			local tMessageData = {font = "systemfont", text = DB.getText(DB.getPath(y, "value")), shortcuts=tMessageShortcuts};
-			Comm.addChatMessage(tMessageData);
-		end
+	local tOptions = {}
+	local tHealingInfusionNames = {};
+	tHealingInfusionNames[1] = "Healing Infusion: Resistive Formula";
+	tHealingInfusionNames[2] = "Healing Infusion: Shielding Elixir";
+	--Display links to the selections
+	for x,y in pairs(tHealingInfusionNames) do
+		local sClassFeatureName = y;
+		local sDBReferenceFeatureName = sClassFeatureName:lower():gsub(" ", "");
+		local sLinkClass = "powerdesc";
+		local sNodePath = DB.getPath("reference.powers@4E PC Options", sDBReferenceFeatureName);
+		table.insert(tOptions, { text = sClassFeatureName, linkclass = sLinkClass, linkrecord = sNodePath, });
 	end
 
 	--Display a pop-up where we either choose Resistive Formula or Shielding Elixer healing infusion
-	local tOptions = {}
-	tOptions[1] = "Healing Infusion: Resistive Formula";
-	tOptions[2] = "Healing Infusion: Shielding Elixir";
 	local tDialogData = {
 		title = Interface.getString("char_build_title_addartificerhealinginfusion"),
 		msg = Interface.getString("char_build_message_addartificerhealinginfusion"),
@@ -2352,7 +2347,7 @@ end
 function displayAssassinExecutionerGuildAttacksSelectionsDialog(rAdd, sClassFeatureOriginalDescription, sClassFeatureName, nMaxSelections)
 	local tClassFeatureOptions = {};
 	local tOptions = {};
-	--Display information on the selections in chat
+	--Display links to the selections
 	local sPattern = '<link class="powerdesc" recordname="reference.features.(%w+)@([%w%s]+)">';
 	local sFeaturesLink = string.gmatch(sClassFeatureOriginalDescription, sPattern);
 	local nOptionsCount = 1;
@@ -2360,12 +2355,13 @@ function displayAssassinExecutionerGuildAttacksSelectionsDialog(rAdd, sClassFeat
 		local sPattern = "reference.features." .. w .. "@" .. v;
 		local sClassFeatureName = DB.getText(DB.getPath(sPattern, "name"));
 		local sClassFeatureDescription = DB.getText(DB.getPath(sPattern, "description"));
-		tOptions[nOptionsCount] = sClassFeatureName;
-		nOptionsCount = nOptionsCount + 1;
+		--tOptions[nOptionsCount] = sClassFeatureName;
 		tClassFeatureOptions[sClassFeatureName] = DB.getPath(sPattern);
-		local tMessageShortcuts = { { class="powerdesc", recordname=DB.getPath(sPattern) } };
-		local tMessageData = {font = "systemfont", text = sClassFeatureName, shortcuts=tMessageShortcuts};
-		Comm.addChatMessage(tMessageData);
+		-- local tMessageShortcuts = { { class="powerdesc", recordname=DB.getPath(sPattern) } };
+		-- local tMessageData = {font = "systemfont", text = sClassFeatureName, shortcuts=tMessageShortcuts};
+		-- Comm.addChatMessage(tMessageData);
+		table.insert(tOptions, { text = sClassFeatureName, linkclass = "powerdesc", linkrecord = DB.getPath(sPattern), });
+		nOptionsCount = nOptionsCount + 1;
 	end
 	--Display a pop-up where we choose from the class feature options
 	if not nMaxSelections or nMaxSelections < 1 then
