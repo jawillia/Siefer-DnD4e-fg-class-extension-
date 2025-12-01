@@ -21,6 +21,7 @@
 		<!-- Campaign -->
 		<includefile source="campaign/record_char_main.xml" />
 		<includefile source="campaign/record_char_skills.xml" />
+		<includefile source="campaign/record_char_abilities.xml" />
 		<includefile source="campaign/record_class.xml" /> 
 
 		<!-- High-Level Scripts -->
