@@ -15,6 +15,7 @@ v.0.4.0 - 11/10/2025 - Added filters for the class library for role, power sourc
 source, and class type (default, essentials, and hybrid). Added choices for Avengers features.\
 v.0.5.0 - 11/16/2025 - Tested and fixed issues for class features up to the end of PHB2 (Avenger, Barbarian, Bard, Druid, Invoker, Shaman, Sorcerer, and Warden).\
 v.0.6.0 - 11/25/2025 - There is now a UI to add your own custom classes, although automation for them isn't set up (will do this after finishing automation for all the compendium classes). Added filters for the power library for class, keywords, level, publishing source, recharge, and type. Tested and fixed issues for class features for HotFL and HotFK Essentials classes (Druid (Sentinel), Paladin (Cavalier), Ranger (Hunter), Ranger (Scout), Warlock (Hexblade), Cleric (Warpriest), Fighter (Knight), Fighter (Slayer), and Rogue (Thief))
+v.0.7.0 - 12/1/2025 - Finished adding the rest of the Essentials classes by testing and fixing class features for HoEC and NCS classes (Wizard (Bladesinger), Sorcerer (Elementalist), Wizard (Sha'ir)). Also added links to the selection dialogues.
 
 
 

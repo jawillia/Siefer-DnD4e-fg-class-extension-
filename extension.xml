@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 <!-- This is our MVP for the Practice Extension -->
 <root release="3.0" version="6">
-	<announcement text="DnD 4e Classes extension made by SieferSeesSomething is activated. Last release 11/25/2025" font="emotefont" icon="rulesetlogo_CoreRPG"/>
+	<announcement text="DnD 4e Classes extension made by SieferSeesSomething is activated. Last release 12/01/2025" font="emotefont" icon="rulesetlogo_CoreRPG"/>
 	<properties>
 		<name>DnD 4e - Character Classes Extension</name>
-		<version>0.6.0</version>
+		<version>0.7.0</version>
 		<author>Jason Williams</author>
 		<description>
 		Adds a character options menu for classes and a link to the character sheet.
