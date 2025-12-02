@@ -10,7 +10,7 @@
   <string name="char_abilities_message_classadd">Class '%s' added to '%s'.</string>
   <string name="char_abilities_message_classfeatureadd">Class Feature '%s' added to '%s' special ability list.</string>
   <string name="char_abilities_message_classfeaturedialoguetitle">Choose a Class Feature</string>
-  <string name="char_abilities_message_classfeaturedialoguemsg">Choose one. Check the chat to see more details.</string>
+  <string name="char_abilities_message_classfeaturedialoguemsg">Choose one.</string>
   <string name="char_abilities_message_classpoweradd">Class Power '%s' added to '%s' powers list.</string>
   <string name="char_abilities_message_armorproficiencyadd">Armor Proficiency '%s' added to '%s' armor proficiency list.</string>
   <string name="char_abilities_message_armorproficiencyremove">Armor Proficiency '%s' removed from '%s' armor proficiency list.</string>
@@ -29,13 +29,15 @@
   <string name="char_build_message_chooseclassfeatures">Choose %s of the following %s:</string> 
   <!-- Cleric Feature Strings -->
   <string name="char_build_title_addhealerlore">Healer's Lore or Alternate</string> 
-  <string name="char_build_message_addhealerorbattlelore">Choose Healer's Lore or Battle Cleric's Lore. Check the chat for detailed descriptions.</string> 
+  <string name="char_build_message_addhealerorbattlelore">Choose Healer's Lore or Battle Cleric's Lore. </string>
+    <string name="char_build_title_addchanneldivinity">Channel Divinity</string> 
+  <string name="char_build_message_addchanneldivinity">Choose one of the following Channel Divinity options. Search the power name to find it. </string>
   <!-- Fighter(Weaponmaster) Feature strings -->
   <string name="char_build_title_addcombatsuperiority">Combat Superiority or Alternate</string> 
   <string name="char_build_message_addcombatsuperiorityoragility">Choose Combat Superiority or Combat Agility. Check the chat for detailed descriptions.</string> 
   <!-- Ranger Feature strings -->  
   <string name="char_build_title_addprimeshot">Prime Shot or Alternate</string> 
-  <string name="char_build_message_addprimeshotorrunningattack">Choose Prime Shot or Running Attack. Check the chat for detailed descriptions.</string>
+  <string name="char_build_message_addprimeshotorrunningattack">Choose Prime Shot or Running Attack.</string>
   <string name="char_build_title_addfightingstyle">Fighting Style</string> 
   <string name="char_build_message_addfightingstyle">Choose one of the following Fighting Styles:</string>
   <string name="char_abilities_message_beastmasteryclassfeatureadd">Class Feature '%s' added to '%s' special ability list. You must select the Beast Mastery Fighting Style and Beast Mastery Prime Shot alternative class feature for this character to be legal and correct.</string>  

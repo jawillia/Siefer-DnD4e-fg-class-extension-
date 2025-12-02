@@ -54,6 +54,8 @@ function addClassSpecificFeatures(sClassName, rAdd, sClassFeatureName, sClassFea
 		["BARBARIAN (BERSERKER)"] = function() return addBarbarianBerserkerFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
 		["DRUID (PROTECTOR)"] = function() return addDruidProtectorFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
 		["WIZARD (WITCH)"] = function() return addWizardWitchFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
+		--HoEC
+		["SORCERER (ELEMENTALIST)"] = function() return addSorcererElementalistFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
 		default = function() return addDefaultClassFeature(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription) end
 	});
 end
@@ -93,25 +95,24 @@ function displayAlternativeFeatureDialog(rAdd, tAlternativeClassFeatures, tStrin
 			sDialogueMsg = tStringCharBuildData[2];
 		end
 	end
-	--Display information on the selections in chat
+	local tOptions = {}
+	local tTotalOptionNames = {};
+	local nOptionsCount = 1;
+	for sAltclassFeatureIndex,sAltclassFeatureName in pairs(tAlternativeClassFeatures) do
+		tTotalOptionNames[nOptionsCount] = sAltclassFeatureName;
+		nOptionsCount = nOptionsCount + 1;
+	end
+	--Display links to the selections in the dialogue
 	-- local sPattern = '<link class="powerdesc" recordname="reference.features.(%w+)@([%w%s]+)">';
 	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
 	for x,y in pairs(tCurrentFeatures) do
 		for sAltclassFeatureIndex,sAltclassFeatureName in pairs(tAlternativeClassFeatures) do
 			if DB.getText(DB.getPath(y, "value")) == sAltclassFeatureName then
-				local tMessageShortcuts = { { class="ref_ability", recordname=DB.getPath(y) } };
-				local tMessageData = {font = "systemfont", text = DB.getText(DB.getPath(y, "value")), shortcuts=tMessageShortcuts};
-				Comm.addChatMessage(tMessageData);
+				table.insert(tOptions, { text = DB.getText(DB.getPath(y, "value")), linkclass = "ref_ability", linkrecord = DB.getPath(y), });
 			end
 		end
 	end
 	--Display a pop-up where we either choose Combat Superiority or Combat Agility
-	local tOptions = {}
-	local nOptionsCount = 1;
-	for sAltclassFeatureIndex,sAltclassFeatureName in pairs(tAlternativeClassFeatures) do
-		tOptions[nOptionsCount] = sAltclassFeatureName;
-		nOptionsCount = nOptionsCount + 1;
-	end
 	local tDialogData = {
 		title = Interface.getString(sDialogueTitle),
 		msg = Interface.getString(sDialogueMsg),
@@ -155,12 +156,9 @@ function displayClassFeatureSelectionsDialog(rAdd, sClassFeatureOriginalDescript
 		local sPattern = "reference.features." .. w .. "@" .. v;
 		local sClassFeatureName = DB.getText(DB.getPath(sPattern, "name"));
 		local sClassFeatureDescription = DB.getText(DB.getPath(sPattern, "description"));
-		tOptions[nOptionsCount] = sClassFeatureName;
-		nOptionsCount = nOptionsCount + 1;
 		tClassFeatureOptions[sClassFeatureName] = DB.getPath(sPattern);
-		local tMessageShortcuts = { { class="powerdesc", recordname=DB.getPath(sPattern) } };
-		local tMessageData = {font = "systemfont", text = sClassFeatureName, shortcuts=tMessageShortcuts};
-		Comm.addChatMessage(tMessageData);
+		table.insert(tOptions, { text = sClassFeatureName, linkclass = "powerdesc", linkrecord = DB.getPath(sPattern), });
+		nOptionsCount = nOptionsCount + 1;
 	end
 	--Display a pop-up where we choose from the class feature options
 	if not nMaxSelections or nMaxSelections < 1 then
@@ -267,22 +265,26 @@ function addClericTemplarFeatures(sClassName, rAdd, sClassFeatureName, sClassFea
 	end
 end
 function displayClericTemplarHealerLoreDialog(rAdd, sbattleClericLoreReference)
-	--Display information on the selections in chat
+	--Add links to the selection options themselves
+	local tOptions = {};
 	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
 	for x,y in pairs(tCurrentFeatures) do
-		if DB.getText(DB.getPath(y, "value")) == "Battle Cleric's Lore" or DB.getText(DB.getPath(y, "value")) == "Healer's Lore" then
-			local tMessageShortcuts = { { class="ref_ability", recordname=DB.getPath(y) } };
-			if sbattleClericLoreReference and DB.getText(DB.getPath(y, "value")) == "Battle Cleric's Lore" then
-				tMessageShortcuts = {{ class="powerdesc", recordname=sbattleClericLoreReference }}
+		local sFeatureName = DB.getText(DB.getPath(y, "value"));
+		local sLinkClass = "ref_ability";
+		local sNodePath = DB.getPath(y);
+		if sFeatureName == "Battle Cleric's Lore" or sFeatureName == "Healer's Lore" then		
+			if sbattleClericLoreReference and sFeatureName == "Battle Cleric's Lore" then
+				sLinkClass = "powerdesc";
+				sNodePath = sbattleClericLoreReference;
 			end
-			local tMessageData = {font = "systemfont", text = DB.getText(DB.getPath(y, "value")), shortcuts=tMessageShortcuts};
-			Comm.addChatMessage(tMessageData);
+			table.insert(tOptions, { text = sFeatureName, linkclass = sLinkClass, linkrecord = sNodePath, });
 		end
 	end
-	--Display a pop-up where we either choose Healer's Lore or Battle Cleric's Lore
-	local tOptions = {}
-	tOptions[1] = "Healer's Lore";
-	tOptions[2] = "Battle Cleric's Lore";
+	if not tOptions or not tOptions[1] or not tOptions[2] then
+		tOptions[1] = "Healer's Lore";
+		tOptions[2] = "Battle Cleric's Lore";
+	end
+
 	local tDialogData = {
 		title = Interface.getString("char_build_title_addhealerlore"),
 		msg = Interface.getString("char_build_message_addhealerorbattlelore"),
@@ -326,26 +328,30 @@ function callbackResolveClericHealerLoreDialogSelection(tSelection, rAdd, tSelec
 	end
 end
 function displayClericTemplarChannelDivinityDialog(rAdd)
-	--Display information on the selections in chat
-	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
-	for x,y in pairs(tCurrentFeatures) do
-		if DB.getText(DB.getPath(y, "value")) == "Battle Cleric's Lore" or DB.getText(DB.getPath(y, "value")) == "Healer's Lore" then
-			local tMessageShortcuts = { { class="ref_ability", recordname=DB.getPath(y) } };
-			if sbattleClericLoreReference and DB.getText(DB.getPath(y, "value")) == "Battle Cleric's Lore" then
-				tMessageShortcuts = {{ class="powerdesc", recordname=sbattleClericLoreReference }}
+	--Add links to the selection options themselves for the first channel divinity choice first
+	local tOptions = {};
+	local tChannelDivinityOptions = {};
+	tChannelDivinityOptions[1] = "Channel Divinity: Divine Fortune";
+	tChannelDivinityOptions[2] = "Channel Divinity: Favor of the Gods";
+	for x,y in pairs(tChannelDivinityOptions) do
+		local tChannelDivinityAbilityNameParts =  StringManager.split(y, ':', true);
+		if #tChannelDivinityAbilityNameParts > 1 then
+			local sFeatureName = tChannelDivinityAbilityNameParts[2];
+			local sDBReferenceFeatureName = sFeatureName:lower():gsub(" ", "");
+			local sLinkClass = "powerdesc";
+			local sNodePath = DB.getPath("reference.powers@4E PC Options", sDBReferenceFeatureName);
+			if sFeatureName == "Divine Fortune" or sFeatureName == "Favor of the Gods" then
+				-- local tMessageShortcuts = { { class=sLinkClass, recordname=sNodePath } };
+				-- local tMessageData = {font = "systemfont", text = sFeatureName, shortcuts=tMessageShortcuts};
+				table.insert(tOptions, { text = sFeatureName, linkclass = sLinkClass, linkrecord = sNodePath, });
 			end
-			local tMessageData = {font = "systemfont", text = DB.getText(DB.getPath(y, "value")), shortcuts=tMessageShortcuts};
-			Comm.addChatMessage(tMessageData);
 		end
 	end
 
 	--Display a pop-up where we either choose Divine Fortune or Favor of the Gods for Cleric Channel Divinity
-	local tOptions = {}
-	tOptions[1] = "Channel Divinity:Divine Fortune";
-	tOptions[2] = "Channel Divinity:Favor of the Gods";
 	local tDialogData = {
-		title = Interface.getString("char_build_title_addhealerlore"),
-		msg = Interface.getString("char_build_message_addhealerorbattlelore"),
+		title = Interface.getString("char_build_title_addchanneldivinity"),
+		msg = Interface.getString("char_build_message_addchanneldivinity"),
 		options = tOptions,
 		min = 1,
 		max = 1,
@@ -355,13 +361,29 @@ function displayClericTemplarChannelDivinityDialog(rAdd)
 	DialogManager.requestSelectionDialog(tDialogData);
 
 	--Display a pop-up where we either choose Turn Undead, Healer's Mercy, or Punish the Profane for Cleric Channel Divinity
-	local tOptions = {}
-	tOptions[1] = "Channel Divinity:Turn Undead";
-	tOptions[2] = "Channel Divinity:Healer's Mercy";
-	tOptions[3] = "Channel Divinity:Punish the Profane";
+	local tOptions = {};
+	local tChannelDivinityOptions = {};
+	tChannelDivinityOptions[1] = "Channel Divinity: Turn Undead";
+	tChannelDivinityOptions[2] = "Channel Divinity: Healer's Mercy";
+	tChannelDivinityOptions[3] = "Channel Divinity: Punish the Profane";
+	for x,y in pairs(tChannelDivinityOptions) do
+		local tChannelDivinityAbilityNameParts =  StringManager.split(y, ':', true);
+		if #tChannelDivinityAbilityNameParts > 1 then
+			local sFeatureName = tChannelDivinityAbilityNameParts[2];
+			local sDBReferenceFeatureName = sFeatureName:lower():gsub(" ", "");
+			local sLinkClass = "powerdesc";
+			local sNodePath = DB.getPath("reference.powers@4E PC Options", sDBReferenceFeatureName);
+			if sFeatureName == "Turn Undead" or sFeatureName == "Healer's Mercy" or sFeatureName == "Punish the Profane" then
+				-- local tMessageShortcuts = { { class=sLinkClass, recordname=sNodePath } };
+				-- local tMessageData = {font = "systemfont", text = sFeatureName, shortcuts=tMessageShortcuts};
+				table.insert(tOptions, { text = sFeatureName, linkclass = sLinkClass, linkrecord = sNodePath, });
+			end
+		end
+	end
+
 	local tDialogData = {
-		title = Interface.getString("char_build_title_addhealerlore"),
-		msg = Interface.getString("char_build_message_addhealerorbattlelore"),
+		title = Interface.getString("char_build_title_addchanneldivinity"),
+		msg = Interface.getString("char_build_message_addchanneldivinity"),
 		options = tOptions,
 		min = 1,
 		max = 1,
@@ -497,25 +519,33 @@ function displayRangerPrimeShotDialog(rAdd, sClassFeatureOriginalDescription)
 	local sPattern = '<link class="powerdesc" recordname="reference.features.(%w+)@([%w%s]+)">';
 	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
 	local isBeastMasterySelected = false;
+	local tOptions = {}
 	for x,y in pairs(tCurrentFeatures) do
-		if DB.getText(DB.getPath(y, "value")) == "Beast Mastery" then
+		local sFeatureName = DB.getText(DB.getPath(y, "value"));
+		local sLinkClass = "ref_ability";
+		local sNodePath = DB.getPath(y);
+		if sFeatureName == "Beast Mastery" then
 			isBeastMasterySelected = true;
 		end
-		if DB.getText(DB.getPath(y, "value")) == "Prime Shot" or DB.getText(DB.getPath(y, "value")) == "Running Attack" then
-			local tMessageShortcuts = { { class="ref_ability", recordname=DB.getPath(y) } };
-			local tMessageData = {font = "systemfont", text = DB.getText(DB.getPath(y, "value")), shortcuts=tMessageShortcuts};
-			Comm.addChatMessage(tMessageData);
+		if sFeatureName == "Prime Shot" or sFeatureName == "Running Attack" or sFeatureName == "Beast Mastery" then
+			table.insert(tOptions, { text = sFeatureName, linkclass = sLinkClass, linkrecord = sNodePath, });
 		end
 	end
 	--Display a pop-up where we either choose Prime Shot or Running Attack, 
 	-- unless they've already selected the Beast Mastery Fighting Style
-	local tOptions = {}
+
+	table.insert(tOptions, "Beast Mastery");
 	if isBeastMasterySelected then
-		tOptions[1] = "Beast Mastery";
-	else
-		tOptions[1] = "Prime Shot";
-		tOptions[2] = "Running Attack";
-		tOptions[3] = "Beast Mastery";
+		for i,v in ipairs(tOptions) do
+			if v ~= "Beast Mastery" then
+				table[i] = nil;
+			end
+		end
+	-- 	tOptions[1] = "Beast Mastery";
+	-- else
+	-- 	tOptions[1] = "Prime Shot";
+	-- 	tOptions[2] = "Running Attack";
+	-- 	tOptions[3] = "Beast Mastery";
 	end
 	local tDialogData = {
 		title = Interface.getString("char_build_title_addprimeshot"),
@@ -578,12 +608,9 @@ function displayRangerFightingStyleDialog(rAdd, sClassFeatureOriginalDescription
 		local sPattern = "reference.features." .. w .. "@" .. v;
 		local sClassFeatureName = DB.getText(DB.getPath(sPattern, "name"));
 		local sClassFeatureDescription = DB.getText(DB.getPath(sPattern, "description"));
-		tOptions[nOptionsCount] = sClassFeatureName;
-		nOptionsCount = nOptionsCount + 1;
 		tFightingStyleOptions[sClassFeatureName] = DB.getPath(sPattern);
-		local tMessageShortcuts = { { class="powerdesc", recordname=DB.getPath(sPattern) } };
-		local tMessageData = {font = "systemfont", text = sClassFeatureName, shortcuts=tMessageShortcuts};
-		Comm.addChatMessage(tMessageData);
+		table.insert(tOptions, { text = sClassFeatureName, linkclass = "powerdesc", linkrecord = DB.getPath(sPattern), });
+		nOptionsCount = nOptionsCount + 1;
 	end
 	--Display a pop-up where we choose from the fighting styles
 	local tDialogData = {
@@ -805,20 +832,17 @@ function addWarlordMarshalFeatures(sClassName, rAdd, sClassFeatureName, sClassFe
 end
 
 function displayWarlordMarshalArcherWarlordDialog(rAdd)
-	--Display information on the selections in chat
+	--Display links to the selections
 	local sPattern = '<link class="powerdesc" recordname="reference.features.(%w+)@([%w%s]+)">';
 	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
+	local tOptions = {};
 	for x,y in pairs(tCurrentFeatures) do
-		if DB.getText(DB.getPath(y, "value")) == "Standard Warlord Armor Features" or DB.getText(DB.getPath(y, "value")) == "Archer Warlord" then
-			local tMessageShortcuts = { { class="ref_ability", recordname=DB.getPath(y) } };
-			local tMessageData = {font = "systemfont", text = DB.getText(DB.getPath(y, "value")), shortcuts=tMessageShortcuts};
-			Comm.addChatMessage(tMessageData);
+		local sClassFeatureName = DB.getText(DB.getPath(y, "value"))
+		if sClassFeatureName == "Standard Warlord Armor Features" or sClassFeatureName == "Archer Warlord" then
+			table.insert(tOptions, { text = sClassFeatureName, linkclass = "ref_ability", linkrecord = DB.getPath(y), });
 		end
 	end
 	--Display a pop-up where we either choose Standard Warlord Armor Features or Archer Warlord
-	local tOptions = {}
-	tOptions[1] = "Standard Warlord Armor Features";
-	tOptions[2] = "Archer Warlord";
 	local tDialogData = {
 		title = Interface.getString("char_build_title_addarcherwarlord"),
 		msg = Interface.getString("char_build_message_addarcherwarlord"),
@@ -921,27 +945,6 @@ function addAvengerFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFi
 	end
 end
 
-
--------------------------------------------
------ BARBARIAN Class Features ----
--------------------------------------------
-function addBarbarianFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription)
-	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
-	if sClassFeatureName == "Feral Might" then
-		-- Add the feature and choose between all of the Barbarian Feral Mights
-		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
-		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
-		displayClassFeatureSelectionsDialog(rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
-	else
-		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
-		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
-		ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", sClassFeatureName, rAdd.sCharName);
-	end
-end
 
 -------------------------------------------
 ----- BARBARIAN Class Features ----
@@ -1094,7 +1097,7 @@ function displaySorcererSpellSourceDialog(rAdd, sClassFeatureOriginalDescription
 	local tAllDBReferenceOptions = {};
 	--Start with the Sorcerer class features we already know about
 	local tExistingSpellSources = { "Cosmic Magic", "Dragon Magic", "Storm Magic", "Wild Magic" };
-	--Display information on the selections in chat
+	--Display links to the selections
 	local sPattern = '<link class="powerdesc" recordname="reference.features.(%w+)@([%w%s]+)">';
 	local sFeaturesLink = string.gmatch(sClassFeatureOriginalDescription, sPattern);
 	local nOptionsCount = 1;
@@ -1105,12 +1108,9 @@ function displaySorcererSpellSourceDialog(rAdd, sClassFeatureOriginalDescription
 		local sClassFeatureDescription = DB.getText(DB.getPath(sPattern, "description"));
 		local spellSourceSet = createSet(tExistingSpellSources);
 		if spellSourceSet[sClassFeatureName] then
-			tOptions[nOptionsCount] = sClassFeatureName;
-			nOptionsCount = nOptionsCount + 1;
 			tSpellSourceOptions[sClassFeatureName] = DB.getPath(sPattern);
-			local tMessageShortcuts = { { class="powerdesc", recordname=DB.getPath(sPattern) } };
-			local tMessageData = {font = "systemfont", text = sClassFeatureName, shortcuts=tMessageShortcuts};
-			Comm.addChatMessage(tMessageData);
+			table.insert(tOptions, { text = sClassFeatureName, linkclass = "powerdesc", linkrecord = DB.getPath(sPattern), });
+			nOptionsCount = nOptionsCount + 1;
 		else
 			tAllOptions[nAllOptionsCount] = sClassFeatureName;
 			nAllOptionsCount = nAllOptionsCount + 1;
@@ -1118,9 +1118,10 @@ function displaySorcererSpellSourceDialog(rAdd, sClassFeatureOriginalDescription
 		end
 	end
 	--Display a pop-up where we choose from the sorcerer spell sources
+	local msg = string.format(Interface.getString("char_build_message_chooseclassfeatures"), "1", "Spell Source");
 	local tDialogData = {
-		title = Interface.getString("char_build_title_addfightingstyle"),
-		msg = Interface.getString("char_build_message_addfightingstyle"),
+		title = "Sorcerer Spell Source",
+		msg = msg,
 		options = tOptions,
 		min = 1,
 		max = 1,
@@ -1411,23 +1412,20 @@ function addArtificerFeatures(sClassName, rAdd, sClassFeatureName, sClassFeature
 	end
 end
 function displayArtificerHealingInfusionDialog(rAdd)
-	--Display information on the selections in chat
-	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
-	for x,y in pairs(tCurrentFeatures) do
-		if DB.getText(DB.getPath(y, "value")) == "Battle Cleric's Lore" or DB.getText(DB.getPath(y, "value")) == "Healer's Lore" then
-			local tMessageShortcuts = { { class="ref_ability", recordname=DB.getPath(y) } };
-			if sbattleClericLoreReference and DB.getText(DB.getPath(y, "value")) == "Battle Cleric's Lore" then
-				tMessageShortcuts = {{ class="powerdesc", recordname=sbattleClericLoreReference }}
-			end
-			local tMessageData = {font = "systemfont", text = DB.getText(DB.getPath(y, "value")), shortcuts=tMessageShortcuts};
-			Comm.addChatMessage(tMessageData);
-		end
+	local tOptions = {}
+	local tHealingInfusionNames = {};
+	tHealingInfusionNames[1] = "Healing Infusion: Resistive Formula";
+	tHealingInfusionNames[2] = "Healing Infusion: Shielding Elixir";
+	--Display links to the selections
+	for x,y in pairs(tHealingInfusionNames) do
+		local sClassFeatureName = y;
+		local sDBReferenceFeatureName = sClassFeatureName:lower():gsub(" ", "");
+		local sLinkClass = "powerdesc";
+		local sNodePath = DB.getPath("reference.powers@4E PC Options", sDBReferenceFeatureName);
+		table.insert(tOptions, { text = sClassFeatureName, linkclass = sLinkClass, linkrecord = sNodePath, });
 	end
 
 	--Display a pop-up where we either choose Resistive Formula or Shielding Elixer healing infusion
-	local tOptions = {}
-	tOptions[1] = "Healing Infusion: Resistive Formula";
-	tOptions[2] = "Healing Infusion: Shielding Elixir";
 	local tDialogData = {
 		title = Interface.getString("char_build_title_addartificerhealinginfusion"),
 		msg = Interface.getString("char_build_message_addartificerhealinginfusion"),
@@ -2349,7 +2347,7 @@ end
 function displayAssassinExecutionerGuildAttacksSelectionsDialog(rAdd, sClassFeatureOriginalDescription, sClassFeatureName, nMaxSelections)
 	local tClassFeatureOptions = {};
 	local tOptions = {};
-	--Display information on the selections in chat
+	--Display links to the selections
 	local sPattern = '<link class="powerdesc" recordname="reference.features.(%w+)@([%w%s]+)">';
 	local sFeaturesLink = string.gmatch(sClassFeatureOriginalDescription, sPattern);
 	local nOptionsCount = 1;
@@ -2357,12 +2355,13 @@ function displayAssassinExecutionerGuildAttacksSelectionsDialog(rAdd, sClassFeat
 		local sPattern = "reference.features." .. w .. "@" .. v;
 		local sClassFeatureName = DB.getText(DB.getPath(sPattern, "name"));
 		local sClassFeatureDescription = DB.getText(DB.getPath(sPattern, "description"));
-		tOptions[nOptionsCount] = sClassFeatureName;
-		nOptionsCount = nOptionsCount + 1;
+		--tOptions[nOptionsCount] = sClassFeatureName;
 		tClassFeatureOptions[sClassFeatureName] = DB.getPath(sPattern);
-		local tMessageShortcuts = { { class="powerdesc", recordname=DB.getPath(sPattern) } };
-		local tMessageData = {font = "systemfont", text = sClassFeatureName, shortcuts=tMessageShortcuts};
-		Comm.addChatMessage(tMessageData);
+		-- local tMessageShortcuts = { { class="powerdesc", recordname=DB.getPath(sPattern) } };
+		-- local tMessageData = {font = "systemfont", text = sClassFeatureName, shortcuts=tMessageShortcuts};
+		-- Comm.addChatMessage(tMessageData);
+		table.insert(tOptions, { text = sClassFeatureName, linkclass = "powerdesc", linkrecord = DB.getPath(sPattern), });
+		nOptionsCount = nOptionsCount + 1;
 	end
 	--Display a pop-up where we choose from the class feature options
 	if not nMaxSelections or nMaxSelections < 1 then
@@ -2826,6 +2825,27 @@ end
 function addWizardWitchFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription)
 	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
 	if sClassFeatureName == "Moon Coven" then
+		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+		DB.setValue(rCreatedIDChildNode, "description", "string", removeLinkLists(sClassFeatureOriginalDescription));
+		displayClassFeatureSelectionsDialog(rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
+	else
+		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
+		ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", sClassFeatureName, rAdd.sCharName);
+	end
+end
+
+
+-------------------------------------------
+----- SORCERER (ELEMENTALIST) Class Features ----
+-------------------------------------------
+function addSorcererElementalistFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription)
+	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
+	if sClassFeatureName == "Elemental Specialty" then
 		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
 		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
 		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
