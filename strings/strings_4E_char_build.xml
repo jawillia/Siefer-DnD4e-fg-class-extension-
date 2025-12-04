@@ -9,6 +9,7 @@
   <!-- Character - Build -->
   <string name="char_abilities_message_classadd">Class '%s' added to '%s'.</string>
   <string name="char_abilities_message_classfeatureadd">Class Feature '%s' added to '%s' special ability list.</string>
+  <string name="char_abilities_message_poweradd">'%s' power added to '%s' power list.</string>  
   <string name="char_abilities_message_classfeaturedialoguetitle">Choose a Class Feature</string>
   <string name="char_abilities_message_classfeaturedialoguemsg">Choose one.</string>
   <string name="char_abilities_message_classpoweradd">Class Power '%s' added to '%s' powers list.</string>
@@ -27,6 +28,9 @@
   <string name="char_error_addclasssfeature">Error adding class feature.</string> 
 
   <string name="char_build_message_chooseclassfeatures">Choose %s of the following %s:</string> 
+  <string name="char_error_addclassspower">Error adding class power.</string> 
+
+  <string name="char_build_message_chooseclasspowers">Choose %s of the following %s:</string>   
   <!-- Cleric Feature Strings -->
   <string name="char_build_title_addhealerlore">Healer's Lore or Alternate</string> 
   <string name="char_build_message_addhealerorbattlelore">Choose Healer's Lore or Battle Cleric's Lore. </string>

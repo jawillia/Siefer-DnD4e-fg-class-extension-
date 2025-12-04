@@ -145,7 +145,11 @@ function callbackResolveAlternativeFeatureDialogSelection(tSelection, tData)
 	end
 end
 
-function displayClassFeatureSelectionsDialog(rAdd, sClassFeatureOriginalDescription, sClassFeatureName, nMaxSelections)
+--nAddPowerMode: 
+-- - 1=Add powers from parent feature description that match sub-feature description of powers (like warlock)
+-- - 2=Add all powers in sub-feature text itself
+-- - 3=Bring up selection dialogue with choice of powers from feature text
+function displayClassFeatureSelectionsDialog(rAdd, sClassFeatureOriginalDescription, sClassFeatureName, nMaxSelections, nAddPowerMode)
 	local tClassFeatureOptions = {};
 	local tOptions = {};
 	--Display information on the selections in chat
@@ -172,7 +176,7 @@ function displayClassFeatureSelectionsDialog(rAdd, sClassFeatureOriginalDescript
 		min = nMaxSelections,
 		max = nMaxSelections,
 		callback = CharClassFeatureManager.callbackResolveClassFeatureSelectionsDialogSelection,
-		custom = { rAdd = rAdd, tClassFeatureOptions = tClassFeatureOptions }, 
+		custom = { rAdd = rAdd, tClassFeatureOptions = tClassFeatureOptions, nAddPowerMode=1, sParentClassFeatureOriginalDescription=sClassFeatureOriginalDescription }, 
 	};
 	DialogManager.requestSelectionDialog(tDialogData);	
 end
@@ -200,6 +204,17 @@ function callbackResolveClassFeatureSelectionsDialogSelection(tSelection, tData)
 		DB.setValue(rCreatedIDChildNode, "value", "string", selectedSkill);
 		--DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureOriginalDescription);
 		ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", selectedSkill, tData.rAdd.sCharName);
+
+		if tData.nAddPowerMode and tData.nAddPowerMode > 0 then
+			if tData.nAddPowerMode == 1 then
+				local sClassFeatureName = DB.getText(DB.getPath(sSelectedClassFeatureSelectionsDBReference, "name"));
+				local sClassSubFeatureDescription = DB.getText(DB.getPath(sSelectedClassFeatureSelectionsDBReference, "description"));
+				local sParentClassFeatureOriginalDescription = tData.sParentClassFeatureOriginalDescription;
+				if tData.rAdd and sClassSubFeatureDescription and sParentClassFeatureOriginalDescription then
+					CharClassPowerManager.addAllPowersFromFeatureText(tData.rAdd, sClassSubFeatureDescription, sParentClassFeatureOriginalDescription)
+				end
+			end
+		end
 	end
 end
 
@@ -413,6 +428,8 @@ function callbackResolveClericChannelDivinity(tSelection, rAdd, tSelectionLinks)
 		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
 		DB.setValue(rCreatedIDChildNode, "value", "string", sChannelDivinityTitleName);
 		DB.setValue(rCreatedIDChildNode, "description", "string", "You gain the " .. sChannelDivinityAbilityName .. " channel divinity power. You can only use one of them per encounter.");
+
+		CharClassPowerManager.addFeatureNamePower(rAdd, sChannelDivinityTitleName);
 	end
 end
 
@@ -721,7 +738,7 @@ function addWarlockFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFi
 		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
 		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
 		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
-		displayClassFeatureSelectionsDialog(rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
+		displayClassFeatureSelectionsDialog(rAdd, sClassFeatureOriginalDescription, sClassFeatureName, 1, 1);
 	else
 		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
 		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
@@ -911,7 +928,7 @@ function addWizardArcanistFeatures(sClassName, rAdd, sClassFeatureName, sClassFe
 		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
 		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
 		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
-		displayClassFeatureSelectionsDialog(rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
+		displayClassFeatureSelectionsDialog(rAdd, sClassFeatureOriginalDescription, sClassFeatureName, 1, 1);
 	else
 		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
 		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");

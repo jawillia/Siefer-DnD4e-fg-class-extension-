@@ -274,6 +274,11 @@ function addClassFeatures(rAdd, sRecord, sDescriptionText, sClassName)
 				end
 				if isFeatureInList == false then
 					CharClassFeatureManager.addClassSpecificFeatures(sClassName, rAdd, v, sClassFeatureFilteredDescriptionText, sClassFeatureSpecificDescriptionText);
+					if not string.find(sClassFeatureSpecificDescriptionText:lower(), "choose") 
+						and not string.find(sClassFeatureSpecificDescriptionText:lower(), "choice")
+						and not string.find(sClassFeatureSpecificDescriptionText:lower(), "following") then
+							CharClassPowerManager.addAllFeaturePowers(rAdd, sClassFeatureSpecificDescriptionText, sClassName);
+					end
 				end
 			end
 		end
@@ -377,12 +382,14 @@ function addClassPowers(rAdd, sRecord, sDescriptionText, sClassName)
 				local tPowers = {};
 				local nPowersCount = 1;
 				local nOptionsCount = 1;
+				--Use version of class name without the parentheses
+				local sFilteredClassName = StringManager.trim(string.gsub(sClassName, "%b()", ""));
 				local tPowerNodes = DB.getChildrenGlobal("reference.powers");
 				for _,powerNode in ipairs(tPowerNodes) do
 					local sPowerClass = Classes4eExtensionLibraryData.getClassOrRaceValue(powerNode);
 					local sPowerLevel = Classes4eExtensionLibraryData.getPowerLevelValue(powerNode);
 					local sPowerRecharge = Classes4eExtensionLibraryData.getRechargeValue(powerNode);
-					if sPowerClass == sClassName and sPowerLevel == "1" then
+					if sPowerClass == sFilteredClassName and sPowerLevel == "1" then
 						tPowersforLevelAndClass[nOptionsCount] = powerNode;
 						nOptionsCount = nOptionsCount + 1;
 						if sPowerRecharge == refresh then
@@ -391,11 +398,12 @@ function addClassPowers(rAdd, sRecord, sDescriptionText, sClassName)
 						end
 					end
 				end
+				--Standard characters start with 2 At-Will powers, 1 encounter, and 1 daily from their class
 				local nNumberOfPowers = 1;
 				if refresh == "At-Will" then
 					nNumberOfPowers = 2;
 				end
-				addStandardPowers(rAdd, sRecord, sDescriptionText, sClassName, tPowers, nNumberOfPowers, refresh);
+				addStandardPowers(rAdd, sRecord, sDescriptionText, sFilteredClassName, tPowers, nNumberOfPowers, refresh);
 			end
 		end
 

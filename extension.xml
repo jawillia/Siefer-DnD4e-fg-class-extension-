@@ -29,6 +29,7 @@
 		<script name="CharClassBuildDropManager" file="scripts/manager_char_build_drop_4e.lua" />
 		<script name="CharClassManager" file="scripts/manager_char_class_4e.lua" />
 		<script name="CharClassFeatureManager" file="scripts/manager_char_class_features.lua" />
+		<script name="CharClassPowerManager" file="scripts/manager_char_class_powers.lua" />
 		<!-- <script name="RaceManager" file="scripts/manager_race_4e.lua" /> -->
 
 		<!-- String resources -->
