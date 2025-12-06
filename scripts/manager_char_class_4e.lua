@@ -28,8 +28,8 @@ function addClass(nodeChar, sRecord, tData)
 	--Add Class Features
 	addClassFeatures(rAdd, sRecord, sDescriptionText, sClassName);
 
-	-- --Add Race Powers
-	-- addRacePowers(rAdd, sRecord, sDescriptionText);
+	-- --Add Class Powers
+	addClassPowers(rAdd, sRecord, sDescriptionText, sClassName);
 
 	-- --Add skill bonuses
 	addClassSkill(rAdd, sRecord, sDescriptionText);
@@ -274,6 +274,11 @@ function addClassFeatures(rAdd, sRecord, sDescriptionText, sClassName)
 				end
 				if isFeatureInList == false then
 					CharClassFeatureManager.addClassSpecificFeatures(sClassName, rAdd, v, sClassFeatureFilteredDescriptionText, sClassFeatureSpecificDescriptionText);
+					if not string.find(sClassFeatureSpecificDescriptionText:lower(), "choose") 
+						and not string.find(sClassFeatureSpecificDescriptionText:lower(), "choice")
+						and not string.find(sClassFeatureSpecificDescriptionText:lower(), "following") then
+							CharClassPowerManager.addAllFeaturePowers(rAdd, sClassFeatureSpecificDescriptionText, sClassName);
+					end
 				end
 			end
 		end
@@ -326,79 +331,201 @@ function cutoffLastClassFeatureDescription(sDescriptionText, sClassFeatureSpecif
 	return sClassFeatureSpecificDescriptionText, sClassFeatureDescriptionPattern;
 end
 
-function addRacePowers(rAdd, sRecord, sDescriptionText)
+function addClassPowers(rAdd, sRecord, sDescriptionText, sClassName)
 	local tCurrentPowers = DB.getChildren(rAdd.nodeChar, "powers");
 	--first try through the newly added powers node
-	local sRecordPowerNode = DB.findNode(DB.getPath(sRecord, "powers"));
-	if sRecordPowerNode then
-		local nodePowerChildren = DB.getChildren(sRecordPowerNode);
-		for nodeName,nodeChild in pairs(nodePowerChildren) do
-			local sRacialPowerName = DB.getText(DB.getPath(nodeChild, "name"));
-			local isPowerInList = false;
-			for _, powerNode in pairs(tCurrentPowers) do
-				if DB.getText(powerNode, "name") == DB.getText(nodeChild, "name") then
-					isPowerInList = true;
-					break;
-				end
-			end
-			if isPowerInList == false then
-				local sRacialActionSpeed = DB.getText(DB.getPath(nodeChild, "action"));
-				local sRacialSource = DB.getText(DB.getPath(nodeChild, "source"));
-				local sRacialKeywords = DB.getText(DB.getPath(nodeChild, "keywords"));
-				local sRacialRange = DB.getText(DB.getPath(nodeChild, "range"));
-				local sRacialRecharge = DB.getText(DB.getPath(nodeChild, "recharge"));
-				local sRacialFlavor = DB.getText(DB.getPath(nodeChild, "flavor"));
-				if sRacialFlavor == nil then
-					sRacialFlavor = "";
-				end
-				local sRacialFullDescription = sRacialFlavor .. "\n\n" .. DB.getText(DB.getPath(nodeChild, "shortdescription"));
-				local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("powers"));
-				DB.setValue(rCreatedIDChildNode, "action", "string", sRacialActionSpeed);
-				DB.setValue(rCreatedIDChildNode, "name", "string", sRacialPowerName);
-				DB.setValue(rCreatedIDChildNode, "source", "string", sRacialSource);
-				DB.setValue(rCreatedIDChildNode, "keywords", "string", sRacialKeywords);
-				DB.setValue(rCreatedIDChildNode, "range", "string", sRacialRange);
-				DB.setValue(rCreatedIDChildNode, "recharge", "string", sRacialRecharge);
-				DB.setValue(rCreatedIDChildNode, "shortdescription", "string", sRacialFullDescription);
-				CharManager.parseDescription(rCreatedIDChildNode);
-				ChatManager.SystemMessageResource("char_abilities_message_poweradd", sRacialPowerName, rAdd.sCharName);
-			end
-		end
-	elseif sDescriptionText then --then try through the description text
+	-- local sRecordPowerNode = DB.findNode(DB.getPath(sRecord, "powers"));
+	-- if sRecordPowerNode then
+	-- 	local nodePowerChildren = DB.getChildren(sRecordPowerNode);
+	-- 	for nodeName,nodeChild in pairs(nodePowerChildren) do
+	-- 		local sRacialPowerName = DB.getText(DB.getPath(nodeChild, "name"));
+	-- 		local isPowerInList = false;
+	-- 		for _, powerNode in pairs(tCurrentPowers) do
+	-- 			if DB.getText(powerNode, "name") == DB.getText(nodeChild, "name") then
+	-- 				isPowerInList = true;
+	-- 				break;
+	-- 			end
+	-- 		end
+	-- 		if isPowerInList == false then
+	-- 			local sRacialActionSpeed = DB.getText(DB.getPath(nodeChild, "action"));
+	-- 			local sRacialSource = DB.getText(DB.getPath(nodeChild, "source"));
+	-- 			local sRacialKeywords = DB.getText(DB.getPath(nodeChild, "keywords"));
+	-- 			local sRacialRange = DB.getText(DB.getPath(nodeChild, "range"));
+	-- 			local sRacialRecharge = DB.getText(DB.getPath(nodeChild, "recharge"));
+	-- 			local sRacialFlavor = DB.getText(DB.getPath(nodeChild, "flavor"));
+	-- 			if sRacialFlavor == nil then
+	-- 				sRacialFlavor = "";
+	-- 			end
+	-- 			local sRacialFullDescription = sRacialFlavor .. "\n\n" .. DB.getText(DB.getPath(nodeChild, "shortdescription"));
+	-- 			local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("powers"));
+	-- 			DB.setValue(rCreatedIDChildNode, "action", "string", sRacialActionSpeed);
+	-- 			DB.setValue(rCreatedIDChildNode, "name", "string", sRacialPowerName);
+	-- 			DB.setValue(rCreatedIDChildNode, "source", "string", sRacialSource);
+	-- 			DB.setValue(rCreatedIDChildNode, "keywords", "string", sRacialKeywords);
+	-- 			DB.setValue(rCreatedIDChildNode, "range", "string", sRacialRange);
+	-- 			DB.setValue(rCreatedIDChildNode, "recharge", "string", sRacialRecharge);
+	-- 			DB.setValue(rCreatedIDChildNode, "shortdescription", "string", sRacialFullDescription);
+	-- 			CharManager.parseDescription(rCreatedIDChildNode);
+	-- 			ChatManager.SystemMessageResource("char_abilities_message_poweradd", sRacialPowerName, rAdd.sCharName);
+	-- 		end
+	-- 	end
+	-- else
+	if sDescriptionText then --then try through the description text
 		local referenceStaticNode = DB.findNode("reference.powers.");
 		local powersNode = DB.getChild(referenceStaticNode, "powers");
 		local sPowersPattern = '<link class="powerdesc" recordname="reference.powers.(%w+)@([%w%s]+)">';
-		local sPowersLink = string.gmatch(sDescriptionText, sPowersPattern);
-		for w,v in sPowersLink do
-			local sPowersPattern = "reference.powers." .. w .. "@" .. v;
-			local sRacialPowerName = DB.getText(DB.getPath(sPowersPattern, "name"));
-			local isPowerInList = false;
-			for _, powerNode in pairs(tCurrentPowers) do
-				if DB.getText(powerNode, "name") == sRacialPowerName then
-					isPowerInList = true;
-					break;
+		local sFirstPowersLinkMatch, sFirstPowersLinkModuleMatch = string.match(sDescriptionText, sPowersPattern);
+		if not isEssentialsClass(sClassName) then
+			local tRefreshTypes = { "At-Will", "Encounter", "Daily" };
+			for i,refresh in ipairs(tRefreshTypes) do
+				--Don't add Daily Attack powers for wizard classes that use a spellbook
+				if (isSpellbookClass(sClassName) and refresh ~= "Daily") or not isSpellbookClass(sClassName) then
+					local tPowersforLevelAndClass = {};
+					local tPowers = {};
+					local nPowersCount = 1;
+					local nOptionsCount = 1;
+					--Use version of class name without the parentheses
+					local sFilteredClassName = StringManager.trim(string.gsub(sClassName, "%b()", ""));
+					local tPowerNodes = DB.getChildrenGlobal("reference.powers");
+					for _,powerNode in ipairs(tPowerNodes) do
+						local sPowerClass = Classes4eExtensionLibraryData.getClassOrRaceValue(powerNode);
+						local sPowerLevel = Classes4eExtensionLibraryData.getPowerLevelValue(powerNode);
+						local sPowerRecharge = Classes4eExtensionLibraryData.getRechargeValue(powerNode);
+						if sPowerClass == sFilteredClassName and sPowerLevel == "1" then
+							tPowersforLevelAndClass[nOptionsCount] = powerNode;
+							nOptionsCount = nOptionsCount + 1;
+							if sPowerRecharge == refresh then
+								tPowers[nPowersCount] = powerNode;
+								nPowersCount = nPowersCount + 1;
+							end
+						end
+					end
+					--Standard characters start with 2 At-Will powers, 1 encounter, and 1 daily from their class
+					local nNumberOfPowers = 1;
+					if refresh == "At-Will" then
+						nNumberOfPowers = 2;
+					end
+					addStandardPowers(rAdd, sFilteredClassName, tPowers, nNumberOfPowers, refresh);
 				end
 			end
-			if isPowerInList == false then
-				local sRacialActionSpeed = DB.getText(DB.getPath(sPowersPattern, "action"));
-				local sRacialSource = DB.getText(DB.getPath(sPowersPattern, "source"));
-				local sRacialKeywords = DB.getText(DB.getPath(sPowersPattern, "keywords"));
-				local sRacialRange = DB.getText(DB.getPath(sPowersPattern, "range"));
-				local sRacialRecharge = DB.getText(DB.getPath(sPowersPattern, "recharge"));
-				local sRacialFullDescription = DB.getText(DB.getPath(sPowersPattern, "flavor")) .. "\n\n" .. DB.getText(DB.getPath(sPowersPattern, "description"))
-				local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("powers"));
-				DB.setValue(rCreatedIDChildNode, "action", "string", sRacialActionSpeed);
-				DB.setValue(rCreatedIDChildNode, "name", "string", sRacialPowerName);
-				DB.setValue(rCreatedIDChildNode, "source", "string", sRacialSource);
-				DB.setValue(rCreatedIDChildNode, "keywords", "string", sRacialKeywords);
-				DB.setValue(rCreatedIDChildNode, "range", "string", sRacialRange);
-				DB.setValue(rCreatedIDChildNode, "recharge", "string", sRacialRecharge);
-				DB.setValue(rCreatedIDChildNode, "shortdescription", "string", sRacialFullDescription);
-				CharManager.parseDescription(rCreatedIDChildNode);
-				ChatManager.SystemMessageResource("char_abilities_message_poweradd", sRacialPowerName, rAdd.sCharName);
+		end
+
+		-- local sPowersLink = string.gmatch(sDescriptionText, sPowersPattern);
+		-- for w,v in sPowersLink do
+		-- 	local sPowersPattern = "reference.powers." .. w .. "@" .. v;
+		-- 	local sRacialPowerName = DB.getText(DB.getPath(sPowersPattern, "name"));
+		-- 	local isPowerInList = false;
+		-- 	for _, powerNode in pairs(tCurrentPowers) do
+		-- 		if DB.getText(powerNode, "name") == sRacialPowerName then
+		-- 			isPowerInList = true;
+		-- 			break;
+		-- 		end
+		-- 	end
+		-- 	if isPowerInList == false then
+		-- 		local sRacialActionSpeed = DB.getText(DB.getPath(sPowersPattern, "action"));
+		-- 		local sRacialSource = DB.getText(DB.getPath(sPowersPattern, "source"));
+		-- 		local sRacialKeywords = DB.getText(DB.getPath(sPowersPattern, "keywords"));
+		-- 		local sRacialRange = DB.getText(DB.getPath(sPowersPattern, "range"));
+		-- 		local sRacialRecharge = DB.getText(DB.getPath(sPowersPattern, "recharge"));
+		-- 		local sRacialFullDescription = DB.getText(DB.getPath(sPowersPattern, "flavor")) .. "\n\n" .. DB.getText(DB.getPath(sPowersPattern, "description"))
+		-- 		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("powers"));
+		-- 		DB.setValue(rCreatedIDChildNode, "action", "string", sRacialActionSpeed);
+		-- 		DB.setValue(rCreatedIDChildNode, "name", "string", sRacialPowerName);
+		-- 		DB.setValue(rCreatedIDChildNode, "source", "string", sRacialSource);
+		-- 		DB.setValue(rCreatedIDChildNode, "keywords", "string", sRacialKeywords);
+		-- 		DB.setValue(rCreatedIDChildNode, "range", "string", sRacialRange);
+		-- 		DB.setValue(rCreatedIDChildNode, "recharge", "string", sRacialRecharge);
+		-- 		DB.setValue(rCreatedIDChildNode, "shortdescription", "string", sRacialFullDescription);
+		-- 		CharManager.parseDescription(rCreatedIDChildNode);
+		-- 		ChatManager.SystemMessageResource("char_abilities_message_poweradd", sRacialPowerName, rAdd.sCharName);
+		-- 	end
+		-- end
+	end 
+end
+function addStandardPowers(rAdd, sClassName, tPowers, nNumberOfPowers, sRefreshText)
+	local tOptions = {};
+	local nOptionsCount = 1;
+	for _,y in ipairs(tPowers) do
+		local sClassFeatureName = DB.getText(DB.getPath(y, "name"));
+		local sClassFeatureDescription = DB.getText(DB.getPath(y, "description"));
+		table.insert(tOptions, { text = sClassFeatureName, linkclass = "powerdesc", linkrecord = DB.getPath(y), });
+		nOptionsCount = nOptionsCount + 1;
+	end
+	if not nNumberOfPowers then
+		nNumberOfPowers = 1;
+	end
+	local tDialogData = {
+		title = sRefreshText .. " Power Selection",
+		msg = "Choose an " .. sRefreshText .. " power",
+		options = tOptions,
+		min = nNumberOfPowers,
+		max = nNumberOfPowers,
+		callback = CharClassManager.callbackResolveClassPowerSelectionsDialogSelection,
+		custom = rAdd, 
+	};
+	DialogManager.requestSelectionDialog(tDialogData);
+end
+function callbackResolveClassPowerSelectionsDialogSelection(tSelection, rAdd, tSelectionLinks)
+	if not tSelection or not tSelection[1] then
+		CharManager.outputUserMessage("char_error_addclasssfeature");
+		return;
+	end
+	if not tSelectionLinks then
+		CharManager.outputUserMessage("char_error_addclasssfeature");
+		return;
+	end
+	for i, selectedPower in ipairs(tSelectionLinks) do
+		local sPowerPath = selectedPower.linkrecord;
+		local sPowerName = tSelection[i];
+
+		local tCurrentPowers = DB.getChildren(rAdd.nodeChar, "powers");
+		local isPowerInList = false;
+		for _, powerNode in pairs(tCurrentPowers) do
+			if DB.getText(powerNode, "name") == sPowerName then
+				isPowerInList = true;
+				break;
 			end
 		end
+		if isPowerInList == false then
+			local sPowerActionSpeed = DB.getText(DB.getPath(sPowerPath, "action"));
+			local sPowerSource = DB.getText(DB.getPath(sPowerPath, "source"));
+			local sPowerKeywords = DB.getText(DB.getPath(sPowerPath, "keywords"));
+			local sPowerRange = DB.getText(DB.getPath(sPowerPath, "range"));
+			local sPowerRecharge = DB.getText(DB.getPath(sPowerPath, "recharge"));
+			local sPowerFullDescription = DB.getText(DB.getPath(sPowerPath, "flavor")) .. "\n\n" .. DB.getText(DB.getPath(sPowerPath, "description"))
+			local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("powers"));
+			DB.setValue(rCreatedIDChildNode, "action", "string", sPowerActionSpeed);
+			DB.setValue(rCreatedIDChildNode, "name", "string", sPowerName);
+			DB.setValue(rCreatedIDChildNode, "source", "string", sPowerSource);
+			DB.setValue(rCreatedIDChildNode, "keywords", "string", sPowerKeywords);
+			DB.setValue(rCreatedIDChildNode, "range", "string", sPowerRange);
+			DB.setValue(rCreatedIDChildNode, "recharge", "string", sPowerRecharge);
+			DB.setValue(rCreatedIDChildNode, "shortdescription", "string", sPowerFullDescription);
+			CharManager.parseDescription(rCreatedIDChildNode);
+			ChatManager.SystemMessageResource("char_abilities_message_poweradd", sPowerName, rAdd.sCharName);
+		end
 	end
+
+	-- local sSelectedClassFeatureSelectionsDBReference;
+	-- local tCurrentFeatures = DB.getChildren(tData.rAdd.nodeChar, "specialabilitylist");
+	-- for _,selectedPower in ipairs(tSelection) do
+	-- 	for _, featureNode in pairs(tCurrentFeatures) do
+	-- 		if DB.getText(DB.getPath(featureNode, "value")) ~= selectedPower then
+	-- 			for x, y in pairs(tData.tClassFeatureOptions) do
+	-- 				if DB.getText(DB.getPath(featureNode, "value")) == x then
+	-- 					DB.deleteNode(featureNode);
+	-- 					break;
+	-- 				end
+	-- 			end
+	-- 		end
+	-- 	end
+	-- 	sSelectedClassFeatureSelectionsDBReference = tSelection[selectedPower];
+	-- 	local rCreatedIDChildNode = DB.createChild(tData.rAdd.nodeChar.getPath("specialabilitylist"));
+	-- 	DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference", "powerdesc", sSelectedClassFeatureSelectionsDBReference);
+	-- 	DB.setValue(rCreatedIDChildNode, "value", "string", selectedSkill);
+	-- 	--DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureOriginalDescription);
+	-- 	ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", selectedSkill, tData.rAdd.sCharName);
+	-- end
 end
 
 function addClassSkill(rAdd, sRecord, sDescriptionText)
@@ -637,6 +764,41 @@ function removeLinkLists(sText)
 	sText = string.gsub(sText, "<link.->", "\n - ");
 	sText = string.gsub(sText, "</link>", "\n");	
 	return sText;
+end
+
+-----------------------------------------------------------
+
+function isEssentialsClass(sClassName)
+	local tEssentialsClasses = {};
+	tEssentialsClasses["BARBARIAN (BERSERKER)"] = true;
+	tEssentialsClasses["WARLOCK (BINDER)"] = true;
+	tEssentialsClasses["PALADIN (BLACKGUARD)"] = true;
+	tEssentialsClasses["WIZARD (BLADESINGER)"] = true;
+	tEssentialsClasses["PALADIN (CAVALIER)"] = true;
+	tEssentialsClasses["SORCERER (ELEMENTALIST)"] = true;
+	tEssentialsClasses["ASSASSIN (EXECUTIONER)"] = true;
+	tEssentialsClasses["RANGER (HUNTER)"] = true;
+	tEssentialsClasses["WARLOCK (HEXBLADE)"] = true;
+	tEssentialsClasses["FIGHTER (KNIGHT)"] = true;
+	tEssentialsClasses["WIZARD (MAGE)"]	= true;	
+	tEssentialsClasses["DRUID (PROTECTOR)"] = true;
+	tEssentialsClasses["ROGUE (THIEF)"] = true;
+	tEssentialsClasses["RANGER (SCOUT)"] = true;
+	tEssentialsClasses["DRUID (SENTINEL)"] = true;
+	tEssentialsClasses["WIZARD (SHA'IR)"] = true;
+	tEssentialsClasses["BARD (SKALD)"] = true;
+	tEssentialsClasses["FIGHTER (SLAYER)"] = true;
+	tEssentialsClasses["VAMPIRE"] = true;	
+	tEssentialsClasses["CLERIC (WARPRIEST)"] = true;
+	tEssentialsClasses["WIZARD (WITCH)"] = true;
+
+	return tEssentialsClasses[sClassName:upper()];
+end
+function isSpellbookClass(sClassName)
+	local tSpellbookClasses = {};
+	tSpellbookClasses["WIZARD (ARCANIST)"] = true;
+
+	return tSpellbookClasses[sClassName:upper()];
 end
 
 -----------------------------------------------------------
