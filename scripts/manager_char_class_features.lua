@@ -126,7 +126,7 @@ function displayAlternativeFeatureDialog(rAdd, tAlternativeClassFeatures, tStrin
 end
 function callbackResolveAlternativeFeatureDialogSelection(tSelection, tData)
 	if not tSelection or not tSelection[1]  then
-		CharManager.outputUserMessage("char_error_addclasssfeature");
+		ChatManager.SystemMessageResource("char_error_addclasssfeature");
 		return;
 	end
 	local tCurrentFeatures = DB.getChildren(tData.rAdd.nodeChar, "specialabilitylist");
@@ -182,7 +182,7 @@ function displayClassFeatureSelectionsDialog(rAdd, sClassFeatureOriginalDescript
 end
 function callbackResolveClassFeatureSelectionsDialogSelection(tSelection, tData)
 	if not tSelection or not tSelection[1] then
-		CharManager.outputUserMessage("char_error_addclasssfeature");
+		ChatManager.SystemMessageResource("char_error_addclasssfeature");
 		return;
 	end
 	local sSelectedClassFeatureSelectionsDBReference;
@@ -313,11 +313,11 @@ function displayClericTemplarHealerLoreDialog(rAdd, sbattleClericLoreReference)
 end
 function callbackResolveClericHealerLoreDialogSelection(tSelection, rAdd, tSelectionLinks)
 	if not tSelectionLinks then
-		CharManager.outputUserMessage("char_error_addclasssfeature");
+		ChatManager.SystemMessageResource("char_error_addclasssfeature");
 		return;
 	end
 	if not tSelection then
-		CharManager.outputUserMessage("char_error_addclasssfeature");
+		ChatManager.SystemMessageResource("char_error_addclasssfeature");
 		return;
 	end
 	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
@@ -409,11 +409,11 @@ function displayClericTemplarChannelDivinityDialog(rAdd)
 end
 function callbackResolveClericChannelDivinity(tSelection, rAdd, tSelectionLinks)
 	if not tSelectionLinks then
-		CharManager.outputUserMessage("char_error_addclasssfeature");
+		ChatManager.SystemMessageResource("char_error_addclasssfeature");
 		return;
 	end
 	if not tSelection then
-		CharManager.outputUserMessage("char_error_addclasssfeature");
+		ChatManager.SystemMessageResource("char_error_addclasssfeature");
 		return;
 	end
 	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
@@ -577,7 +577,7 @@ function displayRangerPrimeShotDialog(rAdd, sClassFeatureOriginalDescription)
 end
 function callbackResolveRangerPrimeShotDialogSelection(tSelection, rAdd)
 	if not tSelection or not tSelection[1] then
-		CharManager.outputUserMessage("char_error_addclasssfeature");
+		ChatManager.SystemMessageResource("char_error_addclasssfeature");
 		return;
 	end
 	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
@@ -643,7 +643,7 @@ function displayRangerFightingStyleDialog(rAdd, sClassFeatureOriginalDescription
 end
 function callbackResolveFightingStyleDialogSelection(tSelection, tData)
 	if not tSelection or not tSelection[1] then
-		CharManager.outputUserMessage("char_error_addclasssfeature");
+		ChatManager.SystemMessageResource("char_error_addclasssfeature");
 		return;
 	end
 	local sSelectedFightingStyleDBReference;
@@ -873,7 +873,7 @@ function displayWarlordMarshalArcherWarlordDialog(rAdd)
 end
 function callbackResolveWarlordMarshalArcherWarlordDialogSelection(tSelection, rAdd)
 	if not tSelection or not tSelection[1] then
-		CharManager.outputUserMessage("char_error_addclasssfeature");
+		ChatManager.SystemMessageResource("char_error_addclasssfeature");
 		return;
 	end
 	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
@@ -935,6 +935,15 @@ function addWizardArcanistFeatures(sClassName, rAdd, sClassFeatureName, sClassFe
 		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
 		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
 		ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", sClassFeatureName, rAdd.sCharName);
+
+		--Add powers
+		if string.find(sClassFeatureName:lower(), "cantrips") then
+			CharClassPowerManager.dispayItalicPowersDialog(rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
+		end
+		if string.find(sClassFeatureName:lower(), "spellbook") then
+			local nNumberOfPowersChoice = 2;
+			CharClassPowerManager.addWizardArcanistSpellbookPowers(rAdd, sClassName, nNumberOfPowersChoice);
+		end
 	end
 end
 
@@ -1027,7 +1036,9 @@ function addDruidFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilt
 		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
 		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
 		DB.setValue(rCreatedIDChildNode, "value", "string", "Druids and Rituals");
-		DB.setValue(rCreatedIDChildNode, "description", "string", removeLinkLists(convertHTMLTable(sDruidsRitualsText)));	
+		DB.setValue(rCreatedIDChildNode, "description", "string", removeLinkLists(convertHTMLTable(sDruidsRitualsText)));
+
+		CharClassPowerManager.addAllFeaturePowers(rAdd, sClassFeatureOriginalDescription, sClassName);
 	else
 		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
 		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
@@ -1049,7 +1060,7 @@ function addInvokerFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFi
 		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
 		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
 		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
-		displayClassFeatureSelectionsDialog(rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
+		displayClassFeatureSelectionsDialog(rAdd, sClassFeatureOriginalDescription, sClassFeatureName, 1, 1);
 	else
 		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
 		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
@@ -1149,7 +1160,7 @@ function displaySorcererSpellSourceDialog(rAdd, sClassFeatureOriginalDescription
 end
 function callbackResolveSorcererSpellSourceSelectionsDialogSelection(tSelection, tData)
 	if not tSelection or not tSelection[1] then
-		CharManager.outputUserMessage("char_error_addclasssfeature");
+		ChatManager.SystemMessageResource("char_error_addclasssfeature");
 		return;
 	end
 	local sSelectedClassFeatureSelectionsDBReference;
@@ -1456,11 +1467,11 @@ function displayArtificerHealingInfusionDialog(rAdd)
 end
 function callbackResolveArtificerHealingInfusion(tSelection, rAdd, tSelectionLinks)
 	if not tSelectionLinks then
-		CharManager.outputUserMessage("char_error_addclasssfeature");
+		ChatManager.SystemMessageResource("char_error_addclasssfeature");
 		return;
 	end
 	if not tSelection then
-		CharManager.outputUserMessage("char_error_addclasssfeature");
+		ChatManager.SystemMessageResource("char_error_addclasssfeature");
 		return;
 	end
 	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
@@ -1566,7 +1577,7 @@ function addClericWarpriestPreFeatures(sClassName, rAdd, sDescriptionText, tClas
 end
 function callbackResolveClericWarpriestPreFeatureSelection(tSelection, tData)
 	if not tSelection and #tSelection == 1 then
-		CharManager.outputUserMessage("char_error_addclasssfeature");
+		ChatManager.SystemMessageResource("char_error_addclasssfeature");
 		return;
 	end
 
@@ -1676,7 +1687,7 @@ function displayClericWarpriestDomainDialog(sClassName, rAdd, sClassFeatureOrigi
 end
 function callbackResolveClericWarpriestDomainSelection(tSelection, tData)
 	if not tSelection and #tSelection == 1 then
-		CharManager.outputUserMessage("char_error_addclasssfeature");
+		ChatManager.SystemMessageResource("char_error_addclasssfeature");
 		return;
 	end
 	if #tSelection == 1 then
@@ -1790,7 +1801,7 @@ function displayFighterKnightFeywildGuardianDialog(rAdd, sClassFeatureOriginalDe
 end
 function callbackResolveFighterKnightBattleGuardianSelection(tSelection, tData)
 	if not tSelection and #tSelection == 1 then
-		CharManager.outputUserMessage("char_error_addclasssfeature");
+		ChatManager.SystemMessageResource("char_error_addclasssfeature");
 		return;
 	end
 	if #tSelection == 1 then
@@ -1875,7 +1886,7 @@ function addDruidSentinelPreFeatures(sClassName, rAdd, sDescriptionText, tClassF
 end
 function callbackResolveDruidSentinelPreFeatureSelection(tSelection, tData)
 	if not tSelection and #tSelection == 1 then
-		CharManager.outputUserMessage("char_error_addclasssfeature");
+		ChatManager.SystemMessageResource("char_error_addclasssfeature");
 		return;
 	end
 
@@ -1985,7 +1996,7 @@ function displayDruidSentinelSeasonDialog(sClassName, rAdd, sClassFeatureOrigina
 end
 function callbackResolveDruidSentinelSeasonSelection(tSelection, tData)
 	if not tSelection and #tSelection == 1 then
-		CharManager.outputUserMessage("char_error_addclasssfeature");
+		ChatManager.SystemMessageResource("char_error_addclasssfeature");
 		return;
 	end
 	if #tSelection == 1 then
@@ -2178,7 +2189,7 @@ function addWarlockHexbladePreFeatures(sClassName, rAdd, sDescriptionText, tClas
 end
 function callbackResolveWarlockHexbladePreFeatureSelection(tSelection, tData)
 	if not tSelection and #tSelection == 1 then
-		CharManager.outputUserMessage("char_error_addclasssfeature");
+		ChatManager.SystemMessageResource("char_error_addclasssfeature");
 		return;
 	end
 
@@ -2295,7 +2306,7 @@ function displayWarlockHexbladePactDialog(sClassName, rAdd, sClassFeatureOrigina
 end
 function callbackResolveWarlockHexbladePactSelection(tSelection, tData)
 	if not tSelection and #tSelection == 1 then
-		CharManager.outputUserMessage("char_error_addclasssfeature");
+		ChatManager.SystemMessageResource("char_error_addclasssfeature");
 		return;
 	end
 	if #tSelection == 1 then
@@ -2398,7 +2409,7 @@ function displayAssassinExecutionerGuildAttacksSelectionsDialog(rAdd, sClassFeat
 end
 function callbackResolveAssassinExecutionerGuildAttacksSelectionsDialogSelection(tSelection, tData)
 	if not tSelection or not tSelection[1] then
-		CharManager.outputUserMessage("char_error_addclasssfeature");
+		ChatManager.SystemMessageResource("char_error_addclasssfeature");
 		return;
 	end
 	local sSelectedClassFeatureSelectionsDBReference;
@@ -2649,7 +2660,7 @@ function addDruidProtectorPreFeatures(sClassName, rAdd, sDescriptionText, tClass
 end
 function callbackResolveDruidProtectorPreFeatureSelection(tSelection, tData)
 	if not tSelection and #tSelection == 1 then
-		CharManager.outputUserMessage("char_error_addclasssfeature");
+		ChatManager.SystemMessageResource("char_error_addclasssfeature");
 		return;
 	end
 
@@ -2755,7 +2766,7 @@ function displayDruidProtectorCircleDialog(sClassName, rAdd, sClassFeatureOrigin
 end
 function callbackResolveDruidProtectorCircleSelection(tSelection, tData)
 	if not tSelection and #tSelection == 1 then
-		CharManager.outputUserMessage("char_error_addclasssfeature");
+		ChatManager.SystemMessageResource("char_error_addclasssfeature");
 		return;
 	end
 	if #tSelection == 1 then
@@ -2928,3 +2939,4 @@ end
 function titleCase( first, rest )
    return first:upper()..rest:lower()
 end
+

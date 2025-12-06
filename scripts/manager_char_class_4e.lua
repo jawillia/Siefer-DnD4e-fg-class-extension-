@@ -378,32 +378,35 @@ function addClassPowers(rAdd, sRecord, sDescriptionText, sClassName)
 		if not isEssentialsClass(sClassName) then
 			local tRefreshTypes = { "At-Will", "Encounter", "Daily" };
 			for i,refresh in ipairs(tRefreshTypes) do
-				local tPowersforLevelAndClass = {};
-				local tPowers = {};
-				local nPowersCount = 1;
-				local nOptionsCount = 1;
-				--Use version of class name without the parentheses
-				local sFilteredClassName = StringManager.trim(string.gsub(sClassName, "%b()", ""));
-				local tPowerNodes = DB.getChildrenGlobal("reference.powers");
-				for _,powerNode in ipairs(tPowerNodes) do
-					local sPowerClass = Classes4eExtensionLibraryData.getClassOrRaceValue(powerNode);
-					local sPowerLevel = Classes4eExtensionLibraryData.getPowerLevelValue(powerNode);
-					local sPowerRecharge = Classes4eExtensionLibraryData.getRechargeValue(powerNode);
-					if sPowerClass == sFilteredClassName and sPowerLevel == "1" then
-						tPowersforLevelAndClass[nOptionsCount] = powerNode;
-						nOptionsCount = nOptionsCount + 1;
-						if sPowerRecharge == refresh then
-							tPowers[nPowersCount] = powerNode;
-							nPowersCount = nPowersCount + 1;
+				--Don't add Daily Attack powers for wizard classes that use a spellbook
+				if (isSpellbookClass(sClassName) and refresh ~= "Daily") or not isSpellbookClass(sClassName) then
+					local tPowersforLevelAndClass = {};
+					local tPowers = {};
+					local nPowersCount = 1;
+					local nOptionsCount = 1;
+					--Use version of class name without the parentheses
+					local sFilteredClassName = StringManager.trim(string.gsub(sClassName, "%b()", ""));
+					local tPowerNodes = DB.getChildrenGlobal("reference.powers");
+					for _,powerNode in ipairs(tPowerNodes) do
+						local sPowerClass = Classes4eExtensionLibraryData.getClassOrRaceValue(powerNode);
+						local sPowerLevel = Classes4eExtensionLibraryData.getPowerLevelValue(powerNode);
+						local sPowerRecharge = Classes4eExtensionLibraryData.getRechargeValue(powerNode);
+						if sPowerClass == sFilteredClassName and sPowerLevel == "1" then
+							tPowersforLevelAndClass[nOptionsCount] = powerNode;
+							nOptionsCount = nOptionsCount + 1;
+							if sPowerRecharge == refresh then
+								tPowers[nPowersCount] = powerNode;
+								nPowersCount = nPowersCount + 1;
+							end
 						end
 					end
+					--Standard characters start with 2 At-Will powers, 1 encounter, and 1 daily from their class
+					local nNumberOfPowers = 1;
+					if refresh == "At-Will" then
+						nNumberOfPowers = 2;
+					end
+					addStandardPowers(rAdd, sFilteredClassName, tPowers, nNumberOfPowers, refresh);
 				end
-				--Standard characters start with 2 At-Will powers, 1 encounter, and 1 daily from their class
-				local nNumberOfPowers = 1;
-				if refresh == "At-Will" then
-					nNumberOfPowers = 2;
-				end
-				addStandardPowers(rAdd, sRecord, sDescriptionText, sFilteredClassName, tPowers, nNumberOfPowers, refresh);
 			end
 		end
 
@@ -439,7 +442,7 @@ function addClassPowers(rAdd, sRecord, sDescriptionText, sClassName)
 		-- end
 	end 
 end
-function addStandardPowers(rAdd, sRecord, sDescriptionText, sClassName, tPowers, nNumberOfPowers, sRefreshText)
+function addStandardPowers(rAdd, sClassName, tPowers, nNumberOfPowers, sRefreshText)
 	local tOptions = {};
 	local nOptionsCount = 1;
 	for _,y in ipairs(tPowers) do
@@ -460,7 +463,7 @@ function addStandardPowers(rAdd, sRecord, sDescriptionText, sClassName, tPowers,
 		callback = CharClassManager.callbackResolveClassPowerSelectionsDialogSelection,
 		custom = rAdd, 
 	};
-	DialogManager.requestSelectionDialog(tDialogData);	
+	DialogManager.requestSelectionDialog(tDialogData);
 end
 function callbackResolveClassPowerSelectionsDialogSelection(tSelection, rAdd, tSelectionLinks)
 	if not tSelection or not tSelection[1] then
@@ -474,7 +477,6 @@ function callbackResolveClassPowerSelectionsDialogSelection(tSelection, rAdd, tS
 	for i, selectedPower in ipairs(tSelectionLinks) do
 		local sPowerPath = selectedPower.linkrecord;
 		local sPowerName = tSelection[i];
-		Debug.console("sPowerName", sPowerName);
 
 		local tCurrentPowers = DB.getChildren(rAdd.nodeChar, "powers");
 		local isPowerInList = false;
@@ -791,6 +793,12 @@ function isEssentialsClass(sClassName)
 	tEssentialsClasses["WIZARD (WITCH)"] = true;
 
 	return tEssentialsClasses[sClassName:upper()];
+end
+function isSpellbookClass(sClassName)
+	local tSpellbookClasses = {};
+	tSpellbookClasses["WIZARD (ARCANIST)"] = true;
+
+	return tSpellbookClasses[sClassName:upper()];
 end
 
 -----------------------------------------------------------
