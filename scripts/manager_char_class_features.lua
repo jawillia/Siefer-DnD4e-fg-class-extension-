@@ -1081,7 +1081,7 @@ function addShamanFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFil
 		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
 		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
 		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
-		displayClassFeatureSelectionsDialog(rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
+		displayClassFeatureSelectionsDialog(rAdd, sClassFeatureOriginalDescription, sClassFeatureName, 1, 1);
 	elseif sClassFeatureName == "Speak with Spirits" then
 		local speakWithSpiritsText = string.match(sClassFeatureOriginalDescription, "(.+)<p>Shaman Overview</p>")
 		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
