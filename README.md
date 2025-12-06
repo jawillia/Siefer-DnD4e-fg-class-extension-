@@ -16,6 +16,7 @@ source, and class type (default, essentials, and hybrid). Added choices for Aven
 v.0.5.0 - 11/16/2025 - Tested and fixed issues for class features up to the end of PHB2 (Avenger, Barbarian, Bard, Druid, Invoker, Shaman, Sorcerer, and Warden).\
 v.0.6.0 - 11/25/2025 - There is now a UI to add your own custom classes, although automation for them isn't set up (will do this after finishing automation for all the compendium classes). Added filters for the power library for class, keywords, level, publishing source, recharge, and type. Tested and fixed issues for class features for HotFL and HotFK Essentials classes (Druid (Sentinel), Paladin (Cavalier), Ranger (Hunter), Ranger (Scout), Warlock (Hexblade), Cleric (Warpriest), Fighter (Knight), Fighter (Slayer), and Rogue (Thief))
 v.0.7.0 - 12/1/2025 - Finished adding the rest of the Essentials classes by testing and fixing class features for HoEC and NCS classes (Wizard (Bladesinger), Sorcerer (Elementalist), Wizard (Sha'ir)). Also added links to the selection dialogues.
+v.0.8.0 - 12/5/2025 - Added support for class powers for standard AEDU classes. Completed testing and support for class powers for PHB1 and PHB2 classes.
 
 
 
@@ -33,6 +34,7 @@ What This Extension Does:
 * It adds bonus to defenses (as of v.0.2.0)
 * It adds class features (as of v.0.2.0)
 * It has a UI to add your own custom classes (as of v.0.6.0)
+* It adds powers now (as of v.0.8.0)
 
 
 
@@ -43,7 +45,6 @@ What This Extension Does Not Do (but it might do one day):
 
 
 * It does not allow class support beyond first level.
-* It does not add powers yet.
 * It doesn't support hybrid classes.
 * It only supports base classes, not paragon classes or epic destinies.
 
