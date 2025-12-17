@@ -7,6 +7,11 @@ function addClass(nodeChar, sRecord, tData)
 	local rAdd = CharClassBuildDropManager.helperBuildAddStructure(nodeChar, "powerdesc", sRecord, tData);
 	local sClassName = DB.getText(DB.getPath(sRecord, "name"));
 
+	--Switch to hybrid class methods if the class name contains the word hybrid
+	if string.find(sClassName:lower(), "hybrid") then
+		return CharHybridClassManager.addHybridClass(nodeChar, sRecord, tData);
+	end
+
 	-- Get Class Node Information
 	---- First tries through the description of the database module
 	local sRecordDescriptionNode = DB.findNode(DB.getPath(sRecord, "description"));
@@ -46,6 +51,8 @@ function addClassNameAndLevel(rAdd, sRecord, sClassName)
 	DB.setValue(rAdd.nodeChar, "class.base", "string", sClassName);	
 	DB.setValue(rAdd.nodeChar, "level", "number", "1");
 	DB.setValue(rAdd.nodeChar, "classlink", "windowreference", "powerdesc", DB.getPath(rAdd.nodeSource));
+	--Blank out the hybrid class
+	DB.setValue(rAdd.nodeChar, "hybridclasslink", "windowreference");
 end
 
 function addClassArmorProficiencies(rAdd, sRecord, sDescriptionText)
@@ -274,6 +281,7 @@ function addClassFeatures(rAdd, sRecord, sDescriptionText, sClassName)
 				end
 				if isFeatureInList == false then
 					CharClassFeatureManager.addClassSpecificFeatures(sClassName, rAdd, v, sClassFeatureFilteredDescriptionText, sClassFeatureSpecificDescriptionText);
+					--For each feature, add all powers in it (if it doesn't have the words implying a choice, like "choose", "choice", or "following")
 					if not string.find(sClassFeatureSpecificDescriptionText:lower(), "choose") 
 						and not string.find(sClassFeatureSpecificDescriptionText:lower(), "choice")
 						and not string.find(sClassFeatureSpecificDescriptionText:lower(), "following") then
@@ -302,6 +310,11 @@ function cutoffLastClassFeatureDescription(sDescriptionText, sClassFeatureSpecif
 		sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. sClassFeatureName .. "%s*</b></p>%s*(.-)<p><b>Alternative";
 		sClassFeatureSpecificDescriptionText = string.match(sDescriptionText, sClassFeatureDescriptionPattern);
 	end	
+	-- Or read to the hybrid talent options in case this is a hybrid class
+	if sClassFeatureSpecificDescriptionText == nil then
+		sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. sClassFeatureName .. "%s*</b></p>%s*(.-)<link.->Hybrid talent Options</link>";
+		sClassFeatureSpecificDescriptionText = string.match(sDescriptionText, sClassFeatureDescriptionPattern);
+	end		
 	-- Or read to the Implements
 	if sClassFeatureSpecificDescriptionText == nil then
 		sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. sClassFeatureName .. "%s*</b></p>%s*(.-)<p><b>IMPLEMENTS</b></p>";
@@ -380,10 +393,8 @@ function addClassPowers(rAdd, sRecord, sDescriptionText, sClassName)
 			for i,refresh in ipairs(tRefreshTypes) do
 				--Don't add Daily Attack powers for wizard classes that use a spellbook
 				if (isSpellbookClass(sClassName) and refresh ~= "Daily") or not isSpellbookClass(sClassName) then
-					local tPowersforLevelAndClass = {};
 					local tPowers = {};
 					local nPowersCount = 1;
-					local nOptionsCount = 1;
 					--Use version of class name without the parentheses
 					local sFilteredClassName = StringManager.trim(string.gsub(sClassName, "%b()", ""));
 					local tPowerNodes = DB.getChildrenGlobal("reference.powers");
@@ -392,8 +403,6 @@ function addClassPowers(rAdd, sRecord, sDescriptionText, sClassName)
 						local sPowerLevel = Classes4eExtensionLibraryData.getPowerLevelValue(powerNode);
 						local sPowerRecharge = Classes4eExtensionLibraryData.getRechargeValue(powerNode);
 						if sPowerClass == sFilteredClassName and sPowerLevel == "1" then
-							tPowersforLevelAndClass[nOptionsCount] = powerNode;
-							nOptionsCount = nOptionsCount + 1;
 							if sPowerRecharge == refresh then
 								tPowers[nPowersCount] = powerNode;
 								nPowersCount = nPowersCount + 1;
@@ -409,37 +418,6 @@ function addClassPowers(rAdd, sRecord, sDescriptionText, sClassName)
 				end
 			end
 		end
-
-		-- local sPowersLink = string.gmatch(sDescriptionText, sPowersPattern);
-		-- for w,v in sPowersLink do
-		-- 	local sPowersPattern = "reference.powers." .. w .. "@" .. v;
-		-- 	local sRacialPowerName = DB.getText(DB.getPath(sPowersPattern, "name"));
-		-- 	local isPowerInList = false;
-		-- 	for _, powerNode in pairs(tCurrentPowers) do
-		-- 		if DB.getText(powerNode, "name") == sRacialPowerName then
-		-- 			isPowerInList = true;
-		-- 			break;
-		-- 		end
-		-- 	end
-		-- 	if isPowerInList == false then
-		-- 		local sRacialActionSpeed = DB.getText(DB.getPath(sPowersPattern, "action"));
-		-- 		local sRacialSource = DB.getText(DB.getPath(sPowersPattern, "source"));
-		-- 		local sRacialKeywords = DB.getText(DB.getPath(sPowersPattern, "keywords"));
-		-- 		local sRacialRange = DB.getText(DB.getPath(sPowersPattern, "range"));
-		-- 		local sRacialRecharge = DB.getText(DB.getPath(sPowersPattern, "recharge"));
-		-- 		local sRacialFullDescription = DB.getText(DB.getPath(sPowersPattern, "flavor")) .. "\n\n" .. DB.getText(DB.getPath(sPowersPattern, "description"))
-		-- 		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("powers"));
-		-- 		DB.setValue(rCreatedIDChildNode, "action", "string", sRacialActionSpeed);
-		-- 		DB.setValue(rCreatedIDChildNode, "name", "string", sRacialPowerName);
-		-- 		DB.setValue(rCreatedIDChildNode, "source", "string", sRacialSource);
-		-- 		DB.setValue(rCreatedIDChildNode, "keywords", "string", sRacialKeywords);
-		-- 		DB.setValue(rCreatedIDChildNode, "range", "string", sRacialRange);
-		-- 		DB.setValue(rCreatedIDChildNode, "recharge", "string", sRacialRecharge);
-		-- 		DB.setValue(rCreatedIDChildNode, "shortdescription", "string", sRacialFullDescription);
-		-- 		CharManager.parseDescription(rCreatedIDChildNode);
-		-- 		ChatManager.SystemMessageResource("char_abilities_message_poweradd", sRacialPowerName, rAdd.sCharName);
-		-- 	end
-		-- end
 	end 
 end
 function addStandardPowers(rAdd, sClassName, tPowers, nNumberOfPowers, sRefreshText)
@@ -454,16 +432,20 @@ function addStandardPowers(rAdd, sClassName, tPowers, nNumberOfPowers, sRefreshT
 	if not nNumberOfPowers then
 		nNumberOfPowers = 1;
 	end
-	local tDialogData = {
-		title = sRefreshText .. " Power Selection",
-		msg = "Choose an " .. sRefreshText .. " power",
-		options = tOptions,
-		min = nNumberOfPowers,
-		max = nNumberOfPowers,
-		callback = CharClassManager.callbackResolveClassPowerSelectionsDialogSelection,
-		custom = rAdd, 
-	};
-	DialogManager.requestSelectionDialog(tDialogData);
+	if #tOptions > 0 then
+		local title = string.format(Interface.getString("char_build_title_genericpowerselection"), sRefreshText);
+		local msg = string.format(Interface.getString("char_build_message_genericpowerselection"), sRefreshText);
+		local tDialogData = {
+			title = title,
+			msg = msg,
+			options = tOptions,
+			min = nNumberOfPowers,
+			max = nNumberOfPowers,
+			callback = CharClassManager.callbackResolveClassPowerSelectionsDialogSelection,
+			custom = rAdd, 
+		};
+		DialogManager.requestSelectionDialog(tDialogData);
+	end
 end
 function callbackResolveClassPowerSelectionsDialogSelection(tSelection, rAdd, tSelectionLinks)
 	if not tSelection or not tSelection[1] then

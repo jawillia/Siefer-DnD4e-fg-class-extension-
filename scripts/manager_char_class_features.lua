@@ -1118,7 +1118,7 @@ function addSorcererFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureF
 		ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", sClassFeatureName, rAdd.sCharName);
 	end
 end
-function displaySorcererSpellSourceDialog(rAdd, sClassFeatureOriginalDescription)
+function displaySorcererSpellSourceDialog(rAdd, sClassFeatureOriginalDescription, sParentClassFeatureName)
 	local tSpellSourceOptions = {};
 	local tOptions = {};
 	local tAllOptions = {};
@@ -1146,9 +1146,9 @@ function displaySorcererSpellSourceDialog(rAdd, sClassFeatureOriginalDescription
 		end
 	end
 	--Display a pop-up where we choose from the sorcerer spell sources
-	local msg = string.format(Interface.getString("char_build_message_chooseclassfeatures"), "1", "Spell Source");
+	local msg = string.format(Interface.getString("char_build_message_chooseclassfeatures"), "1", sParentClassFeatureName);
 	local tDialogData = {
-		title = "Sorcerer Spell Source",
+		title = Interface.getString("char_build_title_addsorcererspellsource"),
 		msg = msg,
 		options = tOptions,
 		min = 1,

@@ -8,29 +8,36 @@
 <root>
   <!-- Character - Build -->
   <string name="char_abilities_message_classadd">Class '%s' added to '%s'.</string>
+   <!-- Class Feature Strings -->
   <string name="char_abilities_message_classfeatureadd">Class Feature '%s' added to '%s' special ability list.</string>
-  <string name="char_abilities_message_poweradd">'%s' power added to '%s' power list.</string>  
   <string name="char_abilities_message_classfeaturedialoguetitle">Choose a Class Feature</string>
   <string name="char_abilities_message_classfeaturedialoguemsg">Choose one.</string>
+  <string name="char_error_addclasssfeature">Error adding class feature.</string>
+  <string name="char_build_message_chooseclassfeatures">Choose %s of the following %s:</string>
+  <!-- Class Power Strings -->
+  <string name="char_build_title_genericpowerselection">%s Power Selection</string>
+  <string name="char_build_message_genericpowerselection">Choose a(n) %s power.</string>
+  <string name="char_abilities_message_poweradd">'%s' power added to '%s' power list.</string>  
   <string name="char_abilities_message_classpoweradd">Class Power '%s' added to '%s' powers list.</string>
+  <string name="char_error_addclassspower">Error adding class power.</string> 
+  <string name="char_build_message_chooseclasspowers">Choose %s of the following %s:</string>  
+  <!-- Proficiency Strings -->
   <string name="char_abilities_message_armorproficiencyadd">Armor Proficiency '%s' added to '%s' armor proficiency list.</string>
   <string name="char_abilities_message_armorproficiencyremove">Armor Proficiency '%s' removed from '%s' armor proficiency list.</string>
   <string name="char_abilities_message_weaponproficiencyadd">Weapon Proficiency '%s' added to '%s' weapon proficiency list.</string>
-  <string name="char_abilities_message_implementproficiencyadd">Implement Proficiency '%s' added to '%s' weapon proficiency list.</string>  
+  <string name="char_abilities_message_implementproficiencyadd">Implement Proficiency '%s' added to '%s' weapon proficiency list.</string>
+  <!-- Hit Points and Healing Surges Strings -->
   <string name="char_combat_message_hitpointsatfirstleveladd">Hit Points set to '%s' for '%s'.</string>
   <string name="char_combat_message_healingsurgesperdayadd">Healing Surges per day set to '%s' for '%s'.</string>
+  <!-- Defense and Skill Bonus Strings -->
   <string name="char_main_message_defensebonusadd">+%s bonus added to '%s' for '%s'</string>
   <string name="char_skills_message_skilltrained">%s skill trained for '%s'.</string>
 
   <string name="char_build_title_selectclassskill">Train Skills</string>
   <string name="char_build_message_selectclassskill">Choose %s trained skills from the list below..</string>
-  <string name="char_error_addclassskill">Error training class skill.</string> 
-  <string name="char_error_addclasssfeature">Error adding class feature.</string> 
-
-  <string name="char_build_message_chooseclassfeatures">Choose %s of the following %s:</string> 
-  <string name="char_error_addclassspower">Error adding class power.</string> 
-
-  <string name="char_build_message_chooseclasspowers">Choose %s of the following %s:</string>   
+  <string name="char_error_addclassskill">Error training class skill.</string>  
+    
+  <!-- Class-Specific Strings -->
   <!-- Cleric Feature Strings -->
   <string name="char_build_title_addhealerlore">Healer's Lore or Alternate</string> 
   <string name="char_build_message_addhealerorbattlelore">Choose Healer's Lore or Battle Cleric's Lore. </string>
@@ -52,6 +59,8 @@
   <!-- Warlord (Marshal) Feature strings -->
   <string name="char_build_title_addarcherwarlord">Standard Warlord or Archer Warlord</string> 
   <string name="char_build_message_addarcherwarlord">Choose whether to use Archer Warlord feature or not:</string>
+  <!-- Sorcerer Feature strings -->
+  <string name="char_build_title_addsorcererspellsource">Sorcerer Spell Source</string>  
   <!-- Artificer Feature strings -->
   <string name="char_build_title_addartificerhealinginfusion">Resistive or Shielding Healing Infusion</string> 
   <string name="char_build_message_addartificerhealinginfusion">Choose whether to use the default Resistive Formula or the Shielding Elixer healing infusion:</string>
@@ -72,5 +81,12 @@
   <string name="char_build_message_addbinderpact">Choose a Binder Pact. These determine some of your class features, including a pact boon and encounter power.</string>
    <!-- Druid (Protector) Feature strings -->
   <string name="char_build_title_addddruidprotectorcircle">Druid (Protector) Circle</string> 
-  <string name="char_build_message_adddruidprotectorcircle">Choose a Druid (Protector) Circle. These determine some of your class features, including a pact boon and encounter power.</string>     
+  <string name="char_build_message_adddruidprotectorcircle">Choose a Druid (Protector) Circle. These determine some of your class features, including a pact boon and encounter power.</string>
+
+  <!-- Hybrid strings -->
+  <string name="char_build_title_secondhybridclass">Second Hybrid Class</string> 
+  <string name="char_build_message_choosesecondhybridclass">Choose a second Hybrid class to combine with.</string>  
+  <string name="char_error_nosecondhybridclass">There does not exist a second Hybrid class to combine with this class.</string>
+  <string name="char_error_addbothhybridclasses">Error adding Hybrid Classes.</string> 
+
 </root>
