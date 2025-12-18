@@ -8,6 +8,7 @@
 <root>
   <!-- Character - Build -->
   <string name="char_abilities_message_classadd">Class '%s' added to '%s'.</string>
+  <string name="char_abilities_message_hybridclassadd">'%s' and '%s' hybrid classes added to '%s'.</string>
    <!-- Class Feature Strings -->
   <string name="char_abilities_message_classfeatureadd">Class Feature '%s' added to '%s' special ability list.</string>
   <string name="char_abilities_message_classfeaturedialoguetitle">Choose a Class Feature</string>
@@ -15,8 +16,8 @@
   <string name="char_error_addclasssfeature">Error adding class feature.</string>
   <string name="char_build_message_chooseclassfeatures">Choose %s of the following %s:</string>
   <!-- Class Power Strings -->
-  <string name="char_build_title_genericpowerselection">%s Power Selection</string>
-  <string name="char_build_message_genericpowerselection">Choose a(n) %s power.</string>
+  <string name="char_build_title_genericpowerselection">%s %s Power</string>
+  <string name="char_build_message_genericpowerselection">Choose a(n) %s %s power.</string>
   <string name="char_abilities_message_poweradd">'%s' power added to '%s' power list.</string>  
   <string name="char_abilities_message_classpoweradd">Class Power '%s' added to '%s' powers list.</string>
   <string name="char_error_addclassspower">Error adding class power.</string> 
@@ -88,5 +89,19 @@
   <string name="char_build_message_choosesecondhybridclass">Choose a second Hybrid class to combine with.</string>  
   <string name="char_error_nosecondhybridclass">There does not exist a second Hybrid class to combine with this class.</string>
   <string name="char_error_addbothhybridclasses">Error adding Hybrid Classes.</string> 
+  <string name="char_error_hybridclasspower">Error adding Hybrid Class power.</string>
+  <string name="char_title_choosehybridclassforencounterpower">Encounter Power</string>
+  <string name="char_message_choosehybridclassforencounterpower">Choose which hybrid class to pick your encounter power from.</string>
+  <string name="char_title_hybridclassencounterpower">%s Encounter Power</string>
+  <string name="char_message_hybridclassencounterpower">Choose an Encounter %s power.</string>
+  <string name="char_title_choosehybridclassfordailypower">Daily Power</string>
+  <string name="char_message_choosehybridclassfordailypower">Choose which hybrid class to pick your daily power from.</string>  
+  <string name="char_title_hybridclassdailypower">%s Daily Power</string>
+  <string name="char_message_hybridclassdailypower">Choose a Daily %s power.</string> 
+  <string name="char_error_addhybridclassdefense">Error adding %s bonus to defense.</string>
+  <string name="char_title_hybridclassbonustodefense">%s Bonus to Defense</string>
+  <string name="char_message_hybridclassbonustodefense">Choose which Bonus to Defense to gain from %s</string>
+  <string name="char_build_title_selecthybridclassskill">Extra Trained Skills</string>
+  <string name="char_build_message_selecthybridclassskill">Choose %s trained skills from the list below from the %s class list</string>  
 
 </root>

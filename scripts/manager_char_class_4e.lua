@@ -344,7 +344,7 @@ function cutoffLastClassFeatureDescription(sDescriptionText, sClassFeatureSpecif
 	return sClassFeatureSpecificDescriptionText, sClassFeatureDescriptionPattern;
 end
 
-function addClassPowers(rAdd, sRecord, sDescriptionText, sClassName)
+function addClassPowers(rAdd, sRecord, sDescriptionText, sClassName, nNumberOfPowers, sRefreshText)
 	local tCurrentPowers = DB.getChildren(rAdd.nodeChar, "powers");
 	--first try through the newly added powers node
 	-- local sRecordPowerNode = DB.findNode(DB.getPath(sRecord, "powers"));
@@ -389,14 +389,19 @@ function addClassPowers(rAdd, sRecord, sDescriptionText, sClassName)
 		local sPowersPattern = '<link class="powerdesc" recordname="reference.powers.(%w+)@([%w%s]+)">';
 		local sFirstPowersLinkMatch, sFirstPowersLinkModuleMatch = string.match(sDescriptionText, sPowersPattern);
 		if not isEssentialsClass(sClassName) then
-			local tRefreshTypes = { "At-Will", "Encounter", "Daily" };
+			local tRefreshTypes = {};
+			if not sRefreshText then
+				tRefreshTypes = { "At-Will", "Encounter", "Daily" };
+			else
+				tRefreshTypes = { sRefreshText };
+			end
 			for i,refresh in ipairs(tRefreshTypes) do
 				--Don't add Daily Attack powers for wizard classes that use a spellbook
 				if (isSpellbookClass(sClassName) and refresh ~= "Daily") or not isSpellbookClass(sClassName) then
 					local tPowers = {};
 					local nPowersCount = 1;
-					--Use version of class name without the parentheses
-					local sFilteredClassName = StringManager.trim(string.gsub(sClassName, "%b()", ""));
+					--Use version of class name without the parentheses and without the name Hybrid
+					local sFilteredClassName = StringManager.trim(string.gsub(sClassName, "%b()", ""):gsub('Hybrid', ""));
 					local tPowerNodes = DB.getChildrenGlobal("reference.powers");
 					for _,powerNode in ipairs(tPowerNodes) do
 						local sPowerClass = Classes4eExtensionLibraryData.getClassOrRaceValue(powerNode);
@@ -409,10 +414,13 @@ function addClassPowers(rAdd, sRecord, sDescriptionText, sClassName)
 							end
 						end
 					end
+					--If number of powers to select isn't set, then use the default amount
 					--Standard characters start with 2 At-Will powers, 1 encounter, and 1 daily from their class
-					local nNumberOfPowers = 1;
-					if refresh == "At-Will" then
-						nNumberOfPowers = 2;
+					if not nNumberOfPowers then
+						nNumberOfPowers = 1;
+						if refresh == "At-Will" then
+							nNumberOfPowers = 2;
+						end
 					end
 					addStandardPowers(rAdd, sFilteredClassName, tPowers, nNumberOfPowers, refresh);
 				end
@@ -433,8 +441,8 @@ function addStandardPowers(rAdd, sClassName, tPowers, nNumberOfPowers, sRefreshT
 		nNumberOfPowers = 1;
 	end
 	if #tOptions > 0 then
-		local title = string.format(Interface.getString("char_build_title_genericpowerselection"), sRefreshText);
-		local msg = string.format(Interface.getString("char_build_message_genericpowerselection"), sRefreshText);
+		local title = string.format(Interface.getString("char_build_title_genericpowerselection"), sRefreshText, sClassName);
+		local msg = string.format(Interface.getString("char_build_message_genericpowerselection"), sRefreshText, sClassName);
 		local tDialogData = {
 			title = title,
 			msg = msg,
@@ -520,6 +528,7 @@ function addClassSkill(rAdd, sRecord, sDescriptionText)
 	local tFirstSkillValues = {};
 	local sSkillValue = '';
 	local sNumberOfTrainedSkills = '0';
+	local nNumberOfTrainedSkills = 0;
 	local rSkillsNode = DB.findNode(DB.getPath(sRecord, "skillbonuses"));
 	if rSkillsNode then
 		sSkillValue = DB.getText(rSkillsNode);
@@ -663,7 +672,7 @@ function helperResolveDefenseIncreaseOnRaceDrop(rAdd, sRecord, sDescriptionText)
 		local nCurrentDefense = DB.getValue(y, "total", 0);
 		local nCurrentDefenseClassBonus = DB.getValue(y, "class", "0");
 		if nCurrentDefenseClassBonus and nCurrentDefenseClassBonus ~= "0" then
-			DB.setValue(y, "total", "number", nCurrentDefense - nCurrentDefenseClassBonus);
+			--DB.setValue(y, "total", "number", nCurrentDefense - nCurrentDefenseClassBonus);
 			DB.setValue(y, "class", "number", "0");
 		end
 	end
