@@ -33,6 +33,21 @@ function helperOpenLinkRecord(sRecordType, sRecord)
 	end
 	return false;
 end
+
+function onHybridClassLinkPressed(nodeChar)
+	local _, sRecord = DB.getValue(nodeChar, "hybridclasslink", "", "");
+	if CharManagerWith4EClassExtension.helperOpenLinkRecord("class", sRecord) then
+		return true;
+	end
+	-- local sName = DB.getValue(nodeChar, "racename", "");
+	-- local bIs2024 = (DB.getValue(nodeChar, "raceversion", "") == "2024");
+	-- if CharManager.helperOpenAltLinkRecord("race", sName, bIs2024) then
+	-- 	return true;
+	-- end
+	CharManagerWith4EClassExtension.helperOpenLinkRecordFail("class", sRecord);
+	return false;
+end
+
 function helperOpenAltLinkRecord(sRecordType, sName, bIs2024)
 	if ((sName or "") == "") or ((sRecordType or "") == "") then
 		return false;

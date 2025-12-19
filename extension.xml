@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 <!-- This is our MVP for the Practice Extension -->
 <root release="3.0" version="6">
-	<announcement text="DnD 4e Classes extension made by SieferSeesSomething is activated. Last release 12/01/2025" font="emotefont" icon="rulesetlogo_CoreRPG"/>
+	<announcement text="DnD 4e Classes extension made by SieferSeesSomething is activated. Last release 12/19/2025" font="emotefont" icon="rulesetlogo_CoreRPG"/>
 	<properties>
 		<name>DnD 4e - Character Classes Extension</name>
-		<version>0.8.0</version>
+		<version>0.9.0</version>
 		<author>Jason Williams</author>
 		<description>
 		Adds a character options menu for classes and a link to the character sheet.
@@ -22,12 +22,14 @@
 		<includefile source="campaign/record_char_main.xml" />
 		<includefile source="campaign/record_char_skills.xml" />
 		<includefile source="campaign/record_char_abilities.xml" />
-		<includefile source="campaign/record_class.xml" /> 
+		<includefile source="campaign/record_class.xml" />
+		<includefile source="campaign/record_char_combat_with_classbonus.xml" />
 
 		<!-- High-Level Scripts -->
 		<script name="CharManagerWith4EClassExtension" file="scripts/manager_char_4e.lua" />
 		<script name="CharClassBuildDropManager" file="scripts/manager_char_build_drop_4e.lua" />
 		<script name="CharClassManager" file="scripts/manager_char_class_4e.lua" />
+		<script name="CharHybridClassManager" file="scripts/manager_char_hybrid_class.lua" />
 		<script name="CharClassFeatureManager" file="scripts/manager_char_class_features.lua" />
 		<script name="CharClassPowerManager" file="scripts/manager_char_class_powers.lua" />
 		<!-- <script name="RaceManager" file="scripts/manager_race_4e.lua" /> -->

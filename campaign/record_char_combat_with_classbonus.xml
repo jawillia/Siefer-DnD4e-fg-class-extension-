@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- 
+  Please see the license.html file included with this distribution for 
+  attribution and copyright information.
+-->
+
+<root>
+	<windowclass name="charsheet_combat" merge="join">
+		<sheetdata>
+			<number_deftotal_fort name="fortitude">
+				<source>
+					<name>defenses.fortitude.class</name>
+					<op>+</op>
+				</source>
+			</number_deftotal_fort>
+			<number_deftotal_ref name="reflex">
+				<source>
+					<name>defenses.reflex.class</name>
+					<op>+</op>
+				</source>
+			</number_deftotal_ref>
+			<number_deftotal_will name="will">
+				<source>
+					<name>defenses.will.class</name>
+					<op>+</op>
+				</source>
+			</number_deftotal_will>
+		</sheetdata>
+	</windowclass>
+</root>
