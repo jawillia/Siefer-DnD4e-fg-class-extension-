@@ -17,6 +17,7 @@ v.0.5.0 - 11/16/2025 - Tested and fixed issues for class features up to the end 
 v.0.6.0 - 11/25/2025 - There is now a UI to add your own custom classes, although automation for them isn't set up (will do this after finishing automation for all the compendium classes). Added filters for the power library for class, keywords, level, publishing source, recharge, and type. Tested and fixed issues for class features for HotFL and HotFK Essentials classes (Druid (Sentinel), Paladin (Cavalier), Ranger (Hunter), Ranger (Scout), Warlock (Hexblade), Cleric (Warpriest), Fighter (Knight), Fighter (Slayer), and Rogue (Thief))
 v.0.7.0 - 12/1/2025 - Finished adding the rest of the Essentials classes by testing and fixing class features for HoEC and NCS classes (Wizard (Bladesinger), Sorcerer (Elementalist), Wizard (Sha'ir)). Also added links to the selection dialogues.
 v.0.8.0 - 12/5/2025 - Added support for class powers for standard AEDU classes. Completed testing and support for class powers for PHB1 and PHB2 classes.
+v.0.9.0 - 12/19/2025 - Added support for hybrid classes. They should add everything you can get from a normal class (features, powers, defensese, trained skills, etc.). Added class skill list to traits tab when making a custom class.
 
 
 
@@ -35,6 +36,7 @@ What This Extension Does:
 * It adds class features (as of v.0.2.0)
 * It has a UI to add your own custom classes (as of v.0.6.0)
 * It adds powers now (as of v.0.8.0)
+* It has support for hybrid classes (as of v.0.9.0)
 
 
 
@@ -45,12 +47,11 @@ What This Extension Does Not Do (but it might do one day):
 
 
 * It does not allow class support beyond first level.
-* It doesn't support hybrid classes.
 * It only supports base classes, not paragon classes or epic destinies.
 
 
 Notes on Filtering Powers and Classes:
- - Powers should have their source written as (Race/Class/etc.) ("Attack"/"Utility"/"Feature") (Level) without the ()'s in order to have their Class/Race, Power Type, and Level fields all parse correctly for those respective filter fields. The quotes signify that one of those exact words is used
+ - Powers should have their source written as (Race/Class/etc.) ("Attack"/"Utility"/"Feature") (Level) without the ()'s in that order to have their Class/Race, Power Type, and Level fields all parse correctly for those respective filter fields. The quotes signify that one of those exact words is used
  - Publishing source is located by identifying a "Published in [x]." words somewhere in one of the description fields. Whatever words are located in [x] is used for the publishing source.
 
 

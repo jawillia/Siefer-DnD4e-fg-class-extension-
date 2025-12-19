@@ -31,6 +31,8 @@
 	<string name="class_tooltip_healingsurgesperday">Healing Surges Per Day</string>
 
 	<string name="tab_traits">Traits</string>
+	<string name="class_header_classskilllist">Class Skill List</string>
+	<string name="library_recordtype_empty_classSkill">&#171; New Class Skill &#187;</string>
 
 	<string name="class_header_features">FEATURES</string>
 	<string name="class_header_featurechoices">FEATURE CHOICES</string>

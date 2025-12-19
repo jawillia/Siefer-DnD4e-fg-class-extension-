@@ -302,8 +302,52 @@
         <static textres="class_label_trainedskills" />
       </label_content_column>
       <string_content_columnh name="trainedskills" source="trainedskills" />
+
+      <header_content_framed_headersimple name="classSkillList_header">
+        <static textres="class_header_classskilllist"/>
+      </header_content_framed_headersimple>
+      <button_iadd name="classSkillList_iadd">
+        <anchored to="classSkillList_header" position="insidetopright" offset="2,0" />
+        <target>classSkillList</target>
+      </button_iadd>
+      <list_content_column name="classSkillList">
+        <datasource>.skilllist</datasource>
+        <class>reference_classSkill_listitem</class>
+        <sortby><field>label</field></sortby>
+      </list_content_column>      
     </sheetdata>
   </windowclass>
+
+  <windowclass name="reference_classSkill_listitem">
+    <margins control="0,0,0,2" />
+    <script>
+      function onInit()
+        self.onLockModeChanged(WindowManager.getWindowReadOnlyState(self));
+      end
+      function onLockModeChanged(bReadOnly)
+        local tControls = { "name", "statname", "idelete", };
+        WindowManager.callSafeControlsSetLockMode(self, tControls, bReadOnly);
+      end
+    </script>
+    <sheetdata>
+      <anchor_listitem_left_sm name="leftanchor" />
+      <anchor_listitem_right_sm name="rightanchor" />
+
+      <button_listitem_idelete_left name="idelete" />
+<!--       <linkc_listitem_left name="shortcut">
+        <class>reference_classfeature</class>
+      </linkc_listitem_left> -->
+
+      <string_listitem_center name="name">
+        <empty textres="library_recordtype_empty_classSkill" />
+        <font>sheetlabel</font>
+      </string_listitem_center>
+
+      <string_listitem_right name="statname">
+        <font>sheetlabel</font>
+      </string_listitem_right>
+    </sheetdata>
+  </windowclass>  
 
   <windowclass name="reference_classfeature" copy="record_window">
     <script>
