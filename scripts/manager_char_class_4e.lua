@@ -42,11 +42,17 @@ function addClass(nodeChar, sRecord, tData)
 		CharClassManager.helperResolveDefenseIncreaseOnRaceDrop(rAdd, sRecord, sDescriptionText);
 	end
 
+	-- -- Added every level -- --
 	--Add Class Hit Points
 	addClassHitPoints(rAdd, sRecord, sDescriptionText, nLevel);	
 
-	-- --Add Class Powers. Added every level.
+	-- --Add Class Powers.
 	addClassPowers(rAdd, sRecord, sDescriptionText, sClassName, nLevel);
+
+	--Add Ability Score Increase. Only for levels 4, 8, 11, 14, 18, 21, 24, and 28.
+	if nLevel and nLevel >= 4 then
+		helperResolveStatIncreaseOnClassDrop(rAdd, sRecord,sDescriptionText, nLevel);
+	end
 
 	-- Notification
 	ChatManager.SystemMessageResource("char_abilities_message_classadd", sClassName, rAdd.sCharName);
@@ -226,20 +232,15 @@ function addClassHitPoints(rAdd, sRecord, sDescriptionText, nLevel)
 			ChatManager.SystemMessageResource("char_combat_message_hitpointsatfirstleveladd", nHitPointsAtFirstLevelTotal, rAdd.sCharName);
 		end
 	else
-		Debug.console("Adding class hit points at level above 1.");
 		local sHitPointsAtNextLevelValue = '';
 		if sDescriptionText then
 			local sHitPointsAtNextLevelDescriptionTextLine = string.match(sDescriptionText, "<p>%s*<b>%s*Hit Points per Level Gained%s*</b>:%s*(.-)</p>");
 			sHitPointsAtNextLevelValue = string.match(sHitPointsAtNextLevelDescriptionTextLine, "[%d]+");
-			Debug.console("sHitPointsAtNextLevelValue", sHitPointsAtNextLevelValue);
 		end	
 		if rCharacterHPNode then
 			local nCurrentHitPoints = DB.getValue(rCharacterHPNode, "total");
-			Debug.console("nCurrentHitPoints", nCurrentHitPoints);
 			local nHitPointsForNextLevelTotal = sHitPointsAtNextLevelValue + nCurrentHitPoints;
-			Debug.console("nHitPointsForNextLevelTotal", nHitPointsForNextLevelTotal);
 			if nHitPointsForNextLevelTotal then
-				Debug.console("adding last thing");
 				DB.setValue(rCharacterHPNode, "total", "number", nHitPointsForNextLevelTotal);
 				ChatManager.SystemMessageResource("char_combat_message_hitpointsgained", sHitPointsAtNextLevelValue, rAdd.sCharName, nHitPointsForNextLevelTotal);			
 			end
@@ -487,8 +488,6 @@ function addClassPowers(rAdd, sRecord, sDescriptionText, sClassName, nLevel, nNu
 						local sPowerRecharge = Classes4eExtensionLibraryData.getRechargeValue(powerNode);
 						local sPowerType = Classes4eExtensionLibraryData.getPowerTypeValue(powerNode);
 						if sPowerClass == sFilteredClassName and sPowerLevel == tostring(nLevel) then
-							Debug.console("sPowerType", sPowerType);
-							Debug.console("refresh", refresh);
 							if (sPowerRecharge == refresh and sPowerType == "Attack") or (refresh == "Utility" and sPowerType == "Utility") then
 								tPowers[nPowersCount] = powerNode;
 								nPowersCount = nPowersCount + 1;
@@ -532,7 +531,7 @@ function addStandardPowers(rAdd, sClassName, tPowers, nNumberOfPowers, sRefreshT
 	end
 	if #tOptions > 0 then
 		local title = string.format(Interface.getString("char_build_title_genericpowerselection"), sRefreshText, sClassName);
-		local msg = string.format(Interface.getString("char_build_message_genericpowerselection"), sRefreshText, sClassName);
+		local msg = string.format(Interface.getString("char_build_message_genericpowerselection"), nNumberOfPowers, sRefreshText, sClassName);
 		local tDialogData = {
 			title = title,
 			msg = msg,
@@ -806,6 +805,54 @@ function helperResolveDefenseIncreaseOnRaceDrop(rAdd, sRecord, sDescriptionText)
 		
 		-- Can add in logic to display a selection dialogue if there is a choice for defense increase
 		-- But so far, that doesn't seem to exist in any classes
+	end
+end
+
+function helperResolveStatIncreaseOnClassDrop(rAdd, sRecord, sDescriptionText, nLevel)
+	if not rAdd then
+		return;
+	end
+
+	if nLevel and nLevel > 2 then
+		local tOptions = { "+1 Strength", "+1 Constitution", "+1 Dexterity", "+1 Intelligence", "+1 Wisdom", "+1 Charisma" };
+
+		if nLevel == 4 or nLevel == 8 or nLevel == 14 or nLevel == 18 or nLevel == 24 or nLevel == 28 then
+			--On levels 4, 8, 14, 18, 24, or 28, choose two different ability scores to increase by 1
+			local tDialogData = {
+				title = Interface.getString("char_build_title_selectclassabilitybonus"),
+				msg = Interface.getString("char_build_message_selectclassabilitybonus"),
+				options = tOptions,
+				min = 2,
+				max = 2,
+				callback = CharClassManager.callbackResolveStatIncreaseOnClassDrop,
+				custom = rAdd,
+			};
+			DialogManager.requestSelectionDialog(tDialogData);
+		elseif nLevel == 11 or nLevel == 21 then
+			callbackResolveStatIncreaseOnClassDrop(tOptions, rAdd);
+		end
+	end
+end
+function callbackResolveStatIncreaseOnClassDrop(tSelection, rAdd)
+	if not tSelection then
+		CharManager.outputUserMessage("char_error_addabilityscoreonlevelup");
+		return;
+	end
+	local rAbilitiesNode = DB.findNode(DB.getPath(rAdd.nodeChar, "abilities"));
+	for selectionIndex, selectedAbilityScore in ipairs(tSelection) do
+		local sAbilityScore = string.lower(string.match(selectedAbilityScore, "%a+"));
+		local nSelectionBonus = string.match(selectedAbilityScore, "%d+");
+		if not nSelectionBonus then
+			nSelectionBonus = "1";
+		end
+		local rAbilitiesNodeChildren = DB.getChildren(rAbilitiesNode);
+		for _,x in pairs(rAbilitiesNodeChildren) do
+			if DB.getName(x) == sAbilityScore then
+				local nCurrentAbilityScore = DB.getValue(x, "score", 0);
+				DB.setValue(x, "score", "number", nCurrentAbilityScore + nSelectionBonus);
+				ChatManager.SystemMessageResource("char_main_message_statbonusadd", nSelectionBonus, sAbilityScore, rAdd.sCharName);
+			end
+		end
 	end
 end
 
