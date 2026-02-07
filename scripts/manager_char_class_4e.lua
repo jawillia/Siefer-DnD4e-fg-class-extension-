@@ -17,42 +17,71 @@ function addClass(nodeChar, sRecord, tData)
 	local sRecordDescriptionNode = DB.findNode(DB.getPath(sRecord, "description"));
 	local sDescriptionText = DB.getValue(sRecordDescriptionNode);
 
-	--Add Class Proficiencies
-	addClassArmorProficiencies(rAdd, sRecord, sDescriptionText);
-	addClassWeaponProficiencies(rAdd, sRecord, sDescriptionText);
+	--Add Class level and Save it for Future Functions That are Level Dependent
+	local nLevel = addClassLevel(rAdd, sRecord, sClassName);
 
-	--Add Class name, level, and link
-	addClassNameAndLevel(rAdd, sRecord, sClassName);
+	--Added first level only
+	if nLevel == 1 then
+		--Add Class Proficiencies
+		addClassArmorProficiencies(rAdd, sRecord, sDescriptionText);
+		addClassWeaponProficiencies(rAdd, sRecord, sDescriptionText);
+
+		--Add Class name and link
+		addClassName(rAdd, sRecord, sClassName);
+
+		--Add Class Healing Surges
+		addClassHealingSurges(rAdd, sRecord, sDescriptionText);
+
+		--Add Class Features
+		addClassFeatures(rAdd, sRecord, sDescriptionText, sClassName);
+
+		-- --Add skill bonuses
+		addClassSkill(rAdd, sRecord, sDescriptionText);
+
+		--Add Defense bonuses
+		CharClassManager.helperResolveDefenseIncreaseOnRaceDrop(rAdd, sRecord, sDescriptionText);
+	end
 
 	--Add Class Hit Points
-	addClassHitPoints(rAdd, sRecord, sDescriptionText);
+	addClassHitPoints(rAdd, sRecord, sDescriptionText, nLevel);	
 
-	--Add Class Healing Surges
-	addClassHealingSurges(rAdd, sRecord, sDescriptionText);
-
-	--Add Class Features
-	addClassFeatures(rAdd, sRecord, sDescriptionText, sClassName);
-
-	-- --Add Class Powers
-	addClassPowers(rAdd, sRecord, sDescriptionText, sClassName);
-
-	-- --Add skill bonuses
-	addClassSkill(rAdd, sRecord, sDescriptionText);
-
-	--Add Defense bonuses
-	CharClassManager.helperResolveDefenseIncreaseOnRaceDrop(rAdd, sRecord, sDescriptionText);
+	-- --Add Class Powers. Added every level.
+	addClassPowers(rAdd, sRecord, sDescriptionText, sClassName, nLevel);
 
 	-- Notification
 	ChatManager.SystemMessageResource("char_abilities_message_classadd", sClassName, rAdd.sCharName);
 	
 end
 
-function addClassNameAndLevel(rAdd, sRecord, sClassName)
+function addClassName(rAdd, sRecord, sClassName)
 	DB.setValue(rAdd.nodeChar, "class.base", "string", sClassName);	
-	DB.setValue(rAdd.nodeChar, "level", "number", "1");
 	DB.setValue(rAdd.nodeChar, "classlink", "windowreference", "powerdesc", DB.getPath(rAdd.nodeSource));
 	--Blank out the hybrid class
 	DB.setValue(rAdd.nodeChar, "hybridclasslink", "windowreference");
+end
+
+function addClassLevel(rAdd, sRecord, sClassName)
+	--If the character already has the class being added, increase level by one
+	--Otherwise, reset it back to first level
+	local nLevel = 1;
+	local sCurrentclassName = DB.getText(DB.getPath(rAdd.nodeChar, "class.base"));
+	if sCurrentclassName then
+		if sCurrentclassName == sClassName then
+			nLevel = DB.getValue(rAdd.nodeChar, "level", 1);
+			if nLevel then
+				nLevel = nLevel + 1;
+			else 
+				nLevel = 1;
+			end
+			DB.setValue(rAdd.nodeChar, "level", "number", nLevel);
+		else
+			DB.setValue(rAdd.nodeChar, "level", "number", nLevel);
+		end
+	else
+		DB.setValue(rAdd.nodeChar, "level", "number", nLevel);
+	end
+
+	return nLevel;
 end
 
 function addClassArmorProficiencies(rAdd, sRecord, sDescriptionText)
@@ -181,19 +210,40 @@ function addClassWeaponProficiencies(rAdd, sRecord, sDescriptionText)
 	end
 end
 
-function addClassHitPoints(rAdd, sRecord, sDescriptionText)
-	local sHitPointsAtFirstLevelValue = '';
-	if sDescriptionText then
-		local sHitPointsAtFirstLevelDescriptionTextLine = string.match(sDescriptionText, "<p>%s*<b>%s*Hit Points at 1st Level%s*</b>:%s*(.-)</p>");
-		sHitPointsAtFirstLevelValue = string.match(sHitPointsAtFirstLevelDescriptionTextLine, "[%d]+");
-	end
+function addClassHitPoints(rAdd, sRecord, sDescriptionText, nLevel)
 	local rCharacterHPNode = DB.findNode(rAdd.nodeChar.getPath("hp"));
-	local rCharacterConNode = DB.findNode(rAdd.nodeChar.getPath("abilities", "constitution"));
-	local nCharacterConValue = DB.getValue(rCharacterConNode, "score", 0);
-	local nHitPointsAtFirstLevelTotal = sHitPointsAtFirstLevelValue + nCharacterConValue;
-	if rCharacterHPNode and nHitPointsAtFirstLevelTotal then
-		DB.setValue(rCharacterHPNode, "total", "number", nHitPointsAtFirstLevelTotal);
-		ChatManager.SystemMessageResource("char_combat_message_hitpointsatfirstleveladd", nHitPointsAtFirstLevelTotal, rAdd.sCharName);
+	if nLevel == 1 then
+		local sHitPointsAtFirstLevelValue = '';
+		if sDescriptionText then
+			local sHitPointsAtFirstLevelDescriptionTextLine = string.match(sDescriptionText, "<p>%s*<b>%s*Hit Points at 1st Level%s*</b>:%s*(.-)</p>");
+			sHitPointsAtFirstLevelValue = string.match(sHitPointsAtFirstLevelDescriptionTextLine, "[%d]+");
+		end
+		local rCharacterConNode = DB.findNode(rAdd.nodeChar.getPath("abilities", "constitution"));
+		local nCharacterConValue = DB.getValue(rCharacterConNode, "score", 0);
+		local nHitPointsAtFirstLevelTotal = sHitPointsAtFirstLevelValue + nCharacterConValue;
+		if rCharacterHPNode and nHitPointsAtFirstLevelTotal then
+			DB.setValue(rCharacterHPNode, "total", "number", nHitPointsAtFirstLevelTotal);
+			ChatManager.SystemMessageResource("char_combat_message_hitpointsatfirstleveladd", nHitPointsAtFirstLevelTotal, rAdd.sCharName);
+		end
+	else
+		Debug.console("Adding class hit points at level above 1.");
+		local sHitPointsAtNextLevelValue = '';
+		if sDescriptionText then
+			local sHitPointsAtNextLevelDescriptionTextLine = string.match(sDescriptionText, "<p>%s*<b>%s*Hit Points per Level Gained%s*</b>:%s*(.-)</p>");
+			sHitPointsAtNextLevelValue = string.match(sHitPointsAtNextLevelDescriptionTextLine, "[%d]+");
+			Debug.console("sHitPointsAtNextLevelValue", sHitPointsAtNextLevelValue);
+		end	
+		if rCharacterHPNode then
+			local nCurrentHitPoints = DB.getValue(rCharacterHPNode, "total");
+			Debug.console("nCurrentHitPoints", nCurrentHitPoints);
+			local nHitPointsForNextLevelTotal = sHitPointsAtNextLevelValue + nCurrentHitPoints;
+			Debug.console("nHitPointsForNextLevelTotal", nHitPointsForNextLevelTotal);
+			if nHitPointsForNextLevelTotal then
+				Debug.console("adding last thing");
+				DB.setValue(rCharacterHPNode, "total", "number", nHitPointsForNextLevelTotal);
+				ChatManager.SystemMessageResource("char_combat_message_hitpointsgained", sHitPointsAtNextLevelValue, rAdd.sCharName, nHitPointsForNextLevelTotal);			
+			end
+		end
 	end
 end
 
@@ -344,8 +394,11 @@ function cutoffLastClassFeatureDescription(sDescriptionText, sClassFeatureSpecif
 	return sClassFeatureSpecificDescriptionText, sClassFeatureDescriptionPattern;
 end
 
-function addClassPowers(rAdd, sRecord, sDescriptionText, sClassName, nNumberOfPowers, sRefreshText)
+function addClassPowers(rAdd, sRecord, sDescriptionText, sClassName, nLevel, nNumberOfPowers, sRefreshText)
 	local tCurrentPowers = DB.getChildren(rAdd.nodeChar, "powers");
+	if not nLevel then
+		nLevel = 1;
+	end
 	--first try through the newly added powers node
 	-- local sRecordPowerNode = DB.findNode(DB.getPath(sRecord, "powers"));
 	-- if sRecordPowerNode then
@@ -388,10 +441,35 @@ function addClassPowers(rAdd, sRecord, sDescriptionText, sClassName, nNumberOfPo
 		local powersNode = DB.getChild(referenceStaticNode, "powers");
 		local sPowersPattern = '<link class="powerdesc" recordname="reference.powers.(%w+)@([%w%s]+)">';
 		local sFirstPowersLinkMatch, sFirstPowersLinkModuleMatch = string.match(sDescriptionText, sPowersPattern);
+		local atwillPowerNumbers = 0;
+		local encounterPowerNumbers = 0;
+		local dailyPowerNumbers = 0;
+		local utilityPowerNumbers = 0;
 		if not isEssentialsClass(sClassName) then
 			local tRefreshTypes = {};
 			if not sRefreshText then
-				tRefreshTypes = { "At-Will", "Encounter", "Daily" };
+				--Add one type here for each type of power you gain at least one for this level
+				if DataLevelClasses4eExtension.powersGainedByLevel[nLevel] then
+					for powerKey, dataTablePowerValues in pairs(DataLevelClasses4eExtension.powersGainedByLevel[nLevel]) do
+					    if dataTablePowerValues > 0 then
+					    	if powerKey == "atwill" then
+					    		table.insert(tRefreshTypes, "At-Will");
+					    		atwillPowerNumbers = dataTablePowerValues;
+					    	elseif powerKey == "encounter" then
+					    		table.insert(tRefreshTypes, "Encounter");
+					    		encounterPowerNumbers = dataTablePowerValues;
+					    	elseif powerKey == "daily" then
+					    		table.insert(tRefreshTypes, "Daily");
+					    		dailyPowerNumbers = dataTablePowerValues;
+					    	elseif powerKey == "utility" then
+					    		table.insert(tRefreshTypes, "Utility");
+					    		utilityPowerNumbers = dataTablePowerValues;
+					    	end
+					    end
+					end
+				else
+					tRefreshTypes = { "At-Will", "Encounter", "Daily" };
+				end
 			else
 				tRefreshTypes = { sRefreshText };
 			end
@@ -407,8 +485,11 @@ function addClassPowers(rAdd, sRecord, sDescriptionText, sClassName, nNumberOfPo
 						local sPowerClass = Classes4eExtensionLibraryData.getClassOrRaceValue(powerNode);
 						local sPowerLevel = Classes4eExtensionLibraryData.getPowerLevelValue(powerNode);
 						local sPowerRecharge = Classes4eExtensionLibraryData.getRechargeValue(powerNode);
-						if sPowerClass == sFilteredClassName and sPowerLevel == "1" then
-							if sPowerRecharge == refresh then
+						local sPowerType = Classes4eExtensionLibraryData.getPowerTypeValue(powerNode);
+						if sPowerClass == sFilteredClassName and sPowerLevel == tostring(nLevel) then
+							Debug.console("sPowerType", sPowerType);
+							Debug.console("refresh", refresh);
+							if (sPowerRecharge == refresh and sPowerType == "Attack") or (refresh == "Utility" and sPowerType == "Utility") then
 								tPowers[nPowersCount] = powerNode;
 								nPowersCount = nPowersCount + 1;
 							end
@@ -416,13 +497,22 @@ function addClassPowers(rAdd, sRecord, sDescriptionText, sClassName, nNumberOfPo
 					end
 					--If number of powers to select isn't set, then use the default amount
 					--Standard characters start with 2 At-Will powers, 1 encounter, and 1 daily from their class
+					local nNumberOfPowersForClass = 0;
 					if not nNumberOfPowers then
-						nNumberOfPowers = 1;
+						nNumberOfPowersForClass = 1;
 						if refresh == "At-Will" then
-							nNumberOfPowers = 2;
+							nNumberOfPowersForClass = atwillPowerNumbers;
+						elseif refresh == "Encounter" then
+							nNumberOfPowersForClass = encounterPowerNumbers;
+						elseif refresh == "Daily" then
+							nNumberOfPowersForClass = dailyPowerNumbers;
+						elseif refresh == "Utility" then
+							nNumberOfPowersForClass = utilityPowerNumbers;
 						end
+					else 
+						nNumberOfPowersForClass = nNumberOfPowers;
 					end
-					addStandardPowers(rAdd, sFilteredClassName, tPowers, nNumberOfPowers, refresh);
+					addStandardPowers(rAdd, sFilteredClassName, tPowers, nNumberOfPowersForClass, refresh);
 				end
 			end
 		end

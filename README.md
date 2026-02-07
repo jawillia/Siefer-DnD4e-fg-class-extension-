@@ -18,6 +18,7 @@ v.0.6.0 - 11/25/2025 - There is now a UI to add your own custom classes, althoug
 v.0.7.0 - 12/1/2025 - Finished adding the rest of the Essentials classes by testing and fixing class features for HoEC and NCS classes (Wizard (Bladesinger), Sorcerer (Elementalist), Wizard (Sha'ir)). Also added links to the selection dialogues.
 v.0.8.0 - 12/5/2025 - Added support for class powers for standard AEDU classes. Completed testing and support for class powers for PHB1 and PHB2 classes.
 v.0.9.0 - 12/19/2025 - Added support for hybrid classes. They should add everything you can get from a normal class (features, powers, defenses, trained skills, etc.). Added class skill list to traits tab when making a custom class.
+v.1.0.0 - (started) 02/06/2026 - Added support for increasing your class level. Dragging a class onto your character sheet when you already have that class will increase it's level by 1. If on a level where you gain a new power, it will allow you to select a power you would gain from that level.
 
 
 
@@ -37,6 +38,7 @@ What This Extension Does:
 * It has a UI to add your own custom classes (as of v.0.6.0)
 * It adds powers now (as of v.0.8.0)
 * It has support for hybrid classes (as of v.0.9.0)
+* If you drag the same class onto your character sheet, as long as it's a standard AEDU class, it will increase it's level. You can use this to gain class powers and features, but it won't give you feats, increase your ability scores, or let you retrain a feat, power, or skill. Those things will have to be adjusted manually (as of v.1.0.0).
 
 
 
@@ -46,8 +48,10 @@ What This Extension Does Not Do (but it might do one day):
 
 
 
-* It does not allow class support beyond first level.
+* It does not allow class support beyond first level (for hybrid classes, essentials, custom classes).
 * It only supports base classes, not paragon classes or epic destinies.
+* Does not replace class powers at level 13 and beyond yet. When selecting powers at level 13 and beyond, you will have to decide whether you are replacing an old power when you do so, and if you do, remove that other power you are replacing manually.
+* Does not automatically add any feats or ability score increases. It just adds stuff directly related gained from your class (features and powers).
 
 
 Notes on Filtering Powers and Classes:

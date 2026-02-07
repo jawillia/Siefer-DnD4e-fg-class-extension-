@@ -17,6 +17,7 @@
 	<base>
 		<!-- Library Data -->
 		<script name="Classes4eExtensionLibraryData" file="scripts/data_library_4e_class.lua" />
+		<script name="DataLevelClasses4eExtension" file="scripts/data_leveldata_4e_char_extension.lua" />
 
 		<!-- Campaign -->
 		<includefile source="campaign/record_char_main.xml" />

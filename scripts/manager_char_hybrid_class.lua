@@ -68,7 +68,7 @@ end
 function addBothHybridClasses(rAdd, sRecordOne, sRecordTwo, sDescriptionTextOne, sDescriptionTextTwo, sClassNameOne, sClassNameTwo)
 	addHybridClassName(rAdd, sClassNameOne, sClassNameTwo);
 
-	addHybridClassLevel(rAdd);
+	local nLevel = addHybridClassLevel(rAdd);
 
 	addHybridClassLinks(rAdd, sRecordTwo);
 
@@ -89,7 +89,7 @@ function addBothHybridClasses(rAdd, sRecordOne, sRecordTwo, sDescriptionTextOne,
 	CharClassManager.addClassFeatures(rAdd, sRecordOne, sDescriptionTextOne, sClassNameOne);
 	CharClassManager.addClassFeatures(rAdd, sRecordTwo, sDescriptionTextTwo, sClassNameTwo);
 
-	addHybridClassPowers(rAdd, sRecordOne, sDescriptionTextOne, sRecordTwo, sDescriptionTextTwo, sClassNameOne, sClassNameTwo);
+	addHybridClassPowers(rAdd, sRecordOne, sDescriptionTextOne, sRecordTwo, sDescriptionTextTwo, sClassNameOne, sClassNameTwo, nLevel);
 
 	addHybridClassSkill(rAdd, sRecordOne, sRecordTwo, sDescriptionTextOne, sDescriptionTextTwo, sClassNameOne, sClassNameTwo);
 
@@ -104,7 +104,10 @@ function addHybridClassName(rAdd, sClassNameOne, sClassNameTwo)
 	DB.setValue(rAdd.nodeChar, "class.base", "string", sClassNameOne .. " / " .. sClassNameTwo);
 end
 function addHybridClassLevel(rAdd)
-	DB.setValue(rAdd.nodeChar, "level", "number", "1");
+	local nLevel = 1;
+	DB.setValue(rAdd.nodeChar, "level", "number", nLevel);
+
+	return nLevel;
 end
 function addHybridClassLinks(rAdd, sRecordTwo)
 	DB.setValue(rAdd.nodeChar, "classlink", "windowreference", "powerdesc", DB.getPath(rAdd.nodeSource));
@@ -292,7 +295,7 @@ function addHybridClassFeatures(rAdd, sRecordOne, sRecordTwo, sDescriptionTextOn
 	end
 end
 
-function addHybridClassPowers(rAdd, sRecordOne, sDescriptionTextOne, sRecordTwo, sDescriptionTextTwo, sClassNameOne, sClassNameTwo)
+function addHybridClassPowers(rAdd, sRecordOne, sDescriptionTextOne, sRecordTwo, sDescriptionTextTwo, sClassNameOne, sClassNameTwo, nLevel)
 	if not rAdd or not sRecordOne or not sRecordTwo or not sDescriptionTextOne or not sDescriptionTextTwo or not sClassNameOne or not sClassNameTwo then
 		ChatManager.SystemMessageResource("char_error_hybridclasspower");
 		return;
@@ -300,8 +303,8 @@ function addHybridClassPowers(rAdd, sRecordOne, sDescriptionTextOne, sRecordTwo,
 
 	--Add one of each at-will power from each class
 	--then they decide which class to get a power from
-	CharClassManager.addClassPowers(rAdd, sRecordOne, sDescriptionTextOne, sClassNameOne, 1, "At-Will");
-	CharClassManager.addClassPowers(rAdd, sRecordTwo, sDescriptionTextTwo, sClassNameTwo, 1, "At-Will");
+	CharClassManager.addClassPowers(rAdd, sRecordOne, sDescriptionTextOne, sClassNameOne, nLevel, 1, "At-Will");
+	CharClassManager.addClassPowers(rAdd, sRecordTwo, sDescriptionTextTwo, sClassNameTwo, nLevel, 1, "At-Will");
 
 	local tOptions = {};
 	table.insert(tOptions, { text = sClassNameOne, linkclass = "powerdesc", linkrecord = DB.getPath(sRecordOne), });
@@ -315,7 +318,7 @@ function addHybridClassPowers(rAdd, sRecordOne, sDescriptionTextOne, sRecordTwo,
 			min = 1,
 			max = 1,
 			callback = CharHybridClassManager.callbackResolveHybridClassEncounterPower,
-			custom = { rAdd=rAdd }, 
+			custom = { rAdd=rAdd, nLevel=nLevel }, 
 		};
 		DialogManager.requestSelectionDialog(tDialogData);
 	end
@@ -328,7 +331,7 @@ function addHybridClassPowers(rAdd, sRecordOne, sDescriptionTextOne, sRecordTwo,
 			min = 1,
 			max = 1,
 			callback = CharHybridClassManager.callbackResolveHybridClassDailyPower,
-			custom = { rAdd=rAdd }, 
+			custom = { rAdd=rAdd, nLevel=nLevel }, 
 		};
 		DialogManager.requestSelectionDialog(tDialogData);
 	end
@@ -347,7 +350,7 @@ function callbackResolveHybridClassEncounterPower(tSelection, tData, tSelectionL
 	local sRecordDescriptionNode = DB.findNode(DB.getPath(tSelectionLinks[1].linkrecord, "description"));
 	local sDescriptionText = DB.getValue(sRecordDescriptionNode);
 
-	CharClassManager.addClassPowers(tData.rAdd, rNodePath, sDescriptionText, sClassName, 1, "Encounter");
+	CharClassManager.addClassPowers(tData.rAdd, rNodePath, sDescriptionText, sClassName, tData.nLevel, 1, "Encounter");
 end
 function callbackResolveHybridClassDailyPower(tSelection, tData, tSelectionLinks)
 	if not tSelection and not tSelection[1] then
@@ -363,7 +366,7 @@ function callbackResolveHybridClassDailyPower(tSelection, tData, tSelectionLinks
 	local sRecordDescriptionNode = DB.findNode(DB.getPath(tSelectionLinks[1].linkrecord, "description"));
 	local sDescriptionText = DB.getValue(sRecordDescriptionNode);
 
-	CharClassManager.addClassPowers(tData.rAdd, rNodePath, sDescriptionText, sClassName, 1, "Daily");
+	CharClassManager.addClassPowers(tData.rAdd, rNodePath, sDescriptionText, sClassName, tData.nLevel, 1, "Daily");
 end
 
 function addHybridClassSkill(rAdd, sRecordOne, sRecordTwo, sDescriptionTextOne, sDescriptionTextTwo, sClassNameOne, sClassNameTwo)

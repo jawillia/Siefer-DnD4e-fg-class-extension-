@@ -30,6 +30,7 @@
   <!-- Hit Points and Healing Surges Strings -->
   <string name="char_combat_message_hitpointsatfirstleveladd">Hit Points set to '%s' for '%s'.</string>
   <string name="char_combat_message_healingsurgesperdayadd">Healing Surges per day set to '%s' for '%s'.</string>
+  <string name="char_combat_message_hitpointsgained">%s Total Hit Points Gained for '%s'. New Total is '%s'.</string>
   <!-- Defense and Skill Bonus Strings -->
   <string name="char_main_message_defensebonusadd">+%s bonus added to '%s' for '%s'</string>
   <string name="char_skills_message_skilltrained">%s skill trained for '%s'.</string>
