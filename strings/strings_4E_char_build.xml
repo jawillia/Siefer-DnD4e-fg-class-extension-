@@ -13,7 +13,8 @@
   <string name="char_build_title_selectclassabilitybonus">Increase Ability Score</string>
   <string name="char_build_message_selectclassabilitybonus">Select 2 ability scores to increase.</string>
   <string name="char_error_addabilityscoreonlevelup">Error increasing ability score on level up.</string>  
-
+  <!-- Feat Strings -->
+  <string name="char_abilities_message_pickfeatreminder">Don't forget to pick a feat %s !</string>  
    <!-- Class Feature Strings -->
   <string name="char_abilities_message_classfeatureadd">Class Feature '%s' added to '%s' special ability list.</string>
   <string name="char_abilities_message_classfeaturedialoguetitle">Choose a Class Feature</string>

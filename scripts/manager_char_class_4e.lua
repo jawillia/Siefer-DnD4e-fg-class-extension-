@@ -54,6 +54,11 @@ function addClass(nodeChar, sRecord, tData)
 		helperResolveStatIncreaseOnClassDrop(rAdd, sRecord,sDescriptionText, nLevel);
 	end
 
+	--Add Feat Notification
+	if nLevel and nLevel % 2 == 0 then
+		ChatManager.SystemMessageResource("char_abilities_message_pickfeatreminder", rAdd.sCharName);
+	end
+
 	-- Notification
 	ChatManager.SystemMessageResource("char_abilities_message_classadd", sClassName, rAdd.sCharName);
 	
