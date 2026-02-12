@@ -42,6 +42,27 @@ end
 ---------------------------------------------
 --- Generic Non-Dialogue Power Add Methods
 ---------------------------------------------
+function addPowersFromText(sDescriptionText, rAdd, sClassName, sClassFeatureName, sSubFeatureDescriptionText)
+	if not sDescriptionText then
+		return;
+	end
+
+	if string.find(sDescriptionText:lower(), "choose") 
+		or string.find(sDescriptionText:lower(), "choice")
+		or string.find(sDescriptionText:lower(), "following") then
+		CharClassPowerManager.displayClassPowerSelectionsDialog(rAdd, sDescriptionText, sClassFeatureName, 1);
+	elseif string.find(sDescriptionText:lower(), "you gain a.- power associated with your")  then
+		local sPattern = "you gain a.- power associated with your([%w%s]+)";
+		local sDomainEquivalentName = string.match(sDescriptionText:lower(), sPattern);
+		--May be able to remove this and connected functions
+		--Currently equivalent methods being called where features are added
+		--Just have to make sure it doesn't fall into the "else" logic branch
+		--CharClassPowerManager.addPreFeaturePower(rAdd, sDescriptionText, sDomainEquivalentName, sClassFeatureName, sSubFeatureDescriptionText);
+	else
+		CharClassPowerManager.addAllFeaturePowers(rAdd, sDescriptionText, sClassName);
+	end
+end
+
 --Adds all powers that are in the text of a class feature
 function addAllFeaturePowers(rAdd, sClassFeatureOriginalDescription, sClassFeatureName)
 	if not rAdd or not sClassFeatureOriginalDescription or not sClassFeatureName then
@@ -97,6 +118,28 @@ function addAllPowersFromFeatureText(rAdd, sSubClassFeatureOriginalDescription, 
 	end
 end
 
+--Adds powers that are given based on the class's pre-feature (like domain, pact, etc)
+function addPreFeaturePower(rAdd, sDescriptionText, sPrefeatureType, sClassFeatureName, sSubFeatureDescriptionText)
+	if not rAdd or not sDescriptionText or not sClassFeatureName then
+		ChatManager.SystemMessageResource("char_error_addclassspower");
+		return;
+	end
+
+	if sSubFeatureDescriptionText == nil or sSubFeatureDescriptionText == "" then
+		local sChosenPrefeature = CharClassFeatureManager.getChosenPrefeature(rAdd, sDescriptionText, sPrefeatureType);
+		local sPrefeatureName, sClassFeatureLink = CharClassFeatureManager.getPrefeatureBasedFeatureNameAndLinkFromOtherFeature(sChosenPrefeature, sDescriptionText);
+		if sClassFeatureLink then
+			sSubFeatureDescriptionText = DB.getText(DB.getPath(sClassFeatureLink, "description"));
+		end
+	end
+
+	--If the feature has a name like "Level X [Domain] ... Power" (like Like 3 Domain Encounter Attack Power) 
+	--Add the pre-feature power
+	if string.find(sClassFeatureName:lower(), "level[%s%d]*"..sPrefeatureType:lower()..".* power") then
+		addAllPowersFromFeatureText(rAdd, sSubFeatureDescriptionText, sDescriptionText);
+	end
+end
+
 ---------------------------------------------
 --- Generic Dialogue Selection Methods
 ---------------------------------------------
@@ -108,9 +151,9 @@ function displayClassPowerSelectionsDialog(rAdd, sClassFeatureOriginalDescriptio
 	local sPowersLink = string.gmatch(sClassFeatureOriginalDescription, sPattern);
 	for w,v in sPowersLink do
 		local sPattern = "reference.powers." .. w .. "@" .. v;
-		local sClassFeatureName = DB.getText(DB.getPath(sPattern, "name"));
+		local sClassPowerName = DB.getText(DB.getPath(sPattern, "name"));
 		local sClassFeatureDescription = DB.getText(DB.getPath(sPattern, "description"));
-		table.insert(tOptions, { text = sClassFeatureName, linkclass = "powerdesc", linkrecord = DB.getPath(sPattern), });
+		table.insert(tOptions, { text = sClassPowerName, linkclass = "powerdesc", linkrecord = DB.getPath(sPattern), });
 	end
 	--Display a pop-up where we choose from the class power options
 	if not nMaxSelections or nMaxSelections < 1 then
@@ -124,11 +167,11 @@ function displayClassPowerSelectionsDialog(rAdd, sClassFeatureOriginalDescriptio
 		min = nMaxSelections,
 		max = nMaxSelections,
 		callback = CharClassPowerManager.callbackResolveClassPowersSelectionsDialogSelection,
-		custom = rAdd, 
+		custom = { rAdd=rAdd }, 
 	};
 	DialogManager.requestSelectionDialog(tDialogData);	
 end
-function callbackResolveClassPowersSelectionsDialogSelection(tSelection, rAdd, tSelectionLinks)
+function callbackResolveClassPowersSelectionsDialogSelection(tSelection, tData, tSelectionLinks)
 	if not tSelection or not tSelection[1] then
 		ChatManager.SystemMessageResource("char_error_addclassspower");
 		return;
@@ -140,7 +183,7 @@ function callbackResolveClassPowersSelectionsDialogSelection(tSelection, rAdd, t
 	for i, selectedPower in ipairs(tSelectionLinks) do
 		local sPowerPath = selectedPower.linkrecord;
 		local sPowerName = tSelection[i];
-		addPowerFromRecordLink(rAdd, sPowerName, sPowerPath);
+		addPowerFromRecordLink(tData.rAdd, sPowerName, sPowerPath);
 	end
 end
 
@@ -361,22 +404,16 @@ function callbackResolveSpellbookPreparationDialogSelection(tSelection, tData, t
 	--Set every other power not selected to not prepared
 	for i, allPowers in ipairs(tData.tTotalOptions) do
 		local sAllPowerName = allPowers.text;
-		Debug.console("all Powers", sAllPowerName);
 		local isASelectedPower = false;
 		for x,selectedPower in ipairs(tSelectionLinks) do
 			local sSelectedPowerName = tSelection[x];
-			Debug.console("Checking against ", sSelectedPowerName);
 			if sSelectedPowerName == sAllPowerName then
 				isASelectedPower = true;
-				Debug.console("isASelectedPower", isASelectedPower);
 			end
 		end
 		local tCurrentPowers = DB.getChildren(tData.rAdd.nodeChar, "powers");
-		Debug.console("tCurrentPowers", tCurrentPowers);
 		for _,existingPowerNode in pairs(tCurrentPowers) do
-			Debug.console("Existing power named", DB.getText(existingPowerNode, "name"));
 			if DB.getText(existingPowerNode, "name") == sAllPowerName then
-				Debug.console("Found power");
 				if isASelectedPower then
 					DB.setValue(existingPowerNode, "prepared", "number", 1);
 				else
