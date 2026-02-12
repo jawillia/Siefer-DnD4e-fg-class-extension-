@@ -42,7 +42,7 @@ end
 ---------------------------------------------
 --- Generic Non-Dialogue Power Add Methods
 ---------------------------------------------
-function addPowersFromText(sDescriptionText, rAdd, sClassName, sClassFeatureName, sSubFeatureDescriptionText)
+function addPowersFromText(sDescriptionText, rAdd, sClassFeatureName, sSubFeatureDescriptionText, nNumberOfPowers)
 	if not sDescriptionText then
 		return;
 	end
@@ -50,7 +50,15 @@ function addPowersFromText(sDescriptionText, rAdd, sClassName, sClassFeatureName
 	if string.find(sDescriptionText:lower(), "choose") 
 		or string.find(sDescriptionText:lower(), "choice")
 		or string.find(sDescriptionText:lower(), "following") then
-		CharClassPowerManager.displayClassPowerSelectionsDialog(rAdd, sDescriptionText, sClassFeatureName, 1);
+			if not nNumberOfPowers then
+				nNumberOfPowers = 1;
+				if string.find(sDescriptionText:lower(), "two") then
+					nNumberOfPowers = 2;
+				elseif string.find(sDescriptionText:lower(), "three") then
+					nNumberOfPowers = 3;
+				end
+			end
+		CharClassPowerManager.displayClassPowerSelectionsDialog(rAdd, sDescriptionText, sClassFeatureName, nNumberOfPowers);
 	elseif string.find(sDescriptionText:lower(), "you gain a.- power associated with your")  then
 		local sPattern = "you gain a.- power associated with your([%w%s]+)";
 		local sDomainEquivalentName = string.match(sDescriptionText:lower(), sPattern);
@@ -59,13 +67,13 @@ function addPowersFromText(sDescriptionText, rAdd, sClassName, sClassFeatureName
 		--Just have to make sure it doesn't fall into the "else" logic branch
 		--CharClassPowerManager.addPreFeaturePower(rAdd, sDescriptionText, sDomainEquivalentName, sClassFeatureName, sSubFeatureDescriptionText);
 	else
-		CharClassPowerManager.addAllFeaturePowers(rAdd, sDescriptionText, sClassName);
+		CharClassPowerManager.addAllFeaturePowers(rAdd, sDescriptionText);
 	end
 end
 
 --Adds all powers that are in the text of a class feature
-function addAllFeaturePowers(rAdd, sClassFeatureOriginalDescription, sClassFeatureName)
-	if not rAdd or not sClassFeatureOriginalDescription or not sClassFeatureName then
+function addAllFeaturePowers(rAdd, sClassFeatureOriginalDescription)
+	if not rAdd or not sClassFeatureOriginalDescription then
 		ChatManager.SystemMessageResource("char_error_addclassspower");
 		return;
 	end
@@ -155,21 +163,23 @@ function displayClassPowerSelectionsDialog(rAdd, sClassFeatureOriginalDescriptio
 		local sClassFeatureDescription = DB.getText(DB.getPath(sPattern, "description"));
 		table.insert(tOptions, { text = sClassPowerName, linkclass = "powerdesc", linkrecord = DB.getPath(sPattern), });
 	end
-	--Display a pop-up where we choose from the class power options
-	if not nMaxSelections or nMaxSelections < 1 then
-		nMaxSelections = 1;
-	end
-	local msg = string.format(Interface.getString("char_build_message_chooseclasspowers"), nMaxSelections, sClassFeatureName);
-	local tDialogData = {
-		title = sClassFeatureName,
-		msg = msg,
-		options = tOptions,
-		min = nMaxSelections,
-		max = nMaxSelections,
-		callback = CharClassPowerManager.callbackResolveClassPowersSelectionsDialogSelection,
-		custom = { rAdd=rAdd }, 
-	};
-	DialogManager.requestSelectionDialog(tDialogData);	
+	if #tOptions > 0 then
+		--Display a pop-up where we choose from the class power options
+		if not nMaxSelections or nMaxSelections < 1 then
+			nMaxSelections = 1;
+		end
+		local msg = string.format(Interface.getString("char_build_message_chooseclasspowers"), nMaxSelections, sClassFeatureName);
+		local tDialogData = {
+			title = sClassFeatureName,
+			msg = msg,
+			options = tOptions,
+			min = nMaxSelections,
+			max = nMaxSelections,
+			callback = CharClassPowerManager.callbackResolveClassPowersSelectionsDialogSelection,
+			custom = { rAdd=rAdd }, 
+		};
+		DialogManager.requestSelectionDialog(tDialogData);
+	end	
 end
 function callbackResolveClassPowersSelectionsDialogSelection(tSelection, tData, tSelectionLinks)
 	if not tSelection or not tSelection[1] then

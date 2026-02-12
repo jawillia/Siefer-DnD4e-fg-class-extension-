@@ -302,11 +302,15 @@ function addClassFeatures(rAdd, sRecord, sDescriptionText, sClassName, nLevel)
 		--If it's an essentials class, restrict the text to just that level
 		if nLevel and nLevel == 1 then
 			if sDescriptionText and string.find(sDescriptionText, "<p><b>Level 1:</b></p>") and string.find(sDescriptionText, "<p><b>Level 2:</b></p>") then
-				sDescriptionText = string.match(sDescriptionText, "(.-)<p><b>Level 2:</b></p>");
+				sDescriptionText = string.match(sDescriptionText, "<p><b>Level 1:</b></p>(.-)<p><b>Level 2:</b></p>");
 			end
 		elseif nLevel and nLevel > 1 then
-			if sDescriptionText and string.find(sDescriptionText, "<p><b>Level " .. nLevel .. ":</b></p>") and string.find(sDescriptionText, "<p><b>Level " .. nLevel+1 .. ":</b></p>") then
-				sDescriptionText = string.match(sDescriptionText, "<p><b>Level " .. nLevel .. ":</b></p>(.-)<p><b>Level " .. nLevel+1 .. ":</b></p>");
+			local nNextFeatureWithLevel = nLevel+1;
+			while nNextFeatureWithLevel < 30 and not string.match(sDescriptionText, "<p><b>Level " .. nNextFeatureWithLevel .. ":</b></p>") do
+				nNextFeatureWithLevel = nNextFeatureWithLevel + 1;
+			end
+			if sDescriptionText and string.find(sDescriptionText, "<p><b>Level " .. nLevel .. ":</b></p>") and string.find(sDescriptionText, "<p><b>Level " .. nNextFeatureWithLevel .. ":</b></p>") then
+				sDescriptionText = string.match(sDescriptionText, "<p><b>Level " .. nLevel .. ":</b></p>(.-)<p><b>Level " .. nNextFeatureWithLevel .. ":</b></p>");
 			end
 		elseif nLevel and nLevel == 30 then
 			if sDescriptionText and string.find(sDescriptionText, "<p><b>Level " .. nLevel .. ":</b></p>") then
@@ -322,62 +326,56 @@ function addClassFeatures(rAdd, sRecord, sDescriptionText, sClassName, nLevel)
 		tClassesWithPreFeatures = loadClassesWithPreFeatures(tClassesWithPreFeatures);
 		if tClassesWithPreFeatures[sClassName:upper()] and nLevel == 1 then
 			CharClassFeatureManager.addClassSpecificPreFeatures(sClassName, rAdd, sDescriptionText, tClassFeatures);
-		elseif tClassesWithPreFeatures[sClassName:upper()] and nLevel >= 2 then
-			local sClassFeatureNamePattern = '';
-			sClassFeatureNamePattern = "<p>%s*<b>%s*(.-)%s*</b></p>%s*";
-			for classFeatureName in string.gmatch(sDescriptionText, sClassFeatureNamePattern) do
-				classFeatureName = classFeatureName:gsub("[%(%)%-]", "%%%0");
-				classFeatureName = classFeatureName:gsub("(%a)([%w_']*)", titleCase);
-				local sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. classFeatureName .. "%s*</b></p>%s*(.-)<p><b>";
-				sClassFeatureSpecificDescriptionText = string.match(sDescriptionText, sClassFeatureDescriptionPattern);
-				if sClassFeatureSpecificDescriptionText == nil then
-					sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. classFeatureName .. "%s*</b></p>%s*(.+)";
-					sClassFeatureSpecificDescriptionText = string.match(sDescriptionText, sClassFeatureDescriptionPattern);
-				end
-				sClassFeatureFilteredDescriptionText = convertHTMLTable(removeLinkLists(sClassFeatureSpecificDescriptionText));
-				local isFeatureInList = false;
-				for _, featureNode in pairs(tCurrentFeatures) do
-					if DB.getText(DB.getPath(featureNode, "value")) == classFeatureName then
-						isFeatureInList = true;
-						break;
-					end
-				end
-				if isFeatureInList == false then
-					CharClassFeatureManager.addClassSpecificFeatures(sClassName, rAdd, classFeatureName, sClassFeatureFilteredDescriptionText, sClassFeatureSpecificDescriptionText);
-					--For each feature, add all powers in it (if it doesn't have the words implying a choice, like "choose", "choice", or "following")
-					if sClassFeatureSpecificDescriptionText then
-						CharClassPowerManager.addPowersFromText(sClassFeatureSpecificDescriptionText, rAdd, sClassName, classFeatureName);
-					end
-				end
-			end
 		else
-			for w,v in pairs(tClassFeatures) do
-				local sClassFeatureDescriptionPattern = '';
-				v = v:gsub("[%(%)%-]", "%%%0");
-				v = v:gsub("(%a)([%w_']*)", titleCase);
-				if w < #tClassFeatures then
-					sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v .. "%s*</b></p>%s*(.-)<p><b>";
+			if isEssentialsClass(sClassName) and nLevel >= 2 then
+				local sClassFeatureNamePattern = '';
+				sClassFeatureNamePattern = "<p>%s*<b>%s*(.-)%s*</b></p>%s*";
+				for classFeatureName in string.gmatch(sDescriptionText, sClassFeatureNamePattern) do
+					classFeatureName = classFeatureName:gsub("[%(%)%-]", "%%%0");
+					classFeatureName = classFeatureName:gsub("(%a)([%w_']*)", titleCase);
+					local sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. classFeatureName .. "%s*</b></p>%s*(.-)<p><b>";
 					sClassFeatureSpecificDescriptionText = string.match(sDescriptionText, sClassFeatureDescriptionPattern);
-				elseif w == #tClassFeatures then
-					sClassFeatureSpecificDescriptionText, sClassFeatureDescriptionPattern = cutoffLastClassFeatureDescription(sDescriptionText, sClassFeatureSpecificDescriptionText, v, sClassName);
-				end
-				if sClassFeatureSpecificDescriptionText then
+					if sClassFeatureSpecificDescriptionText == nil then
+						sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. classFeatureName .. "%s*</b></p>%s*(.+)";
+						sClassFeatureSpecificDescriptionText = string.match(sDescriptionText, sClassFeatureDescriptionPattern);
+					end
 					sClassFeatureFilteredDescriptionText = convertHTMLTable(removeLinkLists(sClassFeatureSpecificDescriptionText));
-				end
-				--Revert v back to unescaped version
-				v = v:gsub("%%", "");
-				local isFeatureInList = false;
-				for _, featureNode in pairs(tCurrentFeatures) do
-					if DB.getText(DB.getPath(featureNode, "value")) == v then
-						isFeatureInList = true;
-						break;
+					local isFeatureInList = false;
+					for _, featureNode in pairs(tCurrentFeatures) do
+						if DB.getText(DB.getPath(featureNode, "value")) == classFeatureName then
+							isFeatureInList = true;
+							break;
+						end
+					end
+					if isFeatureInList == false then
+						CharClassFeatureManager.addClassSpecificFeatures(sClassName, rAdd, classFeatureName, sClassFeatureFilteredDescriptionText, sClassFeatureSpecificDescriptionText);
 					end
 				end
-				if isFeatureInList == false then
-					CharClassFeatureManager.addClassSpecificFeatures(sClassName, rAdd, v, sClassFeatureFilteredDescriptionText, sClassFeatureSpecificDescriptionText);
-					--For each feature, add all powers in it (if it doesn't have the words implying a choice, like "choose", "choice", or "following")
+			else
+				for w,v in pairs(tClassFeatures) do
+					local sClassFeatureDescriptionPattern = '';
+					v = v:gsub("[%(%)%-]", "%%%0");
+					v = v:gsub("(%a)([%w_']*)", titleCase);
+					if w < #tClassFeatures then
+						sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v .. "%s*</b></p>%s*(.-)<p><b>";
+						sClassFeatureSpecificDescriptionText = string.match(sDescriptionText, sClassFeatureDescriptionPattern);
+					elseif w == #tClassFeatures then
+						sClassFeatureSpecificDescriptionText, sClassFeatureDescriptionPattern = cutoffLastClassFeatureDescription(sDescriptionText, sClassFeatureSpecificDescriptionText, v, sClassName);
+					end
 					if sClassFeatureSpecificDescriptionText then
-						CharClassPowerManager.addPowersFromText(sDescriptionText, rAdd, sClassName, v)
+						sClassFeatureFilteredDescriptionText = convertHTMLTable(removeLinkLists(sClassFeatureSpecificDescriptionText));
+					end
+					--Revert v back to unescaped version
+					v = v:gsub("%%", "");
+					local isFeatureInList = false;
+					for _, featureNode in pairs(tCurrentFeatures) do
+						if DB.getText(DB.getPath(featureNode, "value")) == v then
+							isFeatureInList = true;
+							break;
+						end
+					end
+					if isFeatureInList == false then
+						CharClassFeatureManager.addClassSpecificFeatures(sClassName, rAdd, v, sClassFeatureFilteredDescriptionText, sClassFeatureSpecificDescriptionText);
 					end
 				end
 			end
@@ -905,33 +903,37 @@ function titleCase( first, rest )
 end
 
 function convertHTMLTable(sHTMLTable)
-	sHTMLTable = string.gsub(sHTMLTable, "<table>", "\n");
-	sHTMLTable = string.gsub(sHTMLTable, "</table>", "\n\n");
-	sHTMLTable = string.gsub(sHTMLTable, "</p>", "\n");
-	sHTMLTable = string.gsub(sHTMLTable, "<p>", "    ");
-	sHTMLTable = string.gsub(sHTMLTable, "<p />", "\n");
-	sHTMLTable = string.gsub(sHTMLTable, "<tr>", "\n");
-	sHTMLTable = string.gsub(sHTMLTable, "</tr>", "");
+	if sHTMLTable then
+		sHTMLTable = string.gsub(sHTMLTable, "<table>", "\n");
+		sHTMLTable = string.gsub(sHTMLTable, "</table>", "\n\n");
+		sHTMLTable = string.gsub(sHTMLTable, "</p>", "\n");
+		sHTMLTable = string.gsub(sHTMLTable, "<p>", "    ");
+		sHTMLTable = string.gsub(sHTMLTable, "<p />", "\n");
+		sHTMLTable = string.gsub(sHTMLTable, "<tr>", "\n");
+		sHTMLTable = string.gsub(sHTMLTable, "</tr>", "");
 
-	sHTMLTable = string.gsub(sHTMLTable, "<td><b>(.-)</b></td>", function(rowText)
-		return string.format("%-15s", rowText);
-	end)
-	sHTMLTable = string.gsub(sHTMLTable, "<td>(.-)</td>", function(rowText)
-		return string.format("%-20s", rowText);
-	end)
+		sHTMLTable = string.gsub(sHTMLTable, "<td><b>(.-)</b></td>", function(rowText)
+			return string.format("%-15s", rowText);
+		end)
+		sHTMLTable = string.gsub(sHTMLTable, "<td>(.-)</td>", function(rowText)
+			return string.format("%-20s", rowText);
+		end)
+	end
 
 	return sHTMLTable;
 end
 
 function removeLinkLists(sText)
-	sText = string.gsub(sText, "</p>", "\n");
-	sText = string.gsub(sText, "<p>", "    ");
-	sText = string.gsub(sText, "<p />", "\n");
+	if sText then 
+		sText = string.gsub(sText, "</p>", "\n");
+		sText = string.gsub(sText, "<p>", "    ");
+		sText = string.gsub(sText, "<p />", "\n");
 
-	sText = string.gsub(sText, "<linklist>", "");
-	sText = string.gsub(sText, "</linklist>", "");
-	sText = string.gsub(sText, "<link.->", "\n - ");
-	sText = string.gsub(sText, "</link>", "\n");	
+		sText = string.gsub(sText, "<linklist>", "");
+		sText = string.gsub(sText, "</linklist>", "");
+		sText = string.gsub(sText, "<link.->", "\n - ");
+		sText = string.gsub(sText, "</link>", "\n");
+	end
 	return sText;
 end
 
