@@ -357,7 +357,12 @@ function addClassFeatures(rAdd, sRecord, sDescriptionText, sClassName, nLevel)
 					v = v:gsub("[%(%)%-]", "%%%0");
 					v = v:gsub("(%a)([%w_']*)", titleCase);
 					if w < #tClassFeatures then
-						sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v .. "%s*</b></p>%s*(.-)<p><b>";
+						--Weird special case for the Feywild Guardian feature from the Fighter(Knight)
+						if v:upper() == "BATTLE GUARDIAN" then
+							sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v .. "%s*</b></p>%s*(.-)<p><b>Defender Aura</b></p>";
+						else
+							sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v .. "%s*</b></p>%s*(.-)<p><b>";
+						end
 						sClassFeatureSpecificDescriptionText = string.match(sDescriptionText, sClassFeatureDescriptionPattern);
 					elseif w == #tClassFeatures then
 						sClassFeatureSpecificDescriptionText, sClassFeatureDescriptionPattern = cutoffLastClassFeatureDescription(sDescriptionText, sClassFeatureSpecificDescriptionText, v, sClassName);
@@ -375,6 +380,7 @@ function addClassFeatures(rAdd, sRecord, sDescriptionText, sClassName, nLevel)
 						end
 					end
 					if isFeatureInList == false then
+						Debug.console("sClassFeatureSpecificDescriptionText", sClassFeatureSpecificDescriptionText);
 						CharClassFeatureManager.addClassSpecificFeatures(sClassName, rAdd, v, sClassFeatureFilteredDescriptionText, sClassFeatureSpecificDescriptionText);
 					end
 				end
