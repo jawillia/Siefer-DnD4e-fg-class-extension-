@@ -8,6 +8,7 @@ end
 
 function addPowerFromRecordLink(rAdd, sPowerName, sPowerPath)
 	if not rAdd or not sPowerName or not sPowerPath then
+		Debug.console("Third error");
 		ChatManager.SystemMessageResource("char_error_addclassspower");
 		return;
 	end
@@ -58,7 +59,12 @@ function addPowersFromText(sDescriptionText, rAdd, sClassFeatureName, sSubFeatur
 					nNumberOfPowers = 3;
 				end
 			end
-		CharClassPowerManager.displayClassPowerSelectionsDialog(rAdd, sDescriptionText, sClassFeatureName, nNumberOfPowers);
+			if string.find(sDescriptionText:lower(), "<i>.+</i>") then
+				Debug.console("Italic powers dialog");
+				CharClassPowerManager.dispayItalicPowersDialog(rAdd, sDescriptionText, sClassFeatureName);
+			else
+				CharClassPowerManager.displayClassPowerSelectionsDialog(rAdd, sDescriptionText, sClassFeatureName, nNumberOfPowers);
+			end
 	elseif string.find(sDescriptionText:lower(), "you gain a.- power associated with your")  then
 		local sPattern = "you gain a.- power associated with your([%w%s]+)";
 		local sDomainEquivalentName = string.match(sDescriptionText:lower(), sPattern);
@@ -183,10 +189,12 @@ function displayClassPowerSelectionsDialog(rAdd, sClassFeatureOriginalDescriptio
 end
 function callbackResolveClassPowersSelectionsDialogSelection(tSelection, tData, tSelectionLinks)
 	if not tSelection or not tSelection[1] then
+		Debug.console("First error");
 		ChatManager.SystemMessageResource("char_error_addclassspower");
 		return;
 	end
 	if not tSelectionLinks then
+		Debug.console("Second error");
 		ChatManager.SystemMessageResource("char_error_addclassspower");
 		return;
 	end
@@ -261,7 +269,7 @@ function dispayItalicPowersDialog(rAdd, sClassFeatureOriginalDescription, sClass
 			min = nMaxSelections,
 			max = nMaxSelections,
 			callback = CharClassPowerManager.callbackResolveClassPowersSelectionsDialogSelection,
-			custom = rAdd, 
+			custom = { rAdd=rAdd }, 
 		};
 		DialogManager.requestSelectionDialog(tDialogData);
 	end

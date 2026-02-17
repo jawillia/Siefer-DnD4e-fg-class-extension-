@@ -1939,7 +1939,6 @@ function callbackResolveFighterKnightBattleGuardianSelection(tSelection, tData)
 		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureDescription);
 		ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", sClassFeatureName, tData.rAdd.sCharName);
 
-		Debug.console("tData.sClassFeatureOriginalDescription", sClassFeatureOriginalDescription);
 		CharClassPowerManager.addAllFeaturePowers(tData.rAdd, sClassFeatureOriginalDescription);
 	end
 end
@@ -1954,8 +1953,29 @@ function addWizardMageFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatur
 		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
 		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
 		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-		DB.setValue(rCreatedIDChildNode, "description", "string", removeLinkLists(sClassFeatureOriginalDescription));
+		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureOriginalDescription);
 		displayClassFeatureSelectionsDialog(rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
+	elseif sClassFeatureName == "Level 4 Apprentice Mage" then
+		--Brings up same choice as Level 1 Apprentice Mage except for the alreadychosen spell school
+		--Adds (secondary) to the end of the name, though
+		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+		DB.setValue(rCreatedIDChildNode, "description", "string", removeLinkLists(sClassFeatureOriginalDescription));
+		local rLevelOneApprenticeMageFeatureNode = nil;
+		for i,node in pairs(tCurrentFeatures) do
+			Debug.console("Feature" .. i, DB.getText(node, "value"));
+			if DB.getText(node, "value") == "Level 1 Apprentice Mage" then
+				rLevelOneApprenticeMageFeatureNode = node;
+				break;
+			end
+		end
+		local sLevelOneApprenticeMageFeatureText = DB.getText(rLevelOneApprenticeMageFeatureNode, "description");
+		local sChosenApprenticeSchoolText = getChosenApprenticeSchool(rAdd);
+		Debug.console("rLevelOneApprenticeMageFeatureNode", rLevelOneApprenticeMageFeatureNode);
+		Debug.console("sLevelOneApprenticeMageFeatureText", sLevelOneApprenticeMageFeatureText);
+		Debug.console("sChosenApprenticeSchoolText", sChosenApprenticeSchoolText);
+		displayLevelFourSelectionsDialog(rAdd, sClassFeatureOriginalDescription, sClassFeatureName, sLevelOneApprenticeMageFeatureText, sChosenApprenticeSchoolText);
 	else
 		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
 		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
@@ -1963,6 +1983,96 @@ function addWizardMageFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatur
 		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
 		ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", sClassFeatureName, rAdd.sCharName);
 	end
+end
+function getChosenApprenticeSchool(rAdd)
+	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
+	for _, featureNode in pairs(tCurrentFeatures) do
+		local sFeatureName = DB.getText(DB.getPath(featureNode, "value"));
+		if string.match(sFeatureName, "(%w+) Apprentice") then
+			return string.match(sFeatureName, "(%w+) Apprentice");
+		end
+	end
+end
+function displayLevelFourSelectionsDialog(rAdd, sClassFeatureOriginalDescription, sClassFeatureName, LevelOneApprenticeMageFeatureText, ChosenApprenticeSchool)
+	local tClassFeatureOptions = {};
+	local tOptions = {};
+	local nMaxSelections = 1;
+	--Display information on the selections in chat
+	local sPattern = '<link class="powerdesc" recordname="reference.features.(%w+)@([%w%s]+)">';
+	local sFeaturesLink = string.gmatch(LevelOneApprenticeMageFeatureText, sPattern);
+	local nOptionsCount = 1;
+	for w,v in sFeaturesLink do
+		local sPattern = "reference.features." .. w .. "@" .. v;
+		local sClassFeatureName = DB.getText(DB.getPath(sPattern, "name"));
+		Debug.console("sClassFeatureName", sClassFeatureName);
+		Debug.console(ChosenApprenticeSchool .. " Apprentice (Secondary)");
+		if sClassFeatureName ~= ChosenApprenticeSchool .. " Apprentice" then
+			local sClassFeatureDescription = DB.getText(DB.getPath(sPattern, "description"));
+			tClassFeatureOptions[sClassFeatureName] = DB.getPath(sPattern);
+			table.insert(tOptions, { text = sClassFeatureName .. " (Secondary)", linkclass = "powerdesc", linkrecord = DB.getPath(sPattern), });
+			nOptionsCount = nOptionsCount + 1;
+		end
+	end
+	local tDialogData = {
+		title = sClassFeatureName,
+		msg = removeLinkLists(sClassFeatureOriginalDescription),
+		options = tOptions,
+		min = nMaxSelections,
+		max = nMaxSelections,
+		callback = CharClassFeatureManager.callbackResolveLevelFourApprenticeMageDialogSelection,
+		custom = { rAdd = rAdd, tClassFeatureOptions = tClassFeatureOptions, nAddPowerMode=1, sParentClassFeatureOriginalDescription=LevelOneApprenticeMageFeatureText }, 
+	};
+	DialogManager.requestSelectionDialog(tDialogData);	
+end
+function callbackResolveLevelFourApprenticeMageDialogSelection(tSelection, tData, tSelectionLinks)
+	if not tSelection or not tSelection[1] then
+		ChatManager.SystemMessageResource("char_error_addclasssfeature");
+		return;
+	end
+	if not tSelectionLinks then
+		ChatManager.SystemMessageResource("char_error_addclasssfeature");
+		return;
+	end
+	local tCurrentFeatures = DB.getChildren(tData.rAdd.nodeChar, "specialabilitylist");
+
+	for i, selectedFeature in ipairs(tSelectionLinks) do
+		local sFeatureLink = selectedFeature.linkrecord;
+		local sFeatureName = tSelection[i];
+		local rCreatedIDChildNode = DB.createChild(tData.rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference", "powerdesc", sFeatureLink);
+		DB.setValue(rCreatedIDChildNode, "value", "string", sFeatureName);
+		--DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureOriginalDescription);
+		ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", sFeatureName, tData.rAdd.sCharName);
+
+		-- if tData.nAddPowerMode and tData.nAddPowerMode > 0 then
+		-- 	if tData.nAddPowerMode == 1 then
+		-- 		local sClassFeatureName = DB.getText(DB.getPath(sSelectedClassFeatureSelectionsDBReference, "name"));
+		-- 		local sClassSubFeatureDescription = DB.getText(DB.getPath(sSelectedClassFeatureSelectionsDBReference, "description"));
+		-- 		local sParentClassFeatureOriginalDescription = tData.sParentClassFeatureOriginalDescription;
+		-- 		if tData.rAdd and sClassSubFeatureDescription and sParentClassFeatureOriginalDescription then
+		-- 			CharClassPowerManager.addAllPowersFromFeatureText(tData.rAdd, sClassSubFeatureDescription, sParentClassFeatureOriginalDescription)
+		-- 		end
+		-- 	end
+		-- end
+	end
+	-- local sClassFeatureName = tSelection[1];
+	-- local sClassFeatureLink = tSelectionLinks[];
+
+	-- local sSelectedClassFeatureSelectionsDBReference;
+	-- for _,selectedSkill in ipairs(tSelection) do
+	-- 	for _, featureNode in pairs(tCurrentFeatures) do
+	-- 		if DB.getText(DB.getPath(featureNode, "value")) ~= selectedSkill then
+	-- 			for x, y in pairs(tData.tClassFeatureOptions) do
+	-- 				if DB.getText(DB.getPath(featureNode, "value")) == x then
+	-- 					DB.deleteNode(featureNode);
+	-- 					break;
+	-- 				end
+	-- 			end
+	-- 		end
+	-- 	end
+	-- 	sSelectedClassFeatureSelectionsDBReference = tData.tClassFeatureOptions[selectedSkill];
+
+	-- end
 end
 
 

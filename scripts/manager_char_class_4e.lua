@@ -270,10 +270,11 @@ function addClassHealingSurges(rAdd, sRecord, sDescriptionText)
 end
 
 function addClassFeatures(rAdd, sRecord, sDescriptionText, sClassName, nLevel)
-	local sClassFeaturesValue = '';
-	local sClassFeatureSpecificDescriptionText = '';
-	local sClassFeatureFilteredDescriptionText = '';
-	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
+	if isEssentialsClass(sClassName) then
+		addEssentialsClassFeatures(rAdd, sRecord, sDescriptionText, sClassName, nLevel);
+	else
+		addStandardAEDUClassFeatures(rAdd, sRecord, sDescriptionText, sClassName, nLevel);
+	end
 	---- first through the newly added feature tag
 	-- local sRecordFeatureNode = DB.findNode(DB.getPath(sRecord, "features"));
 	-- if sRecordFeatureNode then
@@ -296,15 +297,25 @@ function addClassFeatures(rAdd, sRecord, sDescriptionText, sClassName, nLevel)
 	--       	end
 	-- 	end
 	-- elseif sDescriptionText then
+end
+
+function addEssentialsClassFeatures(rAdd, sRecord, sDescriptionText, sClassName, nLevel)
+	if not nLevel then
+		nLevel = 1;
+	end
+	local sClassFeaturesValue = '';
+	local sClassFeatureSpecificDescriptionText = '';
+	local sClassFeatureFilteredDescriptionText = '';
+	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
 	if sDescriptionText then
 	-- then through the description text
 		local sClassFeaturesDescriptionTextLine = string.match(sDescriptionText, "<p>%s*<b>%s*Class features%s*:%s*</b>(.-)</p>");
 		--If it's an essentials class, restrict the text to just that level
-		if nLevel and nLevel == 1 then
+		if nLevel == 1 then
 			if sDescriptionText and string.find(sDescriptionText, "<p><b>Level 1:</b></p>") and string.find(sDescriptionText, "<p><b>Level 2:</b></p>") then
 				sDescriptionText = string.match(sDescriptionText, "<p><b>Level 1:</b></p>(.-)<p><b>Level 2:</b></p>");
 			end
-		elseif nLevel and nLevel > 1 then
+		elseif nLevel > 1 then
 			local nNextFeatureWithLevel = nLevel+1;
 			while nNextFeatureWithLevel < 30 and not string.match(sDescriptionText, "<p><b>Level " .. nNextFeatureWithLevel .. ":</b></p>") do
 				nNextFeatureWithLevel = nNextFeatureWithLevel + 1;
@@ -312,7 +323,7 @@ function addClassFeatures(rAdd, sRecord, sDescriptionText, sClassName, nLevel)
 			if sDescriptionText and string.find(sDescriptionText, "<p><b>Level " .. nLevel .. ":</b></p>") and string.find(sDescriptionText, "<p><b>Level " .. nNextFeatureWithLevel .. ":</b></p>") then
 				sDescriptionText = string.match(sDescriptionText, "<p><b>Level " .. nLevel .. ":</b></p>(.-)<p><b>Level " .. nNextFeatureWithLevel .. ":</b></p>");
 			end
-		elseif nLevel and nLevel == 30 then
+		elseif nLevel == 30 then
 			if sDescriptionText and string.find(sDescriptionText, "<p><b>Level " .. nLevel .. ":</b></p>") then
 				sDescriptionText = string.match(sDescriptionText, "<p><b>Level " .. nLevel .. ":</b></p>(.-)");
 			end		
@@ -327,31 +338,7 @@ function addClassFeatures(rAdd, sRecord, sDescriptionText, sClassName, nLevel)
 		if tClassesWithPreFeatures[sClassName:upper()] and nLevel == 1 then
 			CharClassFeatureManager.addClassSpecificPreFeatures(sClassName, rAdd, sDescriptionText, tClassFeatures);
 		else
-			if isEssentialsClass(sClassName) and nLevel >= 2 then
-				local sClassFeatureNamePattern = '';
-				sClassFeatureNamePattern = "<p>%s*<b>%s*(.-)%s*</b></p>%s*";
-				for classFeatureName in string.gmatch(sDescriptionText, sClassFeatureNamePattern) do
-					classFeatureName = classFeatureName:gsub("[%(%)%-]", "%%%0");
-					classFeatureName = classFeatureName:gsub("(%a)([%w_']*)", titleCase);
-					local sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. classFeatureName .. "%s*</b></p>%s*(.-)<p><b>";
-					sClassFeatureSpecificDescriptionText = string.match(sDescriptionText, sClassFeatureDescriptionPattern);
-					if sClassFeatureSpecificDescriptionText == nil then
-						sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. classFeatureName .. "%s*</b></p>%s*(.+)";
-						sClassFeatureSpecificDescriptionText = string.match(sDescriptionText, sClassFeatureDescriptionPattern);
-					end
-					sClassFeatureFilteredDescriptionText = convertHTMLTable(removeLinkLists(sClassFeatureSpecificDescriptionText));
-					local isFeatureInList = false;
-					for _, featureNode in pairs(tCurrentFeatures) do
-						if DB.getText(DB.getPath(featureNode, "value")) == classFeatureName then
-							isFeatureInList = true;
-							break;
-						end
-					end
-					if isFeatureInList == false then
-						CharClassFeatureManager.addClassSpecificFeatures(sClassName, rAdd, classFeatureName, sClassFeatureFilteredDescriptionText, sClassFeatureSpecificDescriptionText);
-					end
-				end
-			else
+			if nLevel == 1 then
 				for w,v in pairs(tClassFeatures) do
 					local sClassFeatureDescriptionPattern = '';
 					v = v:gsub("[%(%)%-]", "%%%0");
@@ -384,6 +371,72 @@ function addClassFeatures(rAdd, sRecord, sDescriptionText, sClassName, nLevel)
 						CharClassFeatureManager.addClassSpecificFeatures(sClassName, rAdd, v, sClassFeatureFilteredDescriptionText, sClassFeatureSpecificDescriptionText);
 					end
 				end
+			else
+				local sClassFeatureNamePattern = '';
+				sClassFeatureNamePattern = "<p>%s*<b>%s*(.-)%s*</b></p>%s*";
+				for classFeatureName in string.gmatch(sDescriptionText, sClassFeatureNamePattern) do
+					classFeatureName = classFeatureName:gsub("[%(%)%-]", "%%%0");
+					classFeatureName = classFeatureName:gsub("(%a)([%w_']*)", titleCase);
+					local sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. classFeatureName .. "%s*</b></p>%s*(.-)<p><b>";
+					sClassFeatureSpecificDescriptionText = string.match(sDescriptionText, sClassFeatureDescriptionPattern);
+					if sClassFeatureSpecificDescriptionText == nil then
+						sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. classFeatureName .. "%s*</b></p>%s*(.+)";
+						sClassFeatureSpecificDescriptionText = string.match(sDescriptionText, sClassFeatureDescriptionPattern);
+					end
+					sClassFeatureFilteredDescriptionText = convertHTMLTable(removeLinkLists(sClassFeatureSpecificDescriptionText));
+					local isFeatureInList = false;
+					for _, featureNode in pairs(tCurrentFeatures) do
+						if DB.getText(DB.getPath(featureNode, "value")) == classFeatureName then
+							isFeatureInList = true;
+							break;
+						end
+					end
+					if isFeatureInList == false then
+						CharClassFeatureManager.addClassSpecificFeatures(sClassName, rAdd, classFeatureName, sClassFeatureFilteredDescriptionText, sClassFeatureSpecificDescriptionText);
+					end
+				end
+			end
+		end
+	end
+end
+function addStandardAEDUClassFeatures(rAdd, sRecord, sDescriptionText, sClassName)
+	local sClassFeaturesValue = '';
+	local sClassFeatureSpecificDescriptionText = '';
+	local sClassFeatureFilteredDescriptionText = '';
+	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
+
+	if sDescriptionText then
+		-- then through the description text
+		local sClassFeaturesDescriptionTextLine = string.match(sDescriptionText, "<p>%s*<b>%s*Class features%s*:%s*</b>(.-)</p>");
+		if sClassFeaturesDescriptionTextLine then
+			sClassFeaturesValue = string.match(sClassFeaturesDescriptionTextLine, "[%w,'%(%)%-%s]+");
+		end
+		local tClassFeatures = StringManager.split(sClassFeaturesValue, ',', true);
+		for w,v in pairs(tClassFeatures) do
+			local sClassFeatureDescriptionPattern = '';
+			v = v:gsub("[%(%)%-]", "%%%0");
+			v = v:gsub("(%a)([%w_']*)", titleCase);
+			if w < #tClassFeatures then
+				sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v .. "%s*</b></p>%s*(.-)<p><b>";
+				sClassFeatureSpecificDescriptionText = string.match(sDescriptionText, sClassFeatureDescriptionPattern);
+			elseif w == #tClassFeatures then
+				sClassFeatureSpecificDescriptionText, sClassFeatureDescriptionPattern = cutoffLastClassFeatureDescription(sDescriptionText, sClassFeatureSpecificDescriptionText, v, sClassName);
+			end
+			if sClassFeatureSpecificDescriptionText then
+				sClassFeatureFilteredDescriptionText = convertHTMLTable(removeLinkLists(sClassFeatureSpecificDescriptionText));
+			end
+			--Revert v back to unescaped version
+			v = v:gsub("%%", "");
+			local isFeatureInList = false;
+			for _, featureNode in pairs(tCurrentFeatures) do
+				if DB.getText(DB.getPath(featureNode, "value")) == v then
+					isFeatureInList = true;
+					break;
+				end
+			end
+			if isFeatureInList == false then
+				Debug.console("sClassFeatureSpecificDescriptionText", sClassFeatureSpecificDescriptionText);
+				CharClassFeatureManager.addClassSpecificFeatures(sClassName, rAdd, v, sClassFeatureFilteredDescriptionText, sClassFeatureSpecificDescriptionText);
 			end
 		end
 	end
