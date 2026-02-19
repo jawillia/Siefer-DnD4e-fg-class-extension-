@@ -88,8 +88,11 @@
   <string name="char_build_title_adddbinderpact">Binder Pact</string> 
   <string name="char_build_message_addbinderpact">Choose a Binder Pact. These determine some of your class features, including a pact boon and encounter power.</string>
    <!-- Druid (Protector) Feature strings -->
-  <string name="char_build_title_addddruidprotectorcircle">Druid (Protector) Circle</string> 
+  <string name="char_build_title_addddruidprotectorcircle">Druid (Protector) Circle</string>
   <string name="char_build_message_adddruidprotectorcircle">Choose a Druid (Protector) Circle. These determine some of your class features, including a pact boon and encounter power.</string>
+   <!-- Wizard (Mage) Feature strings -->
+  <string name="char_build_title_addexpertmage">Expert Mage</string>
+  <string name="char_build_message_addexpertmage">Choose which Apprentice Mage feature to gain the Expert Mage benefit associated with.</string>
 
   <!-- Hybrid strings -->
   <string name="char_build_title_secondhybridclass">Second Hybrid Class</string> 

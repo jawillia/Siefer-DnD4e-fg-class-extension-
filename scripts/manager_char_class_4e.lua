@@ -367,7 +367,6 @@ function addEssentialsClassFeatures(rAdd, sRecord, sDescriptionText, sClassName,
 						end
 					end
 					if isFeatureInList == false then
-						Debug.console("sClassFeatureSpecificDescriptionText", sClassFeatureSpecificDescriptionText);
 						CharClassFeatureManager.addClassSpecificFeatures(sClassName, rAdd, v, sClassFeatureFilteredDescriptionText, sClassFeatureSpecificDescriptionText);
 					end
 				end
@@ -435,7 +434,6 @@ function addStandardAEDUClassFeatures(rAdd, sRecord, sDescriptionText, sClassNam
 				end
 			end
 			if isFeatureInList == false then
-				Debug.console("sClassFeatureSpecificDescriptionText", sClassFeatureSpecificDescriptionText);
 				CharClassFeatureManager.addClassSpecificFeatures(sClassName, rAdd, v, sClassFeatureFilteredDescriptionText, sClassFeatureSpecificDescriptionText);
 			end
 		end

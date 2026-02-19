@@ -60,8 +60,6 @@ function addClassSpecificFeatures(sClassName, rAdd, sClassFeatureName, sClassFea
 	});
 
 	--For each feature, add all powers in it (if it doesn't have the words implying a choice, like "choose", "choice", or "following")
-	Debug.console("sClassFeatureName", sClassFeatureName);
-	Debug.console("isNotAddingFeaturePower", isNotAddingFeaturePower(sClassFeatureName));
 	if sClassFeatureOriginalDescription and isNotAddingFeaturePower(sClassFeatureName) == false then
 		CharClassPowerManager.addPowersFromText(sClassFeatureOriginalDescription, rAdd, sClassFeatureName);
 	end
@@ -1964,7 +1962,6 @@ function addWizardMageFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatur
 		DB.setValue(rCreatedIDChildNode, "description", "string", removeLinkLists(sClassFeatureOriginalDescription));
 		local rLevelOneApprenticeMageFeatureNode = nil;
 		for i,node in pairs(tCurrentFeatures) do
-			Debug.console("Feature" .. i, DB.getText(node, "value"));
 			if DB.getText(node, "value") == "Level 1 Apprentice Mage" then
 				rLevelOneApprenticeMageFeatureNode = node;
 				break;
@@ -1972,10 +1969,24 @@ function addWizardMageFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatur
 		end
 		local sLevelOneApprenticeMageFeatureText = DB.getText(rLevelOneApprenticeMageFeatureNode, "description");
 		local sChosenApprenticeSchoolText = getChosenApprenticeSchool(rAdd);
-		Debug.console("rLevelOneApprenticeMageFeatureNode", rLevelOneApprenticeMageFeatureNode);
-		Debug.console("sLevelOneApprenticeMageFeatureText", sLevelOneApprenticeMageFeatureText);
-		Debug.console("sChosenApprenticeSchoolText", sChosenApprenticeSchoolText);
 		displayLevelFourSelectionsDialog(rAdd, sClassFeatureOriginalDescription, sClassFeatureName, sLevelOneApprenticeMageFeatureText, sChosenApprenticeSchoolText);
+	elseif string.find(sClassFeatureName, "Expert Mage") then
+		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureOriginalDescription);
+		local rLeveFiveExpertMageFeatureNode = nil;
+		local sOriginalExpertMageDescription = nil;
+		for i,node in pairs(tCurrentFeatures) do
+			if DB.getText(node, "value") == "Expert Mage" then
+				rLeveFiveExpertMageFeatureNode = node;
+				break;
+			end
+		end
+		if rLeveFiveExpertMageFeatureNode then
+			sOriginalExpertMageDescription = DB.getText(rLeveFiveExpertMageFeatureNode, "description");
+		end
+		displayExpertMageDialog(rAdd, sClassFeatureOriginalDescription, sOriginalExpertMageDescription);
 	else
 		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
 		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
@@ -2004,8 +2015,6 @@ function displayLevelFourSelectionsDialog(rAdd, sClassFeatureOriginalDescription
 	for w,v in sFeaturesLink do
 		local sPattern = "reference.features." .. w .. "@" .. v;
 		local sClassFeatureName = DB.getText(DB.getPath(sPattern, "name"));
-		Debug.console("sClassFeatureName", sClassFeatureName);
-		Debug.console(ChosenApprenticeSchool .. " Apprentice (Secondary)");
 		if sClassFeatureName ~= ChosenApprenticeSchool .. " Apprentice" then
 			local sClassFeatureDescription = DB.getText(DB.getPath(sPattern, "description"));
 			tClassFeatureOptions[sClassFeatureName] = DB.getPath(sPattern);
@@ -2073,6 +2082,93 @@ function callbackResolveLevelFourApprenticeMageDialogSelection(tSelection, tData
 	-- 	sSelectedClassFeatureSelectionsDBReference = tData.tClassFeatureOptions[selectedSkill];
 
 	-- end
+end
+function displayExpertMageDialog(rAdd, sClassFeatureOriginalDescription, sOriginalExpertMageDescription)
+	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
+	if not sOriginalExpertMageDescription then
+		sOriginalExpertMageDescription = sClassFeatureOriginalDescription;
+	end
+
+	-- Find the character's chosen apprentice schools from existing features
+	local sPrimarySchool = nil;
+	local sSecondarySchool = nil;
+	-- If you already have the Expert Mage feature, then remove it from the dialogue choices
+	local sExistingExpertMage = nil;
+	for _, featureNode in pairs(tCurrentFeatures) do
+		local sFeatureName = DB.getText(DB.getPath(featureNode, "value"));
+		local school = string.match(sFeatureName, "^(%w+) Apprentice$");
+		local expertMage = string.match(sFeatureName, "%w+ Expert");
+		if school then
+			sPrimarySchool = school;
+		end
+		school = string.match(sFeatureName, "^(%w+) Apprentice %(Secondary%)$");
+		if school then
+			sSecondarySchool = school;
+		end
+		if expertMage then
+			sExistingExpertMage = expertMage;
+		end
+	end
+
+	-- Parse the Expert Mage description to find all Expert sub-feature links
+	local tExpertFeatureBySchool = {};
+	local sPattern = '<link class="powerdesc" recordname="reference.features.(%w+)@([%w%s]+)">';
+	for recordId, module in string.gmatch(sOriginalExpertMageDescription, sPattern) do
+		local sDbPath = "reference.features." .. recordId .. "@" .. module;
+		local sExpertFeatureName = DB.getText(DB.getPath(sDbPath, "name"));
+		local expertSchool = string.match(sExpertFeatureName, "^(%w+) Expert");
+		if expertSchool then
+			tExpertFeatureBySchool[expertSchool] = { name = sExpertFeatureName, path = sDbPath };
+		end
+	end
+
+	-- Build dialog options from the character's chosen schools, showing Expert feature names
+	local tOptions = {};
+	local tExpertFeatureOptions = {};
+	if sPrimarySchool and tExpertFeatureBySchool[sPrimarySchool] and sExistingExpertMage ~= tExpertFeatureBySchool[sPrimarySchool].name then
+		local tExpertInfo = tExpertFeatureBySchool[sPrimarySchool];
+		table.insert(tOptions, { text = tExpertInfo.name, linkclass = "powerdesc", linkrecord = tExpertInfo.path });
+		tExpertFeatureOptions[tExpertInfo.name] = tExpertInfo;
+	end
+	if sSecondarySchool and tExpertFeatureBySchool[sSecondarySchool] and sExistingExpertMage ~= tExpertFeatureBySchool[sSecondarySchool].name then
+		local tExpertInfo = tExpertFeatureBySchool[sSecondarySchool];
+		table.insert(tOptions, { text = tExpertInfo.name, linkclass = "powerdesc", linkrecord = tExpertInfo.path });
+		tExpertFeatureOptions[tExpertInfo.name] = tExpertInfo;
+	end
+
+	local tDialogData = {
+		title = Interface.getString("char_build_title_addexpertmage"),
+		msg = Interface.getString("char_build_message_addexpertmage"),
+		options = tOptions,
+		min = 1,
+		max = 1,
+		callback = CharClassFeatureManager.callbackResolveExpertMageDialogSelection,
+		custom = { rAdd = rAdd, tExpertFeatureOptions = tExpertFeatureOptions, sParentDescription = sClassFeatureOriginalDescription },
+	};
+	DialogManager.requestSelectionDialog(tDialogData);
+end
+function callbackResolveExpertMageDialogSelection(tSelection, tData, tSelectionLinks)
+	if not tSelection or not tSelection[1] then
+		ChatManager.SystemMessageResource("char_error_addclasssfeature");
+		return;
+	end
+	if not tSelectionLinks then
+		ChatManager.SystemMessageResource("char_error_addclasssfeature");
+		return;
+	end
+
+	for i, selectedFeature in ipairs(tSelectionLinks) do
+		local sExpertFeaturePath = selectedFeature.linkrecord;
+		local sSelectedExpertName = tSelection[i];
+		local tExpertInfo = tData.tExpertFeatureOptions[sSelectedExpertName];
+
+		if tExpertInfo then
+			local rCreatedIDChildNode = DB.createChild(tData.rAdd.nodeChar.getPath("specialabilitylist"));
+			DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference", "powerdesc", sExpertFeaturePath);
+			DB.setValue(rCreatedIDChildNode, "value", "string", sSelectedExpertName);
+			ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", sSelectedExpertName, tData.rAdd.sCharName);
+		end
+	end
 end
 
 
