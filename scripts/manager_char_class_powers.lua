@@ -183,6 +183,9 @@ function displayClassPowerSelectionsDialog(rAdd, sClassFeatureOriginalDescriptio
 			custom = { rAdd=rAdd }, 
 		};
 		DialogManager.requestSelectionDialog(tDialogData);
+	elseif tOptions == 1 then
+		Debug.console("Adding rAdd: " .. rAdd .. ", " .. tOptions[1].text .. ", " .. tOptions[1].linkrecord);
+		addPowerFromRecordLink(rAdd, tOptions[1].text, tOptions[1].linkrecord);
 	end	
 end
 function callbackResolveClassPowersSelectionsDialogSelection(tSelection, tData, tSelectionLinks)

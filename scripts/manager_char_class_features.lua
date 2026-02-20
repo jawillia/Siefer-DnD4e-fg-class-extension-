@@ -69,6 +69,7 @@ function isNotAddingFeaturePower(sClassFeatureName)
 	return switch(sClassFeatureName:upper(),
 	{
 		["BATTLE GUARDIAN"] = function() return true end,
+		["SUMMONED STEED"] = function() return true end,
 		default = function() return false end
 	});
 end
@@ -80,7 +81,8 @@ function addClassSpecificPreFeatures(sClassName, rAdd, sDescriptionText, tClassF
 		["DRUID (SENTINEL)"] = function() return addDruidSentinelPreFeatures(sClassName, rAdd, sDescriptionText, tClassFeatures) end,
 		["WARLOCK (HEXBLADE)"] = function() return addWarlockHexbladePreFeatures(sClassName, rAdd, sDescriptionText, tClassFeatures) end,
 		["WARLOCK (BINDER)"] = function() return addWarlockBinderPreFeatures(sClassName, rAdd, sDescriptionText, tClassFeatures) end,
-		["DRUID (PROTECTOR)"] = function() return addDruidProtectorPreFeatures(sClassName, rAdd, sDescriptionText, tClassFeatures) end		
+		["DRUID (PROTECTOR)"] = function() return addDruidProtectorPreFeatures(sClassName, rAdd, sDescriptionText, tClassFeatures) end,
+		["PALADIN (CAVALIER)"] = function() return addPaladinCavalierPreFeatures(sClassName, rAdd, sDescriptionText, tClassFeatures) end		
 	});
 end
 
@@ -245,6 +247,10 @@ function callbackResolveAlternativeFeatureDialogSelection(tSelection, tData)
 						DB.deleteNode(featureNode);
 						tCurrentFeatures[_] = nil;
 						ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", tSelection[1], tData.rAdd.sCharName);
+					elseif DB.getText(DB.getPath(featureNode, "value")) == sAltclassFeatureName and DB.getText(DB.getPath(featureNode, "value")) == tSelection[1] then
+						Debug.console(tSelection[1] .. " description:", sClassFeatureDescription);
+						local sClassFeatureDescription = DB.getText(DB.getPath(featureNode, "description"));
+						CharClassPowerManager.addPowersFromText(sClassFeatureDescription, tData.rAdd, tSelection[1]);
 					end
 				end
 			end
@@ -2397,23 +2403,174 @@ function addDruidSentinelAnimalCompanion(rAdd, sClassFeatureOriginalDescription,
 end
 
 
--------------------------------------------
+---------------------------------------------
 ----- PALADIN (CAVALIER) Class Features ----
--------------------------------------------
+---------------------------------------------
+function addPaladinCavalierPreFeatures(sClassName, rAdd, sDescriptionText, tClassFeatures)
+	--First, see if you have a pact already selected. If you don't, select one, then go through the rest of the features.
+	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
+	local sAlreadyTakenVirtue = nil;
+	local tVirtueNames = { "Virtue of Sacrifice", "Virtue of Valor" };
+	for _, featureNode in pairs(tCurrentFeatures) do
+		for x,virtueName in ipairs(tVirtueNames) do
+			local sFeatureName = DB.getText(DB.getPath(featureNode, "value"));
+			if sFeatureName then
+				if string.find(sFeatureName, virtueName) then
+					sAlreadyTakenVirtue = virtueName;
+					break;
+				end
+			end
+		end
+	end
+	if not sAlreadyTakenVirtue or sAlreadyTakenVirtue == "" then
+		--Display a pop-up where we choose from the Hexblade pacts
+		local tOptions = {}
+		tOptions[1] = "Virtue of Sacrifice";
+		tOptions[2] = "Virtue of Valor";
+		local tDialogData = {
+			title = Interface.getString("char_build_title_adddcavaliervirtue"),
+			msg = Interface.getString("char_build_message_addcavaliervirtue"),
+			options = tOptions,
+			min = 1,
+			max = 1,
+			callback = CharClassFeatureManager.callbackResolvePaladinCavalierPreFeatureSelection,
+			custom = { sClassName=sClassName, rAdd=rAdd, sDescriptionText=sDescriptionText, tClassFeatures=tClassFeatures },
+		};
+		DialogManager.requestSelectionDialog(tDialogData);
+	end
+end
+function callbackResolvePaladinCavalierPreFeatureSelection(tSelection, tData)
+	if not tSelection and #tSelection == 1 then
+		ChatManager.SystemMessageResource("char_error_addclasssfeature");
+		return;
+	end
+
+	local sVirtueDescription = "You have selected the " .. tSelection[1] .. " virtue.";
+	local rCreatedIDChildNode = DB.createChild(tData.rAdd.nodeChar.getPath("specialabilitylist"));
+	DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+	DB.setValue(rCreatedIDChildNode, "value", "string", tSelection[1]);
+	DB.setValue(rCreatedIDChildNode, "description", "string", sVirtueDescription);
+
+	local tCurrentFeatures = DB.getChildren(tData.rAdd.nodeChar, "specialabilitylist");
+	for w,v in pairs(tData.tClassFeatures) do
+		local sClassFeatureDescriptionPattern = '';
+		v = v:gsub("[%(%)%-]", "%%%0");
+		if w < #tData.tClassFeatures then
+			sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v:gsub("(%a)([%w_']*)", titleCase) .. "%s*</b></p>%s*(.-)<p><b>";
+		elseif w == #tData.tClassFeatures then
+			-- On the last feature entry, first try reading to the end of the description we're given
+			sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v:gsub("(%a)([%w_']*)", titleCase) .. "%s*</b></p>%s*(.+)";
+		end
+		sClassFeatureSpecificDescriptionText = string.match(tData.sDescriptionText, sClassFeatureDescriptionPattern);
+		if sClassFeatureSpecificDescriptionText then
+			sClassFeatureFilteredDescriptionText = removeLinkLists(sClassFeatureSpecificDescriptionText);
+		end
+		--Revert v back to unescaped version
+		v = v:gsub("%%", "");		
+		local isFeatureInList = false;
+		for _, featureNode in pairs(tCurrentFeatures) do
+			if DB.getText(DB.getPath(featureNode, "value")) == v then
+				isFeatureInList = true;
+				break;
+			end
+		end
+		if isFeatureInList == false then
+			CharClassFeatureManager.addClassSpecificFeatures(tData.sClassName, tData.rAdd, v, sClassFeatureFilteredDescriptionText, sClassFeatureSpecificDescriptionText);
+		end
+	end
+end
 function addPaladinCavalierFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription)
 	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
+	local tLevelFourAlternativeClassFeaturesOptions = {};
+	tLevelFourAlternativeClassFeaturesOptions[1] = "Pace Of The Virtuous Charger";
+	tLevelFourAlternativeClassFeaturesOptions[2] = "Summoned Steed";
+	--String data for the dialogue windows. 1 is title, 2 is message.
+	local tLevelFourStringCharBuildData = {};
+	tLevelFourStringCharBuildData[1] = "char_build_title_addvirtuouschargerorsummonedsteed";
+	tLevelFourStringCharBuildData[2] = "char_build_message_addvirtuouschargerorsummonedsteed";	
 	if sClassFeatureName == "Spirit of Virtue" then
+		Debug.console("Adding " .. sClassFeatureName);
 		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
 		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
 		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
 		DB.setValue(rCreatedIDChildNode, "description", "string", removeLinkLists(sClassFeatureOriginalDescription));
-		displayClassFeatureSelectionsDialog(rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
+		displayPaladinCavalierSelectionsDialog(rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
+	elseif sClassFeatureName == "Virtue At-Will Power" then
+		Debug.console("Adding " .. sClassFeatureName);
+		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+		DB.setValue(rCreatedIDChildNode, "description", "string", removeLinkLists(sClassFeatureOriginalDescription));
+		displayPaladinCavalierSelectionsDialog(rAdd, sClassFeatureOriginalDescription, sClassFeatureName);		
+	elseif sClassFeatureName == "Pace Of The Virtuous Charger" then
+		--Add the feature, but if you have also already added Summoned Steed, choose between them
+		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
+		for _, featureNode in pairs(tCurrentFeatures) do
+			if DB.getText(DB.getPath(featureNode, "value")) == "Summoned Steed" then
+				displayAlternativeFeatureDialog(rAdd, tLevelFourAlternativeClassFeaturesOptions, tLevelFourStringCharBuildData);
+				break;
+			end
+		end
+	elseif sClassFeatureName == "Summoned Steed" then
+		--Add the feature, but if you have also already added Pace of the Virtuous Charger, choose between them
+		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureOriginalDescription);
+		for _, featureNode in pairs(tCurrentFeatures) do
+			if DB.getText(DB.getPath(featureNode, "value")) == "Pace Of The Virtuous Charger" then
+				displayAlternativeFeatureDialog(rAdd, tLevelFourAlternativeClassFeaturesOptions, tLevelFourStringCharBuildData);
+				break;
+			end
+		end
 	else
 		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
 		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
 		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
 		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
 		ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", sClassFeatureName, rAdd.sCharName);
+	end
+end
+
+function displayPaladinCavalierSelectionsDialog(rAdd, sClassFeatureOriginalDescription, sClassFeatureName)
+	local tClassFeatureOptions = {};
+	local tOptions = {};
+	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
+	local sAlreadyTakenVirtue = "";
+	--Find already selected virtue first
+	for _, featureNode in pairs(tCurrentFeatures) do
+		local sFeatureName = DB.getText(DB.getPath(featureNode, "value"));
+		if string.match(sFeatureName, "Virtue of (%w+)") then
+			sAlreadyTakenVirtue = string.match(sFeatureName, "Virtue of (%w+)");
+			break;
+		end
+	end
+	--If it exists, automatically choose the feature
+	if sAlreadyTakenVirtue then
+		Debug.console("sAlreadyTakenVirtue", sAlreadyTakenVirtue);
+		local sPattern = '<link class="powerdesc" recordname="reference.features.(%w+)@([%w%s]+)">([%w%s%p]-)</link>';
+		for w, v, featureLinkName in string.gmatch(sClassFeatureOriginalDescription, sPattern) do
+			Debug.console("featureLinkName", featureLinkName);
+			if string.find(featureLinkName, sAlreadyTakenVirtue) then
+				local sPattern = "reference.features." .. w .. "@" .. v;
+				local sClassFeatureDescription = DB.getText(DB.getPath(sPattern, "description"));
+				local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+				DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+				DB.setValue(rCreatedIDChildNode, "value", "string", featureLinkName);
+				DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureDescription);
+				Debug.console("sClassFeatureDescription", sClassFeatureDescription);
+
+				CharClassPowerManager.addAllPowersFromFeatureText(rAdd, sClassFeatureDescription, sClassFeatureOriginalDescription);
+				break;
+			end
+		end
+	else
+		--If it doesn't exist, run the normal new feature selection dialogue
+		--Display information on the selections in chat
+		displayClassFeatureSelectionsDialog(rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
 	end
 end
 

@@ -9,6 +9,7 @@
   <!-- Character - Build -->
   <string name="char_abilities_message_classadd">Class '%s' added to '%s'.</string>
   <string name="char_abilities_message_hybridclassadd">'%s' and '%s' hybrid classes added to '%s'.</string>
+  <string name="char_abilities_message_classlevelup">'%s' leveled up to level '%s' '%s'.</string>
   <!-- Ability Score Increase on Level Up -->
   <string name="char_build_title_selectclassabilitybonus">Increase Ability Score</string>
   <string name="char_build_message_selectclassabilitybonus">Select 2 ability scores to increase.</string>
@@ -93,6 +94,11 @@
    <!-- Wizard (Mage) Feature strings -->
   <string name="char_build_title_addexpertmage">Expert Mage</string>
   <string name="char_build_message_addexpertmage">Choose which Apprentice Mage feature to gain the Expert Mage benefit associated with.</string>
+  <!-- Paladin (Cavalier) Feature strings -->
+  <string name="char_build_title_adddcavaliervirtue">Cavalier Virtue</string> 
+  <string name="char_build_message_addcavaliervirtue">Choose a Cavalier Virtue. These determine some of your class features, including your Spirit of Virtue benefit, an at-will power, and additional benefits as you level up.</string>
+  <string name="char_build_title_addvirtuouschargerorsummonedsteed">Pace of the Virtuous Charger or Summoned Steed</string> 
+  <string name="char_build_message_addvirtuouschargerorsummonedsteed">Choose Pace of the Virtuous Charger or Summoned Steed. Check the chat for detailed descriptions.</string>   
 
   <!-- Hybrid strings -->
   <string name="char_build_title_secondhybridclass">Second Hybrid Class</string> 

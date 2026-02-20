@@ -22,6 +22,9 @@ function addClass(nodeChar, sRecord, tData)
 
 	--Added first level only
 	if nLevel == 1 then
+		-- Notification
+		ChatManager.SystemMessageResource("char_abilities_message_classadd", sClassName, rAdd.sCharName);
+
 		--Add Class Proficiencies
 		addClassArmorProficiencies(rAdd, sRecord, sDescriptionText);
 		addClassWeaponProficiencies(rAdd, sRecord, sDescriptionText);
@@ -54,13 +57,15 @@ function addClass(nodeChar, sRecord, tData)
 		helperResolveStatIncreaseOnClassDrop(rAdd, sRecord,sDescriptionText, nLevel);
 	end
 
+	if nLevel > 1 then
+	--Level Up Notification
+		ChatManager.SystemMessageResource("char_abilities_message_classlevelup", rAdd.sCharName, nLevel, sClassName);
+	end
+
 	--Add Feat Notification
 	if nLevel and nLevel % 2 == 0 then
 		ChatManager.SystemMessageResource("char_abilities_message_pickfeatreminder", rAdd.sCharName);
 	end
-
-	-- Notification
-	ChatManager.SystemMessageResource("char_abilities_message_classadd", sClassName, rAdd.sCharName);
 	
 end
 
@@ -303,6 +308,7 @@ function addEssentialsClassFeatures(rAdd, sRecord, sDescriptionText, sClassName,
 	if not nLevel then
 		nLevel = 1;
 	end
+	local bLevelInfoFound = true;
 	local sClassFeaturesValue = '';
 	local sClassFeatureSpecificDescriptionText = '';
 	local sClassFeatureFilteredDescriptionText = '';
@@ -320,78 +326,86 @@ function addEssentialsClassFeatures(rAdd, sRecord, sDescriptionText, sClassName,
 			while nNextFeatureWithLevel < 30 and not string.match(sDescriptionText, "<p><b>Level " .. nNextFeatureWithLevel .. ":</b></p>") do
 				nNextFeatureWithLevel = nNextFeatureWithLevel + 1;
 			end
+			Debug.console("nNextFeatureWithLevel", nNextFeatureWithLevel);
 			if sDescriptionText and string.find(sDescriptionText, "<p><b>Level " .. nLevel .. ":</b></p>") and string.find(sDescriptionText, "<p><b>Level " .. nNextFeatureWithLevel .. ":</b></p>") then
 				sDescriptionText = string.match(sDescriptionText, "<p><b>Level " .. nLevel .. ":</b></p>(.-)<p><b>Level " .. nNextFeatureWithLevel .. ":</b></p>");
+			else
+				bLevelInfoFound = false;
 			end
 		elseif nLevel == 30 then
 			if sDescriptionText and string.find(sDescriptionText, "<p><b>Level " .. nLevel .. ":</b></p>") then
 				sDescriptionText = string.match(sDescriptionText, "<p><b>Level " .. nLevel .. ":</b></p>(.-)");
+			else
+				bLevelInfoFound = false;
 			end		
 		end
-		if sClassFeaturesDescriptionTextLine then
-			sClassFeaturesValue = string.match(sClassFeaturesDescriptionTextLine, "[%w,'%(%)%-%s]+");
-		end
-		local tClassFeatures = StringManager.split(sClassFeaturesValue, ',', true);
-		--Pre-Feature Class Feature added here, features that must be chosen before other features, like warpriest domains
-		local tClassesWithPreFeatures = {};
-		tClassesWithPreFeatures = loadClassesWithPreFeatures(tClassesWithPreFeatures);
-		if tClassesWithPreFeatures[sClassName:upper()] and nLevel == 1 then
-			CharClassFeatureManager.addClassSpecificPreFeatures(sClassName, rAdd, sDescriptionText, tClassFeatures);
-		else
-			if nLevel == 1 then
-				for w,v in pairs(tClassFeatures) do
-					local sClassFeatureDescriptionPattern = '';
-					v = v:gsub("[%(%)%-]", "%%%0");
-					v = v:gsub("(%a)([%w_']*)", titleCase);
-					if w < #tClassFeatures then
-						--Weird special case for the Feywild Guardian feature from the Fighter(Knight)
-						if v:upper() == "BATTLE GUARDIAN" then
-							sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v .. "%s*</b></p>%s*(.-)<p><b>Defender Aura</b></p>";
-						else
-							sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v .. "%s*</b></p>%s*(.-)<p><b>";
-						end
-						sClassFeatureSpecificDescriptionText = string.match(sDescriptionText, sClassFeatureDescriptionPattern);
-					elseif w == #tClassFeatures then
-						sClassFeatureSpecificDescriptionText, sClassFeatureDescriptionPattern = cutoffLastClassFeatureDescription(sDescriptionText, sClassFeatureSpecificDescriptionText, v, sClassName);
-					end
-					if sClassFeatureSpecificDescriptionText then
-						sClassFeatureFilteredDescriptionText = convertHTMLTable(removeLinkLists(sClassFeatureSpecificDescriptionText));
-					end
-					--Revert v back to unescaped version
-					v = v:gsub("%%", "");
-					local isFeatureInList = false;
-					for _, featureNode in pairs(tCurrentFeatures) do
-						if DB.getText(DB.getPath(featureNode, "value")) == v then
-							isFeatureInList = true;
-							break;
-						end
-					end
-					if isFeatureInList == false then
-						CharClassFeatureManager.addClassSpecificFeatures(sClassName, rAdd, v, sClassFeatureFilteredDescriptionText, sClassFeatureSpecificDescriptionText);
-					end
-				end
+		if bLevelInfoFound then
+			if sClassFeaturesDescriptionTextLine then
+				sClassFeaturesValue = string.match(sClassFeaturesDescriptionTextLine, "[%w,'%(%)%-%s]+");
+			end
+			local tClassFeatures = StringManager.split(sClassFeaturesValue, ',', true);
+			--Pre-Feature Class Feature added here, features that must be chosen before other features, like warpriest domains
+			local tClassesWithPreFeatures = {};
+			tClassesWithPreFeatures = loadClassesWithPreFeatures(tClassesWithPreFeatures);
+			if tClassesWithPreFeatures[sClassName:upper()] and nLevel == 1 then
+				CharClassFeatureManager.addClassSpecificPreFeatures(sClassName, rAdd, sDescriptionText, tClassFeatures);
 			else
-				local sClassFeatureNamePattern = '';
-				sClassFeatureNamePattern = "<p>%s*<b>%s*(.-)%s*</b></p>%s*";
-				for classFeatureName in string.gmatch(sDescriptionText, sClassFeatureNamePattern) do
-					classFeatureName = classFeatureName:gsub("[%(%)%-]", "%%%0");
-					classFeatureName = classFeatureName:gsub("(%a)([%w_']*)", titleCase);
-					local sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. classFeatureName .. "%s*</b></p>%s*(.-)<p><b>";
-					sClassFeatureSpecificDescriptionText = string.match(sDescriptionText, sClassFeatureDescriptionPattern);
-					if sClassFeatureSpecificDescriptionText == nil then
-						sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. classFeatureName .. "%s*</b></p>%s*(.+)";
-						sClassFeatureSpecificDescriptionText = string.match(sDescriptionText, sClassFeatureDescriptionPattern);
-					end
-					sClassFeatureFilteredDescriptionText = convertHTMLTable(removeLinkLists(sClassFeatureSpecificDescriptionText));
-					local isFeatureInList = false;
-					for _, featureNode in pairs(tCurrentFeatures) do
-						if DB.getText(DB.getPath(featureNode, "value")) == classFeatureName then
-							isFeatureInList = true;
-							break;
+				if nLevel == 1 then
+					for w,v in pairs(tClassFeatures) do
+						local sClassFeatureDescriptionPattern = '';
+						v = v:gsub("[%(%)%-]", "%%%0");
+						v = v:gsub("(%a)([%w_']*)", titleCase);
+						if w < #tClassFeatures then
+							--Weird special case for the Feywild Guardian feature from the Fighter(Knight)
+							if v:upper() == "BATTLE GUARDIAN" then
+								sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v .. "%s*</b></p>%s*(.-)<p><b>Defender Aura</b></p>";
+							else
+								sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v .. "%s*</b></p>%s*(.-)<p><b>";
+							end
+							sClassFeatureSpecificDescriptionText = string.match(sDescriptionText, sClassFeatureDescriptionPattern);
+						elseif w == #tClassFeatures then
+							sClassFeatureSpecificDescriptionText, sClassFeatureDescriptionPattern = cutoffLastClassFeatureDescription(sDescriptionText, sClassFeatureSpecificDescriptionText, v, sClassName);
+						end
+						if sClassFeatureSpecificDescriptionText then
+							sClassFeatureFilteredDescriptionText = convertHTMLTable(removeLinkLists(sClassFeatureSpecificDescriptionText));
+						end
+						--Revert v back to unescaped version
+						v = v:gsub("%%", "");
+						local isFeatureInList = false;
+						for _, featureNode in pairs(tCurrentFeatures) do
+							if DB.getText(DB.getPath(featureNode, "value")) == v then
+								isFeatureInList = true;
+								break;
+							end
+						end
+						if isFeatureInList == false then
+							Debug.console("v", v);
+							CharClassFeatureManager.addClassSpecificFeatures(sClassName, rAdd, v, sClassFeatureFilteredDescriptionText, sClassFeatureSpecificDescriptionText);
 						end
 					end
-					if isFeatureInList == false then
-						CharClassFeatureManager.addClassSpecificFeatures(sClassName, rAdd, classFeatureName, sClassFeatureFilteredDescriptionText, sClassFeatureSpecificDescriptionText);
+				else
+					local sClassFeatureNamePattern = '';
+					sClassFeatureNamePattern = "<p>%s*<b>%s*(.-)%s*</b></p>%s*";
+					for classFeatureName in string.gmatch(sDescriptionText, sClassFeatureNamePattern) do
+						classFeatureName = classFeatureName:gsub("[%(%)%-]", "%%%0");
+						classFeatureName = classFeatureName:gsub("(%a)([%w_']*)", titleCase);
+						local sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. classFeatureName .. "%s*</b></p>%s*(.-)<p><b>";
+						sClassFeatureSpecificDescriptionText = string.match(sDescriptionText, sClassFeatureDescriptionPattern);
+						if sClassFeatureSpecificDescriptionText == nil then
+							sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. classFeatureName .. "%s*</b></p>%s*(.+)";
+							sClassFeatureSpecificDescriptionText = string.match(sDescriptionText, sClassFeatureDescriptionPattern);
+						end
+						sClassFeatureFilteredDescriptionText = convertHTMLTable(removeLinkLists(sClassFeatureSpecificDescriptionText));
+						local isFeatureInList = false;
+						for _, featureNode in pairs(tCurrentFeatures) do
+							if DB.getText(DB.getPath(featureNode, "value")) == classFeatureName then
+								isFeatureInList = true;
+								break;
+							end
+						end
+						if isFeatureInList == false then
+							CharClassFeatureManager.addClassSpecificFeatures(sClassName, rAdd, classFeatureName, sClassFeatureFilteredDescriptionText, sClassFeatureSpecificDescriptionText);
+						end
 					end
 				end
 			end
@@ -445,6 +459,7 @@ function loadClassesWithPreFeatures(tClassesWithPreFeatures)
 	tClassesWithPreFeatures["WARLOCK (HEXBLADE)"] = true;
 	tClassesWithPreFeatures["WARLOCK (BINDER)"] = true;
 	tClassesWithPreFeatures["DRUID (PROTECTOR)"] = true;
+	tClassesWithPreFeatures["PALADIN (CAVALIER)"] = true;
 
 	return tClassesWithPreFeatures;
 end
