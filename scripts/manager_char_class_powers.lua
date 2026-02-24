@@ -49,7 +49,8 @@ function addPowersFromText(sDescriptionText, rAdd, sClassFeatureName, sSubFeatur
 
 	if string.find(sDescriptionText:lower(), "choose") 
 		or string.find(sDescriptionText:lower(), "choice")
-		or string.find(sDescriptionText:lower(), "following") then
+		or string.find(sDescriptionText:lower(), "following")
+		or string.find(sDescriptionText:lower(), "gain one") then
 			if not nNumberOfPowers then
 				nNumberOfPowers = 1;
 				if string.find(sDescriptionText:lower(), "two") then

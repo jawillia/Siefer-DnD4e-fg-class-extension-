@@ -63,6 +63,11 @@ function addClassSpecificFeatures(sClassName, rAdd, sClassFeatureName, sClassFea
 	if sClassFeatureOriginalDescription and isNotAddingFeaturePower(sClassFeatureName) == false then
 		CharClassPowerManager.addPowersFromText(sClassFeatureOriginalDescription, rAdd, sClassFeatureName);
 	end
+
+	--For each feature, add the associated feat.
+	if sClassFeatureOriginalDescription then
+		CharClassFeatManager.addClassFeats(sClassFeatureOriginalDescription, rAdd, sClassFeatureName);
+	end
 end
 
 function isNotAddingFeaturePower(sClassFeatureName)
@@ -273,9 +278,20 @@ function displayClassFeatureSelectionsDialog(rAdd, sClassFeatureOriginalDescript
 		local sPattern = "reference.features." .. w .. "@" .. v;
 		local sClassFeatureName = DB.getText(DB.getPath(sPattern, "name"));
 		local sClassFeatureDescription = DB.getText(DB.getPath(sPattern, "description"));
-		tClassFeatureOptions[sClassFeatureName] = DB.getPath(sPattern);
-		table.insert(tOptions, { text = sClassFeatureName, linkclass = "powerdesc", linkrecord = DB.getPath(sPattern), });
-		nOptionsCount = nOptionsCount + 1;
+		--Don't display the option if you already have that feature
+		local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
+		local bAlreadyHave = false;
+		for _,featureNode in pairs(tCurrentFeatures) do
+			if DB.getText(DB.getPath(featureNode, "value")) == sClassFeatureName then
+				bAlreadyHave = true;
+				break;
+			end
+		end
+		if bAlreadyHave == false then
+			tClassFeatureOptions[sClassFeatureName] = DB.getPath(sPattern);
+			table.insert(tOptions, { text = sClassFeatureName, linkclass = "powerdesc", linkrecord = DB.getPath(sPattern), });
+			nOptionsCount = nOptionsCount + 1;
+		end
 	end
 	--Display a pop-up where we choose from the class feature options
 	if not nMaxSelections or nMaxSelections < 1 then
@@ -317,6 +333,13 @@ function callbackResolveClassFeatureSelectionsDialogSelection(tSelection, tData)
 		DB.setValue(rCreatedIDChildNode, "value", "string", selectedSkill);
 		--DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureOriginalDescription);
 		ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", selectedSkill, tData.rAdd.sCharName);
+
+		--Add feats from text
+		local sClassFeatureDescription = DB.getText(DB.getPath(sSelectedClassFeatureSelectionsDBReference, "description"));
+		Debug.console("sClassFeatureDescription", sClassFeatureDescription);
+		if sClassFeatureDescription then
+			CharClassFeatManager.addClassFeats(sClassFeatureDescription, tData.rAdd, selectedSkill);
+		end
 
 		if tData.nAddPowerMode and tData.nAddPowerMode > 0 then
 			if tData.nAddPowerMode == 1 then
@@ -2590,8 +2613,21 @@ function addRangerHunterFeatures(sClassName, rAdd, sClassFeatureName, sClassFeat
 		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
 		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
 		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-		DB.setValue(rCreatedIDChildNode, "description", "string", removeLinkLists(sClassFeatureOriginalDescription));
+		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureOriginalDescription);
 		displayClassFeatureSelectionsDialog(rAdd, sClassFeatureOriginalDescription, sClassFeatureName, 2);
+	elseif string.find(sClassFeatureName:lower(), "level %d+ wilderness knack") then
+		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+		DB.setValue(rCreatedIDChildNode, "description", "string", removeLinkLists(sClassFeatureOriginalDescription));
+		local sOriginalWildernessKnackDescription = nil;
+		for _, featureNode in pairs(tCurrentFeatures) do
+			if DB.getText(DB.getPath(featureNode, "value")) == "Ranger Wilderness Knacks" then
+				sOriginalWildernessKnackDescription = DB.getText(DB.getPath(featureNode, "description"));
+				Debug.console("sOriginalWildernessKnackDescription", sOriginalWildernessKnackDescription);
+				displayClassFeatureSelectionsDialog(rAdd, sOriginalWildernessKnackDescription, sClassFeatureName, 1);
+			end
+		end
 	else
 		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
 		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
@@ -2618,8 +2654,21 @@ function addRangerScoutFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatu
 		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
 		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
 		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-		DB.setValue(rCreatedIDChildNode, "description", "string", removeLinkLists(sClassFeatureOriginalDescription));
+		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureOriginalDescription);
 		displayClassFeatureSelectionsDialog(rAdd, sClassFeatureOriginalDescription, sClassFeatureName, 2);
+	elseif string.find(sClassFeatureName:lower(), "level %d+ wilderness knack") then
+		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
+		DB.setValue(rCreatedIDChildNode, "description", "string", removeLinkLists(sClassFeatureOriginalDescription));
+		local sOriginalWildernessKnackDescription = nil;
+		for _, featureNode in pairs(tCurrentFeatures) do
+			if DB.getText(DB.getPath(featureNode, "value")) == "Ranger Wilderness Knacks" then
+				sOriginalWildernessKnackDescription = DB.getText(DB.getPath(featureNode, "description"));
+				Debug.console("sOriginalWildernessKnackDescription", sOriginalWildernessKnackDescription);
+				displayClassFeatureSelectionsDialog(rAdd, sOriginalWildernessKnackDescription, sClassFeatureName, 1);
+			end
+		end		
 	else
 		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
 		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");

@@ -33,6 +33,7 @@
 		<script name="CharHybridClassManager" file="scripts/manager_char_hybrid_class.lua" />
 		<script name="CharClassFeatureManager" file="scripts/manager_char_class_features.lua" />
 		<script name="CharClassPowerManager" file="scripts/manager_char_class_powers.lua" />
+		<script name="CharClassFeatManager" file="scripts/manager_char_class_feats_4e.lua" />
 		<!-- <script name="RaceManager" file="scripts/manager_race_4e.lua" /> -->
 
 		<!-- String resources -->
