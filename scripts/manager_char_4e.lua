@@ -60,11 +60,46 @@ function helperSetTraitFromDescription(nodeRecord, sTraitPath, sDescriptionText,
 	end
 end
 
+function helperSetClassTypeFromDescription(nodeRecord, sTraitPath, sDescriptionText)
+	local currentValue = DB.getValue(nodeRecord, sTraitPath);
+	if not currentValue or currentValue == "" then
+		local sClassName = DB.getText(DB.getPath(nodeRecord, "name"));
+		local sClassType = nil;
+		--First just checks the name for a hybrid class
+		if string.find(sClassName, "Hybrid") then
+			sClassType = "Hybrid";
+		end
+		-- Second go through and identify the essentials class via the source
+		if sDescriptionText and not sClassType then
+			local sBookSourceDescriptionTextLine = string.match(sDescriptionText, "<p>%s*Published in(.-), page");
+			if not sBookSourceDescriptionTextLine then
+				sBookSourceDescriptionTextLine = string.match(sDescriptionText, "<p>%s*Published in(.+).</p>");
+			end
+			if sBookSourceDescriptionTextLine then
+				local sBookSource = '';
+				sBookSource = string.match(sBookSourceDescriptionTextLine, "[%w]+");
+				if string.find(sBookSourceDescriptionTextLine, "Heroes of") or string.find(sBookSourceDescriptionTextLine, "Neverwinter") then
+					sClassType = "Essentials";
+				end			
+			end
+		end
+		-- And if it's not any of the above, just call it the Default type
+		if not sClassType then
+			sClassType = "Default";
+		end
+
+		DB.setValue(nodeRecord, sTraitPath, "string", sClassType);
+	end
+end
+
 function updateClassFieldsFromDescription(nodeRecord)
 	local sDescriptionText = DB.getValue(nodeRecord, "description", "");
 	if not sDescriptionText then
 		return;
 	end
+
+	--ClassType (Standard (AEDU), Essentials, Hybrid)
+	helperSetClassTypeFromDescription(nodeRecord, "traits.classtype.text", sDescriptionText);
 
 	-- Role
 	helperSetTraitFromDescription(nodeRecord, "traits.role.text", sDescriptionText,

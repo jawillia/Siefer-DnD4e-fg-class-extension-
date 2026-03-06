@@ -253,12 +253,17 @@
         CharManagerWith4EClassExtension.updateClassFieldsFromDescription(node);
       end
       function onLockModeChanged(bReadOnly)
-        local tFields = { "role", "powersource", "keyabilities", "armorproficiencies", "weaponproficiencies", "implementproficiencies", "defensebonus", "hitpointsfirstlevel", "hpPerLevel", "healingsurges", "trainedskills", };
+        local tFields = { "classType", "role", "powersource", "keyabilities", "armorproficiencies", "weaponproficiencies", "implementproficiencies", "defensebonus", "hitpointsfirstlevel", "hpPerLevel", "healingsurges", "trainedskills", };
         WindowManager.callSafeControlsSetLockMode(self, tFields, bReadOnly);
       end
     </script>
     <sheetdata>
       <anchor_content_top />
+
+      <label_content_column name="classType_label">
+        <static textres="class_label_classType" />
+      </label_content_column>
+      <string_content_columnh name="classType" source="traits.classtype.text" />      
 
       <label_content_column name="role_label">
         <static textres="class_label_role" />

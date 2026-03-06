@@ -23,6 +23,7 @@
 	<string name="class_label_healingsurgesperday">Healing Surges</string>
 	<string name="class_label_trainedskills">Trained Skills</string>
 	<string name="class_label_classfeatures">Class Features</string>
+	<string name="class_label_classType">Class Type</string>
 
 	<string name="class_tooltip_armorproficiencies">Armor Proficiencies</string>	
 	<string name="class_tooltip_weaponproficiencies">Weapon Proficiencies</string>
