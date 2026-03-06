@@ -16,6 +16,7 @@
 	<string name="class_label_keyabilities">Key Abilities</string>
 	<string name="class_label_armorproficiencies">Armor Prof.</string>
 	<string name="class_label_weaponproficiencies">Weapon Prof</string>
+	<string name="class_label_implementproficiencies">Implements Prof.</string>
 	<string name="class_label_defensebonuses">Def Bonus</string>
 	<string name="class_label_hitpointsfirstlevel">1st Lvl HP</string>
 	<string name="class_label_hitpointsperlevel">HP per Lvl</string>
@@ -36,10 +37,13 @@
 
 	<string name="class_header_features">FEATURES</string>
 	<string name="class_header_featurechoices">FEATURE CHOICES</string>
+	<string name="class_header_featuredescription">Description</string>
 	<string name="library_recordtype_empty_classfeature">&#171; New Class Feature &#187;</string>
-	<string name="class_header_featurepowers">Class Powers</string>
-	<string name="library_recordtype_empty_classfeaturepower">&#171; New Class Feature Power &#187;</string>
+
+	<string name="class_header_subfeaturesgiven">Gives Sub-Features</string>
+	<string name="class_header_subfeatureschoice">Gives Choice Between Sub-Features</string>
 
 	<string name="class_header_featurepowers">Gives Powers</string>
+	<string name="library_recordtype_empty_classfeaturepower">&#171; New Class Feature Power &#187;</string>
 	<string name="class_header_featurepowerschoice">Gives Choice Between Powers</string>
 </root>

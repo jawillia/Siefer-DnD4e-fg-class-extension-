@@ -217,6 +217,32 @@
       </string_listitem_center>
     </sheetdata>
   </windowclass>
+  <windowclass name="reference_classsubfeature_listitem">
+    <margins control="0,0,0,2" />
+    <script>
+      function onInit()
+        self.onLockModeChanged(WindowManager.getWindowReadOnlyState(self));
+      end
+      function onLockModeChanged(bReadOnly)
+        local tControls = { "name", "idelete", };
+        WindowManager.callSafeControlsSetLockMode(self, tControls, bReadOnly);
+      end
+    </script>
+    <sheetdata>
+      <anchor_listitem_left_sm name="leftanchor" />
+      <anchor_listitem_right_sm name="rightanchor" />
+
+      <button_listitem_idelete_left name="idelete" />
+      <linkc_listitem_left name="link">
+        <class>powerdesc</class>
+      </linkc_listitem_left>
+
+      <string_listitem_center name="name">
+        <empty textres="library_recordtype_empty_classfeature" />
+        <font>sheetlabel</font>
+      </string_listitem_center>
+    </sheetdata>
+  </windowclass>
 
   <windowclass name="reference_class_traits">
     <margins control="0,0,0,5" />
@@ -224,27 +250,11 @@
       function onInit()
         self.onLockModeChanged(WindowManager.getWindowReadOnlyState(self));
         local node = getDatabaseNode();
-        self.updateClassFieldsFromDescription(node);
+        CharManagerWith4EClassExtension.updateClassFieldsFromDescription(node);
       end
       function onLockModeChanged(bReadOnly)
-        local tFields = { "role", "powersource", "keyabilities", "armorproficiencies", "weaponproficiencies", "defensebonus", "hitpointsfirstlevel", "hpPerLevel", "healingsurges", "trainedskills", };
+        local tFields = { "role", "powersource", "keyabilities", "armorproficiencies", "weaponproficiencies", "implementproficiencies", "defensebonus", "hitpointsfirstlevel", "hpPerLevel", "healingsurges", "trainedskills", };
         WindowManager.callSafeControlsSetLockMode(self, tFields, bReadOnly);
-      end
-
-      function updateClassFieldsFromDescription(nodeRecord)
-        local sDescriptionText = DB.getValue(nodeRecord, "description", "");
-        if sDescriptionText then
-          if not DB.getPath(nodeRecord, "role") or not DB.getValue(nodeRecord, "role") or DB.getValue(nodeRecord, "role") == "" then
-            Debug.console("role not found.");
-            local sRoleDescriptionTextLine = string.match(sDescriptionText, "&lt;p&gt;%s*&lt;b&gt;%s*Role%s*:%s*&lt;/b&gt;%s*(.-)&lt;/p&gt;");
-            Debug.console("sRoleDescriptionTextLine", sRoleDescriptionTextLine);
-            if sRoleDescriptionTextLine then
-              DB.setValue(node, "role", "string", sRoleDescriptionTextLine);
-            end
-          else
-            Debug.console("role found", DB.getValue(nodeRecord, "role"));
-          end
-        end
       end
     </script>
     <sheetdata>
@@ -253,17 +263,17 @@
       <label_content_column name="role_label">
         <static textres="class_label_role" />
       </label_content_column>
-      <string_content_columnh name="role" />
+      <string_content_columnh name="role" source="traits.role.text" />
 
       <label_content_column name="powersource_label">
         <static textres="class_label_powersource" />
       </label_content_column>
-      <string_content_columnh name="powersource" />
+      <string_content_columnh name="powersource" source="traits.powersource.text" />
 
       <label_content_column name="keyabilities_label">
         <static textres="class_label_keyabilities" />
       </label_content_column>
-      <string_content_columnh name="keyabilities" />      
+      <string_content_columnh name="keyabilities" source="traits.keyabilities.text" />      
 
       <header_content_framed_headersimple name="proficiencies_header">
         <static textres="class_header_proficiencies"/>
@@ -272,36 +282,41 @@
         <static textres="class_label_armorproficiencies" />
         <tooltip textres="class_tooltip_armorproficiencies" />
       </label_content_column>
-      <string_content_columnh name="armorproficiencies" source="armorproficiencies" />
+      <string_content_columnh name="armorproficiencies" source="traits.armorproficiencies.text" />
       <label_content_column name="weaponproficiencies_label">
         <static textres="class_label_weaponproficiencies" />
         <tooltip textres="class_tooltip_weaponproficiencies" />
       </label_content_column>
-      <string_content_columnh name="weaponproficiencies" source="weaponproficiencies" />
+      <string_content_columnh name="weaponproficiencies" source="traits.weaponproficiencies.text" />
+      <label_content_column name="implementproficiencies_label">
+        <static textres="class_label_implementproficiencies" />
+        <tooltip textres="class_tooltip_implementproficiencies" />
+      </label_content_column>
+      <string_content_columnh name="implementproficiencies" source="traits.implement.text" />      
       <label_content_column name="defensebonus_label">
         <static textres="class_label_defensebonuses" />
         <tooltip textres="class_tooltip_defensebonuses" />
       </label_content_column>
-      <string_content_columnh name="defensebonus" source="defensebonus" />      
+      <string_content_columnh name="defensebonus" source="traits.bonustodefense.text" />      
       <label_content_column name="hitpointsfirstlevel_label">
         <static textres="class_label_hitpointsfirstlevel" />
         <tooltip textres="class_tooltip_weaponproficiencies" />
       </label_content_column>
-      <string_content_columnh name="hitpointsfirstlevel" source="hitpointsfirstlevel" />
+      <string_content_columnh name="hitpointsfirstlevel" source="traits.hitpoints1stlevel.text" />
       <label_content_column name="hitpointsperlevel_label">
         <static textres="class_label_hitpointsperlevel" />
         <tooltip textres="class_tooltip_hitpointsfirstlevel" />
       </label_content_column>
-      <number_content_columnh name="hpPerLevel" source="hitpointsperlevel" />
+      <number_content_columnh name="hpPerLevel" source="traits.hitpointsperlevelgained.text" />
       <label_content_column name="healingsurges_label">
         <static textres="class_label_healingsurgesperday" />
         <tooltip textres="class_tooltip_healingsurgesperday" />
       </label_content_column>
-      <string_content_columnh name="healingsurges" source="healingsurges" />
+      <string_content_columnh name="healingsurges" source="traits.healingsurgesperday.text" />
       <label_content_column name="trainedskills_label">
         <static textres="class_label_trainedskills" />
       </label_content_column>
-      <string_content_columnh name="trainedskills" source="trainedskills" />
+      <string_content_columnh name="trainedskills" source="traits.trainedskills.text" />
 
       <header_content_framed_headersimple name="classSkillList_header">
         <static textres="class_header_classskilllist"/>
@@ -311,7 +326,7 @@
         <target>classSkillList</target>
       </button_iadd>
       <list_content_column name="classSkillList">
-        <datasource>.skilllist</datasource>
+        <datasource>.traits.classskilllist</datasource>
         <class>reference_classSkill_listitem</class>
         <sortby><field>label</field></sortby>
       </list_content_column>      
@@ -387,21 +402,46 @@
         <nodrag />
       </number_content_column>
 
-      <ft_content_column_full name="text" />
+      <header_content_framed_headersimple name="feature_description_header">
+        <static textres="class_header_featuredescription"/>
+      </header_content_framed_headersimple>
+      <ft_content_column_full name="description" />
 
-      <header_content_framed_headersimple name="powerslist_header">
+      <header_content_framed_headersimple name="subfeatureslist_header">
+        <static textres="class_header_subfeaturesgiven"/>
+      </header_content_framed_headersimple>
+      <button_iadd name="subfeatureslist_iadd">
+        <anchored to="subfeatureslist_header" position="insidetopright" offset="30,0" />
+        <target>subfeatureslist</target>
+      </button_iadd>
+      <list_content_column name="subfeatureslist">
+        <datasource>.subfeatures</datasource>
+        <class>reference_classsubfeature_listitem</class>
+        <sortby><field>name</field></sortby>
+      </list_content_column>
+
+      <header_content_framed_headersimple name="subfeatureschoiceslist_header">
+        <static textres="class_header_subfeatureschoice"/>
+      </header_content_framed_headersimple>
+      <button_iadd name="subfeatureschoiceslist_iadd">
+        <anchored to="subfeatureschoiceslist_header" position="insidetopright" offset="30,0" />
+        <target>subfeatureschoiceslist</target>
+      </button_iadd>
+      <list_content_column name="subfeatureschoiceslist">
+        <datasource>.subfeaturechoices</datasource>
+        <class>reference_classsubfeature_listitem</class>
+        <sortby><field>name</field></sortby>
+      </list_content_column>      
+
+      <header_content_framed_headersimple name="powersgivenlistlist_header">
         <static textres="class_header_featurepowers"/>
       </header_content_framed_headersimple>
-      <button_iedit name="powerslist_iedit">
-        <anchored to="powerslist_header" position="insidetopright" offset="5,0" />
-        <edittarget>powerslist</edittarget>
-      </button_iedit>
-      <button_iadd name="powerslist_iadd">
-        <anchored to="powerslist_header" position="insidetopright" offset="30,0" />
-        <target>powerslist</target>
+      <button_iadd name="powersgivenlistlist_iadd">
+        <anchored to="powersgivenlistlist_header" position="insidetopright" offset="30,0" />
+        <target>powersgivenlist</target>
       </button_iadd>
-      <list_content_column name="powerslist">
-        <datasource>.powers</datasource>
+      <list_content_column name="powersgivenlist">
+        <datasource>.powersgiven</datasource>
         <class>reference_classpower_listitem</class>
         <sortby><field>name</field></sortby>
       </list_content_column>
@@ -418,7 +458,7 @@
         <target>powerschoicelist</target>
       </button_iadd>
       <list_content_column name="powerschoicelist">
-        <datasource>.powers</datasource>
+        <datasource>.poweroptions</datasource>
         <class>reference_classpower_listitem</class>
         <sortby><field>name</field></sortby>
       </list_content_column>       
@@ -428,20 +468,35 @@
   <windowclass name="reference_classpower_listitem">
     <margins control="0,0,0,2" />
     <script>
-      function update(bReadOnly)
-        WindowManager.callSafeControlUpdate(self, "name", bReadOnly);
+      function onInit()
+        self.onLockModeChanged(WindowManager.getWindowReadOnlyState(self));
+
+        <!-- If the description of the list item node is blank but it has shortcut data, make the list item shortcut connect directly to that shortcut -->
+        local node = getDatabaseNode();
+        if node then
+          local sClass, sRecord = DB.getValue(node, "link", "", "");
+          if sClass == "powerdesc" then
+            local sLocalDescriptionText = DB.getText(node, "description");
+            if not sLocalDescriptionText or sLocalDescriptionText == "" then
+              local sLinkedPowerDescriptionText = DB.getText(DB.getPath(sRecord, "description"));
+              self.link.setValue(DB.getValue(node, "link", "", ""));
+            end
+          end
+        end
+      end
+      function onLockModeChanged(bReadOnly)
+        local tControls = { "name", "idelete", };
+        WindowManager.callSafeControlsSetLockMode(self, tControls, bReadOnly);
       end
     </script>
     <sheetdata>
       <anchor_listitem_left_sm name="leftanchor" />
       <anchor_listitem_right_sm name="rightanchor" />
 
-      <linkc_listitem_right name="shortcut">
+      <button_listitem_idelete_left name="idelete" />
+      <linkc_listitem_left name="link">
         <class>powerdesc</class>
-      </linkc_listitem_right>
-      <button_listitem_idelete name="idelete">
-        <editmode>powerslist_iedit</editmode>
-      </button_listitem_idelete>
+      </linkc_listitem_left>
 
       <string_listitem_center name="name">
         <empty textres="library_recordtype_empty_classfeaturepower" />

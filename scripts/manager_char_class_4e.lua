@@ -326,7 +326,6 @@ function addEssentialsClassFeatures(rAdd, sRecord, sDescriptionText, sClassName,
 			while nNextFeatureWithLevel < 30 and not string.match(sDescriptionText, "<p><b>Level " .. nNextFeatureWithLevel .. ":</b></p>") do
 				nNextFeatureWithLevel = nNextFeatureWithLevel + 1;
 			end
-			Debug.console("nNextFeatureWithLevel", nNextFeatureWithLevel);
 			if sDescriptionText and string.find(sDescriptionText, "<p><b>Level " .. nLevel .. ":</b></p>") and string.find(sDescriptionText, "<p><b>Level " .. nNextFeatureWithLevel .. ":</b></p>") then
 				sDescriptionText = string.match(sDescriptionText, "<p><b>Level " .. nLevel .. ":</b></p>(.-)<p><b>Level " .. nNextFeatureWithLevel .. ":</b></p>");
 			else
@@ -379,7 +378,6 @@ function addEssentialsClassFeatures(rAdd, sRecord, sDescriptionText, sClassName,
 							end
 						end
 						if isFeatureInList == false then
-							Debug.console("v", v);
 							CharClassFeatureManager.addClassSpecificFeatures(sClassName, rAdd, v, sClassFeatureFilteredDescriptionText, sClassFeatureSpecificDescriptionText);
 						end
 					end
