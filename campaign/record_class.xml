@@ -7,6 +7,13 @@
 
 <root>
   <windowclass name="reference_class" copy="record_window_tabbed">
+    <placement>
+      <size width="600" height="700" />
+    </placement>
+    <sizelimits>
+      <minimum width="500" height="500" />
+      <dynamic />
+    </sizelimits>    
     <tab>
       <name>main</name>
       <resource>tab_main</resource>
@@ -508,5 +515,47 @@
         <font>sheetlabel</font>
       </string_listitem_center>
     </sheetdata>
-  </windowclass>   
+  </windowclass>
+
+  <windowclass name="reference_classfeaturechoice" copy="record_window" />
+  <windowclass name="reference_classfeaturechoice_header" copy="record_header">
+    <name_emptyres>library_recordtype_empty_classfeaturechoice</name_emptyres>
+  </windowclass>
+  <windowclass name="reference_classfeaturechoice_main">
+    <margins control="0,0,0,5" />
+    <script>
+      function onInit()
+        self.onLockModeChanged(WindowManager.getWindowReadOnlyState(self));
+      end
+      function onLockModeChanged(bReadOnly)
+        local tFields = { "choicetype", "level", "prerequisite", "repeatable", "text", };
+        WindowManager.callSafeControlsSetLockMode(self, tFields, bReadOnly);
+      end
+    </script>
+    <sheetdata>
+      <anchor_content_top />
+
+      <label_content_column name="choicetype_label">
+        <static textres="classfeaturechoice_label_choicetype" />
+      </label_content_column>
+      <string_content_columnh name="choicetype" />
+
+      <label_content_column name="level_label">
+        <static textres="level" />
+      </label_content_column>
+      <number_content_column name="level" />
+
+      <label_content_column name="prerequisite_label">
+        <static textres="classfeaturechoice_label_prerequisite" />
+      </label_content_column>
+      <string_content_columnh name="prerequisite" />
+
+      <label_content_column name="repeatable_label">
+        <static textres="classfeaturechoice_label_repeatable" />
+      </label_content_column>
+      <button_checkbox_content_columnh name="repeatable" />
+
+      <ft_content_column_full name="text" />
+    </sheetdata>
+  </windowclass>
 </root>

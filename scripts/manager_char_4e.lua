@@ -146,7 +146,14 @@ function updateClassFieldsFromDescription(nodeRecord)
 				if sSkill ~= "" then
 					local nodeSkill = DB.createChild(DB.getPath(nodeRecord, "traits.classskilllist"));
 					if nodeSkill then
-						DB.setValue(nodeSkill, "name", "string", sSkill);
+						local sSkillName = string.match(sSkill, "(.-)%(.-%)");
+						local sSkillStat = string.match(sSkill, ".-%((.-)%)");
+						if sSkillName and sSkillStat then
+							DB.setValue(nodeSkill, "name", "string", sSkillName);
+							DB.setValue(nodeSkill, "statname", "string", sSkillStat);
+						else
+							DB.setValue(nodeSkill, "name", "string", sSkill);
+						end
 					end
 				end
 			end

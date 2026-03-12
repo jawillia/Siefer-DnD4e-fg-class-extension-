@@ -727,16 +727,20 @@ function addClassSkill(rAdd, sRecord, sDescriptionText)
 	local sSkillValue = '';
 	local sNumberOfTrainedSkills = '0';
 	local nNumberOfTrainedSkills = 0;
-	local rSkillsNode = DB.findNode(DB.getPath(sRecord, "skillbonuses"));
+	local rSkillsNode = DB.findNode(DB.getPath(sRecord, "classSkillList"));
 	if rSkillsNode then
 		sSkillValue = DB.getText(rSkillsNode);
-	elseif DB.findNode(DB.getPath(sRecord, "traits")) then
+		Debug.console("First sSkillValue", sSkillValue);
+	elseif DB.findNode(DB.getPath(sRecord, "traits")) and DB.findNode(DB.getPath(sRecord, "classskilllist")) then
+		Debug.console("Falling into traits node");
 		local rRecordTraitsNode = DB.findNode(DB.getPath(sRecord, "traits"));
-		local rSkillTraitsNode = DB.getChild(rRecordTraitsNode, "skillbonuses");
-		if rSkillTraitsNode then
-			local rSkillTextNode = DB.getChild(rSkillTraitsNode, "text");
-			sSkillValue = DB.getText(rSkillTextNode);
+		for _,x in pairs(DB.getChildren(rRecordTraitsNode, "classskilllist")) do
+			sSkillValue = sSkillValue .. DB.getText(x, "name") .. ",";
 		end
+		sSkillValue = string.gsub(sSkillValue, ",%s*$", "");
+		local sTrainedSkillsTextLine = DB.getText(DB.getChild(rRecordTraitsNode, "trainedskills.text"));
+		Debug.console("sTrainedSkillsTextLine", sTrainedSkillsTextLine);
+		sFirstSkillSentence = string.match(sTrainedSkillsTextLine, ".-%.");
 	elseif sDescriptionText then
 		local sSkillBonusesDescriptionTextLine = string.match(sDescriptionText, "<p>%s*<b>%s*Trained Skills%s*</b>%s*:%s*(.-)</p>");
 		sFirstSkillSentence = string.match(sSkillBonusesDescriptionTextLine, ".-%.");
