@@ -400,7 +400,7 @@
         self.onLockModeChanged(WindowManager.getWindowReadOnlyState(self));
       end
       function onLockModeChanged(bReadOnly)
-        local tFields = { "level", "text", };
+        local tFields = { "level", "description", };
         WindowManager.callSafeControlsSetLockMode(self, tFields, bReadOnly);
       end
     </script>
@@ -419,17 +419,17 @@
       </header_content_framed_headersimple>
       <ft_content_column_full name="description" />
 
-      <header_content_framed_headersimple name="subfeatureslist_header">
-        <static textres="class_header_subfeaturesgiven"/>
-      </header_content_framed_headersimple>
+    <header_content_framed_headersimple name="subfeatureslist_header">
+          <static textres="class_header_subfeaturesgiven"/>
+        </header_content_framed_headersimple>
       <button_iadd name="subfeatureslist_iadd">
         <anchored to="subfeatureslist_header" position="insidetopright" offset="30,0" />
-        <target>subfeatureslist</target>
+          <target>subfeatureslist</target>
       </button_iadd>
       <list_content_column name="subfeatureslist">
-        <datasource>.subfeatures</datasource>
-        <class>reference_classsubfeature_listitem</class>
-        <sortby><field>name</field></sortby>
+          <datasource>.subfeatures</datasource>
+          <class>reference_classsubfeature_listitem</class>
+          <sortby><field>name</field></sortby>
       </list_content_column>
 
       <header_content_framed_headersimple name="subfeatureschoiceslist_header">
@@ -440,10 +440,10 @@
         <target>subfeatureschoiceslist</target>
       </button_iadd>
       <list_content_column name="subfeatureschoiceslist">
-        <datasource>.subfeaturechoices</datasource>
+          <datasource>.subfeaturechoices</datasource>
         <class>reference_classsubfeature_listitem</class>
         <sortby><field>name</field></sortby>
-      </list_content_column>      
+      </list_content_column>
 
       <header_content_framed_headersimple name="powersgivenlistlist_header">
         <static textres="class_header_featurepowers"/>
@@ -459,10 +459,10 @@
       </list_content_column>
 
       <header_content_framed_headersimple name="powerchoiceslist_header">
-        <static textres="class_header_featurepowerschoice"/>
+          <static textres="class_header_featurepowerschoice"/>
       </header_content_framed_headersimple>
       <button_iedit name="powerschoicelist_iedit">
-        <anchored to="powerchoiceslist_header" position="insidetopright" offset="5,0" />
+          <anchored to="powerchoiceslist_header" position="insidetopright" offset="5,0" />
         <edittarget>powerschoicelist</edittarget>
       </button_iedit>
       <button_iadd name="powerschoicelist_iadd">
@@ -473,7 +473,7 @@
         <datasource>.poweroptions</datasource>
         <class>reference_classpower_listitem</class>
         <sortby><field>name</field></sortby>
-      </list_content_column>       
+      </list_content_column>   
     </sheetdata>
   </windowclass>
 
@@ -528,7 +528,7 @@
         self.onLockModeChanged(WindowManager.getWindowReadOnlyState(self));
       end
       function onLockModeChanged(bReadOnly)
-        local tFields = { "choicetype", "level", "prerequisite", "repeatable", "text", };
+        local tFields = { "choicetype", "level", "prerequisite", "repeatable", "description", };
         WindowManager.callSafeControlsSetLockMode(self, tFields, bReadOnly);
       end
     </script>
@@ -555,7 +555,66 @@
       </label_content_column>
       <button_checkbox_content_columnh name="repeatable" />
 
-      <ft_content_column_full name="text" />
+      <header_content_framed_headersimple name="feature_description_header">
+        <static textres="class_header_featuredescription"/>
+      </header_content_framed_headersimple>
+      <ft_content_column_full name="description" />
+
+    <header_content_framed_headersimple name="subfeatureslist_header">
+          <static textres="class_header_subfeaturesgiven"/>
+        </header_content_framed_headersimple>
+      <button_iadd name="subfeatureslist_iadd">
+        <anchored to="subfeatureslist_header" position="insidetopright" offset="30,0" />
+          <target>subfeatureslist</target>
+      </button_iadd>
+      <list_content_column name="subfeatureslist">
+          <datasource>.subfeatures</datasource>
+          <class>reference_classsubfeature_listitem</class>
+          <sortby><field>name</field></sortby>
+      </list_content_column>
+
+      <header_content_framed_headersimple name="subfeatureschoiceslist_header">
+        <static textres="class_header_subfeatureschoice"/>
+      </header_content_framed_headersimple>
+      <button_iadd name="subfeatureschoiceslist_iadd">
+        <anchored to="subfeatureschoiceslist_header" position="insidetopright" offset="30,0" />
+        <target>subfeatureschoiceslist</target>
+      </button_iadd>
+      <list_content_column name="subfeatureschoiceslist">
+          <datasource>.subfeaturechoices</datasource>
+        <class>reference_classsubfeature_listitem</class>
+        <sortby><field>name</field></sortby>
+      </list_content_column>
+
+      <header_content_framed_headersimple name="powersgivenlistlist_header">
+        <static textres="class_header_featurepowers"/>
+      </header_content_framed_headersimple>
+      <button_iadd name="powersgivenlistlist_iadd">
+        <anchored to="powersgivenlistlist_header" position="insidetopright" offset="30,0" />
+        <target>powersgivenlist</target>
+      </button_iadd>
+      <list_content_column name="powersgivenlist">
+        <datasource>.powersgiven</datasource>
+        <class>reference_classpower_listitem</class>
+        <sortby><field>name</field></sortby>
+      </list_content_column>
+
+      <header_content_framed_headersimple name="powerchoiceslist_header">
+          <static textres="class_header_featurepowerschoice"/>
+      </header_content_framed_headersimple>
+      <button_iedit name="powerschoicelist_iedit">
+          <anchored to="powerchoiceslist_header" position="insidetopright" offset="5,0" />
+        <edittarget>powerschoicelist</edittarget>
+      </button_iedit>
+      <button_iadd name="powerschoicelist_iadd">
+        <anchored to="powerchoiceslist_header" position="insidetopright" offset="30,0" />
+        <target>powerschoicelist</target>
+      </button_iadd>
+      <list_content_column name="powerschoicelist">
+        <datasource>.poweroptions</datasource>
+        <class>reference_classpower_listitem</class>
+        <sortby><field>name</field></sortby>
+      </list_content_column>
     </sheetdata>
   </windowclass>
 </root>

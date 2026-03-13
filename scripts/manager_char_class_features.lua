@@ -74,18 +74,6 @@ function isNotAddingFeaturePower(sClassFeatureName)
 	});
 end
 
-function addClassSpecificPreFeatures(sClassName, rAdd, sDescriptionText, tClassFeatures)
-	switch(sClassName:upper(), 
-	{
-		["CLERIC (WARPRIEST)"] = function() return addClericWarpriestPreFeatures(sClassName, rAdd, sDescriptionText, tClassFeatures) end,
-		["DRUID (SENTINEL)"] = function() return addDruidSentinelPreFeatures(sClassName, rAdd, sDescriptionText, tClassFeatures) end,
-		["WARLOCK (HEXBLADE)"] = function() return addWarlockHexbladePreFeatures(sClassName, rAdd, sDescriptionText, tClassFeatures) end,
-		["WARLOCK (BINDER)"] = function() return addWarlockBinderPreFeatures(sClassName, rAdd, sDescriptionText, tClassFeatures) end,
-		["DRUID (PROTECTOR)"] = function() return addDruidProtectorPreFeatures(sClassName, rAdd, sDescriptionText, tClassFeatures) end,
-		["PALADIN (CAVALIER)"] = function() return addPaladinCavalierPreFeatures(sClassName, rAdd, sDescriptionText, tClassFeatures) end		
-	});
-end
-
 --Basic Add Feature Method
 function addClassFeature(rAdd, sClassFeatureName, sClassFeatureDescription, sClassFeatureOriginalDescription)
 	local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
@@ -96,7 +84,6 @@ function addClassFeature(rAdd, sClassFeatureName, sClassFeatureDescription, sCla
 
 	--For each feature, add all powers in it (if it doesn't have the words implying a choice, like "choose", "choice", or "following")
 	if sClassFeatureOriginalDescription and isNotAddingFeaturePower(sClassFeatureName) == false then
-		Debug.console("Adding powers from " .. sClassFeatureName);
 		CharClassPowerManager.addPowersFromText(sClassFeatureOriginalDescription, rAdd, sClassFeatureName);
 	end
 
@@ -118,6 +105,21 @@ function addDefaultClassFeature(sClassName, rAdd, sClassFeatureName, sClassFeatu
 		string.find(sClassFeatureOriginalDescription:lower(), "you gain a.- feature associated with your") then
 			addPreChosenClassFeature(rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
 	end
+end
+
+---------------------------------------------
+----Prefeature Methods
+---------------------------------------------
+function addClassSpecificPreFeatures(sClassName, rAdd, sDescriptionText, tClassFeatures)
+	switch(sClassName:upper(), 
+	{
+		["CLERIC (WARPRIEST)"] = function() return addClericWarpriestPreFeatures(sClassName, rAdd, sDescriptionText, tClassFeatures) end,
+		["DRUID (SENTINEL)"] = function() return addDruidSentinelPreFeatures(sClassName, rAdd, sDescriptionText, tClassFeatures) end,
+		["WARLOCK (HEXBLADE)"] = function() return addWarlockHexbladePreFeatures(sClassName, rAdd, sDescriptionText, tClassFeatures) end,
+		["WARLOCK (BINDER)"] = function() return addWarlockBinderPreFeatures(sClassName, rAdd, sDescriptionText, tClassFeatures) end,
+		["DRUID (PROTECTOR)"] = function() return addDruidProtectorPreFeatures(sClassName, rAdd, sDescriptionText, tClassFeatures) end,
+		["PALADIN (CAVALIER)"] = function() return addPaladinCavalierPreFeatures(sClassName, rAdd, sDescriptionText, tClassFeatures) end		
+	});
 end
 
 --Add sub-class feature that is given automatically based on the class's pre-feature chosen at level 1 (like domain, pact, etc)

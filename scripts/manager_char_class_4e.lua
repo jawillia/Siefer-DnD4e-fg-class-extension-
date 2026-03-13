@@ -410,13 +410,16 @@ function addEssentialsClassFeatures(rAdd, sRecord, sDescriptionText, sClassName,
 		end
 	end
 end
-function addStandardAEDUClassFeatures(rAdd, sRecord, sDescriptionText, sClassName)
+function addStandardAEDUClassFeatures(rAdd, sRecord, sDescriptionText, sClassName, nLevel)
+	if not nLevel then
+		nLevel = 1;
+	end
 	local sClassFeaturesValue = '';
 	local sClassFeatureSpecificDescriptionText = '';
 	local sClassFeatureFilteredDescriptionText = '';
 	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
 
-	if sDescriptionText then
+	if sDescriptionText and nLevel == 1 then
 		-- then through the description text
 		local sClassFeaturesDescriptionTextLine = string.match(sDescriptionText, "<p>%s*<b>%s*Class features%s*:%s*</b>(.-)</p>");
 		if sClassFeaturesDescriptionTextLine then
@@ -730,16 +733,13 @@ function addClassSkill(rAdd, sRecord, sDescriptionText)
 	local rSkillsNode = DB.findNode(DB.getPath(sRecord, "classSkillList"));
 	if rSkillsNode then
 		sSkillValue = DB.getText(rSkillsNode);
-		Debug.console("First sSkillValue", sSkillValue);
 	elseif DB.findNode(DB.getPath(sRecord, "traits")) and DB.findNode(DB.getPath(sRecord, "classskilllist")) then
-		Debug.console("Falling into traits node");
 		local rRecordTraitsNode = DB.findNode(DB.getPath(sRecord, "traits"));
 		for _,x in pairs(DB.getChildren(rRecordTraitsNode, "classskilllist")) do
 			sSkillValue = sSkillValue .. DB.getText(x, "name") .. ",";
 		end
 		sSkillValue = string.gsub(sSkillValue, ",%s*$", "");
 		local sTrainedSkillsTextLine = DB.getText(DB.getChild(rRecordTraitsNode, "trainedskills.text"));
-		Debug.console("sTrainedSkillsTextLine", sTrainedSkillsTextLine);
 		sFirstSkillSentence = string.match(sTrainedSkillsTextLine, ".-%.");
 	elseif sDescriptionText then
 		local sSkillBonusesDescriptionTextLine = string.match(sDescriptionText, "<p>%s*<b>%s*Trained Skills%s*</b>%s*:%s*(.-)</p>");

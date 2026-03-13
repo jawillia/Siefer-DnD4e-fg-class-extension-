@@ -26,6 +26,8 @@
 		<includefile source="campaign/record_class.xml" />
 		<includefile source="campaign/record_char_combat_with_classbonus.xml" />
 
+		<includefile source="campaign/template_char_class_ext.xml" />
+
 		<!-- High-Level Scripts -->
 		<script name="CharManagerWith4EClassExtension" file="scripts/manager_char_4e.lua" />
 		<script name="CharClassBuildDropManager" file="scripts/manager_char_build_drop_4e.lua" />

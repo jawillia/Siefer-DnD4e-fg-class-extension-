@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- 
+  Please see the license.html file included with this distribution for 
+  attribution and copyright information.
+-->
+
+<root>
+	<template name="list_classfeatures_subfeaturesgiven">
+		<header_content_framed_headersimple name="subfeatureslist_header">
+        	<static textres="class_header_subfeaturesgiven"/>
+      	</header_content_framed_headersimple>
+    	<button_iadd name="subfeatureslist_iadd">
+    		<anchored to="subfeatureslist_header" position="insidetopright" offset="30,0" />
+        	<target>subfeatureslist</target>
+    	</button_iadd>
+    	<list_content_column name="subfeatureslist">
+        	<datasource>.subfeatures</datasource>
+        	<class>reference_classsubfeature_listitem</class>
+        	<sortby><field>name</field></sortby>
+    	</list_content_column> 
+	</template>
+	<template name="list_classfeatures_subfeaturesoptions">
+    	<header_content_framed_headersimple name="subfeatureschoiceslist_header">
+    		<static textres="class_header_subfeatureschoice"/>
+    	</header_content_framed_headersimple>
+    	<button_iadd name="subfeatureschoiceslist_iadd">
+        <anchored to="subfeatureschoiceslist_header" position="insidetopright" offset="30,0" />
+        <target>subfeatureschoiceslist</target>
+    	</button_iadd>
+    	<list_content_column name="subfeatureschoiceslist">
+        	<datasource>.subfeaturechoices</datasource>
+    		<class>reference_classsubfeature_listitem</class>
+    		<sortby><field>name</field></sortby>
+    	</list_content_column>		
+	</template>
+
+	<template name="list_classfeature_powersgiven">
+    	<header_content_framed_headersimple name="powersgivenlistlist_header">
+    		<static textres="class_header_featurepowers"/>
+    	</header_content_framed_headersimple>
+    	<button_iadd name="powersgivenlistlist_iadd">
+    		<anchored to="powersgivenlistlist_header" position="insidetopright" offset="30,0" />
+    		<target>powersgivenlist</target>
+    	</button_iadd>
+    	<list_content_column name="powersgivenlist">
+    		<datasource>.powersgiven</datasource>
+    		<class>reference_classpower_listitem</class>
+    		<sortby><field>name</field></sortby>
+    	</list_content_column>
+	</template>
+	<template name="list_classfeature_powersoptions">
+    	<header_content_framed_headersimple name="powerchoiceslist_header">
+        	<static textres="class_header_featurepowerschoice"/>
+    	</header_content_framed_headersimple>
+    	<button_iedit name="powerschoicelist_iedit">
+        	<anchored to="powerchoiceslist_header" position="insidetopright" offset="5,0" />
+    		<edittarget>powerschoicelist</edittarget>
+    	</button_iedit>
+    	<button_iadd name="powerschoicelist_iadd">
+    		<anchored to="powerchoiceslist_header" position="insidetopright" offset="30,0" />
+    		<target>powerschoicelist</target>
+    	</button_iadd>
+    	<list_content_column name="powerschoicelist">
+    		<datasource>.poweroptions</datasource>
+    		<class>reference_classpower_listitem</class>
+    		<sortby><field>name</field></sortby>
+    	</list_content_column>		
+	</template>
+</root>
