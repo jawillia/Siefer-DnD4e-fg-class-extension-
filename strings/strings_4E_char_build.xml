@@ -56,7 +56,10 @@
   <string name="char_build_message_addchanneldivinity">Choose one of the following Channel Divinity options. Search the power name to find it. </string>
   <!-- Fighter(Weaponmaster) Feature strings -->
   <string name="char_build_title_addcombatsuperiority">Combat Superiority or Alternate</string> 
-  <string name="char_build_message_addcombatsuperiorityoragility">Choose Combat Superiority or Combat Agility. Check the chat for detailed descriptions.</string> 
+  <string name="char_build_message_addcombatsuperiorityoragility">Choose Combat Superiority or Combat Agility. Check the chat for detailed descriptions.</string>
+  <!-- Paladin Feature strings -->
+  <string name="char_build_title_addalternativepaladinfeatures">Lay on Hands or Alternate</string> 
+  <string name="char_build_message_addalternativepaladinfeatures">Choose Lay on Hands, or Ardent Vow or Virtue's Touch.</string>  
   <!-- Ranger Feature strings -->  
   <string name="char_build_title_addprimeshot">Prime Shot or Alternate</string> 
   <string name="char_build_message_addprimeshotorrunningattack">Choose Prime Shot or Running Attack.</string>

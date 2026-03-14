@@ -168,7 +168,7 @@ function displayClassPowerSelectionsDialog(rAdd, sClassFeatureOriginalDescriptio
 		local sClassFeatureDescription = DB.getText(DB.getPath(sPattern, "description"));
 		table.insert(tOptions, { text = sClassPowerName, linkclass = "powerdesc", linkrecord = DB.getPath(sPattern), });
 	end
-	if #tOptions > 0 then
+	if #tOptions > 1 then
 		--Display a pop-up where we choose from the class power options
 		if not nMaxSelections or nMaxSelections < 1 then
 			nMaxSelections = 1;
@@ -184,8 +184,7 @@ function displayClassPowerSelectionsDialog(rAdd, sClassFeatureOriginalDescriptio
 			custom = { rAdd=rAdd }, 
 		};
 		DialogManager.requestSelectionDialog(tDialogData);
-	elseif tOptions == 1 then
-		Debug.console("Adding rAdd: " .. rAdd .. ", " .. tOptions[1].text .. ", " .. tOptions[1].linkrecord);
+	elseif #tOptions == 1 then
 		addPowerFromRecordLink(rAdd, tOptions[1].text, tOptions[1].linkrecord);
 	end	
 end
@@ -272,6 +271,25 @@ function dispayItalicPowersDialog(rAdd, sClassFeatureOriginalDescription, sClass
 			custom = { rAdd=rAdd }, 
 		};
 		DialogManager.requestSelectionDialog(tDialogData);
+	end
+end
+
+
+-------------------------------------------
+----- Other Class Power Helper Methods ----
+-------------------------------------------
+function addPowersFromGlobalModuleFromPowerName(rAdd, sClassPowerName)
+	if not rAdd then
+		ChatManager.SystemMessageResource("char_error_addclassspower");
+		return;
+	end
+	local tPowerNodes = DB.getChildrenGlobal("reference.powers");
+	for _,powerNode in ipairs(tPowerNodes) do
+		local sPowerName = DB.getText(DB.getPath(powerNode, "name"));
+		if sPowerName and sPowerName ~= "" and sPowerName:lower() == sClassPowerName:lower() then
+			addPowerFromRecordLink(rAdd, sPowerName, DB.getPath(powerNode));
+			break;
+		end
 	end
 end
 

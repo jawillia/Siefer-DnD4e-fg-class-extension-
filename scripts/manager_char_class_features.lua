@@ -9,6 +9,7 @@ function addClassSpecificFeatures(sClassName, rAdd, sClassFeatureName, sClassFea
 		--PHB1
 		["CLERIC (TEMPLAR)"] = function() return addClericTemplarFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
 		["FIGHTER (WEAPONMASTER)"] = function() return addFighterWeaponmasterFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
+		["PALADIN"] = function() return addPaladinFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
 		["RANGER"] = function() return addRangerFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
 		["ROGUE (SCOUNDREL)"] = function() return addRogueScoundrelFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
 		["WARLOCK"] = function() return addWarlockFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
@@ -81,6 +82,11 @@ function addClassFeature(rAdd, sClassFeatureName, sClassFeatureDescription, sCla
 	DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
 	DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureDescription);
 	ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", sClassFeatureName, rAdd.sCharName);
+end
+
+--Add feature with all the bells and whistles: associated powers, feats, pre-features, etc.
+function addDefaultClassFeature(sClassName, rAdd, sClassFeatureName, sClassFeatureDescription, sClassFeatureOriginalDescription)
+	addClassFeature(rAdd, sClassFeatureName, sClassFeatureDescription, sClassFeatureOriginalDescription);
 
 	--For each feature, add all powers in it (if it doesn't have the words implying a choice, like "choose", "choice", or "following")
 	if sClassFeatureOriginalDescription and isNotAddingFeaturePower(sClassFeatureName) == false then
@@ -91,14 +97,6 @@ function addClassFeature(rAdd, sClassFeatureName, sClassFeatureDescription, sCla
 	if sClassFeatureOriginalDescription then
 		CharClassFeatManager.addClassFeats(sClassFeatureOriginalDescription, rAdd, sClassFeatureName);
 	end
-end
-
-function addDefaultClassFeature(sClassName, rAdd, sClassFeatureName, sClassFeatureDescription, sClassFeatureOriginalDescription)
-	local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-	DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
-	DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-	DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureDescription);
-	ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", sClassFeatureName, rAdd.sCharName);
 
 	--Add sub-feature automatically, if it's something that was chosen by the class's pre-chosen feature (i.e. domain, pact, season, element, etc)
 	if string.find(sClassFeatureOriginalDescription:lower(), "you gain a.- power associated with your") or 
@@ -230,16 +228,32 @@ function displayAlternativeFeatureDialog(rAdd, tAlternativeClassFeatures, tStrin
 	local tTotalOptionNames = {};
 	local nOptionsCount = 1;
 	for sAltclassFeatureIndex,sAltclassFeatureName in pairs(tAlternativeClassFeatures) do
-		tTotalOptionNames[nOptionsCount] = sAltclassFeatureName;
+		local sOptionName = sAltclassFeatureName;
+		--If the alternative class feature name is actually a link, take the name and link from there
+		if string.match(sAltclassFeatureName, "reference.features.(%w+)@([%w%s]+)") then
+			sFoundFeatureLink = string.match(sAltclassFeatureName, "reference.features.%w+@[%w%s]+");
+			sOptionName = DB.getText(DB.getPath(sFoundFeatureLink, "name"));
+		end
+		tTotalOptionNames[nOptionsCount] = sOptionName;
 		nOptionsCount = nOptionsCount + 1;
 	end
 	--Display links to the selections in the dialogue
 	-- local sPattern = '<link class="powerdesc" recordname="reference.features.(%w+)@([%w%s]+)">';
 	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
-	for x,y in pairs(tCurrentFeatures) do
-		for sAltclassFeatureIndex,sAltclassFeatureName in pairs(tAlternativeClassFeatures) do
-			if DB.getText(DB.getPath(y, "value")) == sAltclassFeatureName then
-				table.insert(tOptions, { text = DB.getText(DB.getPath(y, "value")), linkclass = "ref_ability", linkrecord = DB.getPath(y), });
+	for sAltclassFeatureIndex,sAltclassFeatureName in pairs(tAlternativeClassFeatures) do
+		--If the alternative class feature name is actually a link, take the name and link from there
+		if string.match(sAltclassFeatureName, "reference.features.(%w+)@([%w%s]+)") then
+			local sUsedFeatureLink = string.match(sAltclassFeatureName, "reference.features.%w+@[%w%s]+");
+			local sUsedFeatureName = DB.getText(DB.getPath(sUsedFeatureLink, "name"));
+			local sUsedFeatureClass = string.match(sAltclassFeatureName, 'class=%"(.-)%"')
+			table.insert(tOptions, { text = sUsedFeatureName, linkclass = sUsedFeatureClass, linkrecord = sUsedFeatureLink, });
+		else --Otherwise take it from a current feature
+			for x,y in pairs(tCurrentFeatures) do
+				if DB.getText(DB.getPath(y, "value")) == sAltclassFeatureName then
+					local sUsedFeatureName = DB.getText(DB.getPath(y, "value"));
+					local sUsedFeatureLink = DB.getPath(y);
+					table.insert(tOptions, { text = sUsedFeatureName, linkclass = "ref_ability", linkrecord = sUsedFeatureLink, });
+				end
 			end
 		end
 	end
@@ -273,6 +287,23 @@ function callbackResolveAlternativeFeatureDialogSelection(tSelection, tData)
 						local sClassFeatureDescription = DB.getText(DB.getPath(featureNode, "description"));
 						CharClassPowerManager.addPowersFromText(sClassFeatureDescription, tData.rAdd, tSelection[1]);
 					end
+				end
+			end
+			--After deleting any extraneous feature nodes, add this node if needed
+			local sUsedFeatureLink = string.match(sAltclassFeatureName, "reference.features.%w+@[%w%s]+");
+			if string.match(sAltclassFeatureName, "reference.features.(%w+)@([%w%s]+)") then
+				if tSelection[1] == DB.getText(DB.getPath(sUsedFeatureLink, "name")) then
+					local sPattern = '<link class="powerdesc" recordname="reference.features.(%w+)@([%w%s]+)">';
+					local sFeaturesLink, sFeaturesLinkModule = string.match(sAltclassFeatureName, sPattern);
+					local rCreatedIDChildNode = DB.createChild(tData.rAdd.nodeChar.getPath("specialabilitylist"));
+					if sFeaturesLink and sFeaturesLinkModule then
+						sPattern = "reference.features." .. sFeaturesLink .. "@" .. sFeaturesLinkModule;
+						DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference", "powerdesc", sPattern);
+					end
+					DB.setValue(rCreatedIDChildNode, "value", "string", DB.getText(DB.getPath(sPattern, "name")));
+
+					local sClassFeatureDescription = DB.getValue(DB.getPath(sUsedFeatureLink, "description"));
+					CharClassPowerManager.addPowersFromText(sClassFeatureDescription, tData.rAdd, tSelection[1]);
 				end
 			end
 		end
@@ -614,6 +645,61 @@ function addFighterWeaponmasterFeatures(sClassName, rAdd, sClassFeatureName, sCl
 		-- Add the feature and choose between all of the fighter talents
 		addClassFeature(rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription);
 		displayClassFeatureSelectionsDialog(rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
+	else
+		addDefaultClassFeature(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription);
+	end
+end
+
+------------------------------------------------
+----- Paladin Class Features ----
+------------------------------------------------
+function addPaladinFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription)
+	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
+	local tAlternativeClassFeaturesOptions = {};
+	tAlternativeClassFeaturesOptions[1] = "Lay On Hands";
+	tAlternativeClassFeaturesOptions[2] = "Alternative Paladin Features";
+	--String data for the dialogue windows. 1 is title, 2 is message.
+	local tStringCharBuildData = {};
+	tStringCharBuildData[1] = "char_build_title_addalternativepaladinfeatures";
+	tStringCharBuildData[2] = "char_build_message_addalternativepaladinfeatures";
+	if sClassFeatureName == "Channel Divinity" then
+		--Add the feature and it's powers
+		addClassFeature(rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription);
+		for channelDivinityPowerName in string.gmatch(sClassFeatureOriginalDescription, "<i>(.-)</i>") do
+			CharClassPowerManager.addPowersFromGlobalModuleFromPowerName(rAdd, StringManager.trim(channelDivinityPowerName));
+		end
+	elseif sClassFeatureName == "Lay On Hands" then
+		--Add the feature, but if you have also already added Alternative Paladin Features, choose between them
+		addClassFeature(rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription);
+		for _, featureNode in pairs(tCurrentFeatures) do
+			if DB.getText(DB.getPath(featureNode, "value")) == "Alternative Paladin Features" then
+				local sPattern = '<link class="powerdesc" recordname="reference.features.%w+@[%w%s]+">';
+				local sFeaturesLink = string.match(sClassFeatureOriginalDescription, sPattern);
+				if sFeaturesLink then
+					tAlternativeClassFeaturesOptions[2] = sFeaturesLink;
+				end
+				--The Alt Pal Features feature comes with it's own Benefits feature node that will be added if selected, so delete this Alt Pal Features node 
+				deleteFromSpecialAbilities(rAdd, nil, "Alternative Paladin Features");
+				displayAlternativeFeatureDialog(rAdd, tAlternativeClassFeaturesOptions, tStringCharBuildData);
+				break;
+			end
+		end		
+	elseif sClassFeatureName == "Alternative Paladin Features" then
+		--Add the feature, but if you have also already added Lay on Hands, choose between them
+		addClassFeature(rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription);
+		for _, featureNode in pairs(tCurrentFeatures) do
+			if DB.getText(DB.getPath(featureNode, "value")) == "Lay On Hands" then
+				local sPattern = '<link class="powerdesc" recordname="reference.features.%w+@[%w%s]+">';
+				local sFeaturesLink = string.match(sClassFeatureOriginalDescription, sPattern);
+				if sFeaturesLink then
+					tAlternativeClassFeaturesOptions[2] = sFeaturesLink;
+				end
+				--The Alt Pal Features feature comes with it's own Benefits feature node that will be added if selected, so delete this Alt Pal Features node 
+				deleteFromSpecialAbilities(rAdd, nil, "Alternative Paladin Features");
+				displayAlternativeFeatureDialog(rAdd, tAlternativeClassFeaturesOptions, tStringCharBuildData);
+				break;
+			end
+		end
 	else
 		addDefaultClassFeature(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription);
 	end
@@ -3488,3 +3574,20 @@ function titleCase( first, rest )
    return first:upper()..rest:lower()
 end
 
+
+function deleteFromSpecialAbilities(rAdd, rFeatureNode, sFeatureName)
+	if not rAdd then
+		Debug.console("rAdd not found. Should replace this with a chat message...");
+		return;
+	end
+	if not rFeatureNode and not sFeatureName then
+		Debug.console("rFeatureNoden or sFeatureName not found. Should replace this with a chat message...");
+		return;
+	end
+	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
+	for _, featureNode in pairs(tCurrentFeatures) do
+		if (rFeatureNode and featureNode == rFeatureNode) or (sFeatureName and DB.getText(DB.getPath(featureNode, "value")) == sFeatureName) then
+			DB.deleteNode(featureNode);
+		end
+	end
+end

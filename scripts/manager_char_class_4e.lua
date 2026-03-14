@@ -426,6 +426,10 @@ function addStandardAEDUClassFeatures(rAdd, sRecord, sDescriptionText, sClassNam
 			sClassFeaturesValue = string.match(sClassFeaturesDescriptionTextLine, "[%w,'%(%)%-%s]+");
 		end
 		local tClassFeatures = StringManager.split(sClassFeaturesValue, ',', true);
+		--Add in Alternative Paladin Features manually because it's not included in the class features
+		if sClassName == "Paladin" then
+			table.insert(tClassFeatures, "Alternative Paladin Features")
+		end
 		for w,v in pairs(tClassFeatures) do
 			local sClassFeatureDescriptionPattern = '';
 			v = v:gsub("[%(%)%-]", "%%%0");
