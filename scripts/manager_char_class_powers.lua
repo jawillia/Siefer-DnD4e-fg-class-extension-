@@ -50,7 +50,9 @@ function addPowersFromText(sDescriptionText, rAdd, sClassFeatureName, sSubFeatur
 	if string.find(sDescriptionText:lower(), "choose") 
 		or string.find(sDescriptionText:lower(), "choice")
 		or string.find(sDescriptionText:lower(), "following")
-		or string.find(sDescriptionText:lower(), "gain one") then
+		or string.find(sDescriptionText:lower(), "gain one")
+		or string.find(sClassFeatureName:lower(), "level [%d]+ .* daily power")
+		or string.find(sClassFeatureName:lower(), "level [%d]+ .* utility power") then
 			if not nNumberOfPowers then
 				nNumberOfPowers = 1;
 				if string.find(sDescriptionText:lower(), "two") then
@@ -121,7 +123,7 @@ function addAllPowersFromFeatureText(rAdd, sSubClassFeatureOriginalDescription, 
 		local sPowerPath = "reference.powers." .. w .. "@" .. v;
 		local sPowerName = DB.getText(DB.getPath(sPowerPath, "name"));
 		--Is power name in Sub-Feature, add it to table
-		if sPowerName and string.find(sSubClassFeatureOriginalDescription:lower(), sPowerName:lower()) then
+		if sPowerName and string.find(sSubClassFeatureOriginalDescription:lower(), sPowerName:lower(), 1, true) then
 			tPowersInFeature[sPowerName] = sPowerPath;
 		end
 	end
@@ -139,8 +141,8 @@ function addPreFeaturePower(rAdd, sDescriptionText, sPrefeatureType, sClassFeatu
 	end
 
 	if sSubFeatureDescriptionText == nil or sSubFeatureDescriptionText == "" then
-		local sChosenPrefeature = CharClassFeatureManager.getChosenPrefeature(rAdd, sDescriptionText, sPrefeatureType);
-		local sPrefeatureName, sClassFeatureLink = CharClassFeatureManager.getPrefeatureBasedFeatureNameAndLinkFromOtherFeature(sChosenPrefeature, sDescriptionText);
+		local sChosenPrefeature = CharClassFeatureDescManager.getChosenPrefeature(rAdd, sDescriptionText, sPrefeatureType);
+		local sPrefeatureName, sClassFeatureLink = CharClassFeatureDescManager.getPrefeatureBasedFeatureNameAndLinkFromOtherFeature(sChosenPrefeature, sDescriptionText);
 		if sClassFeatureLink then
 			sSubFeatureDescriptionText = DB.getText(DB.getPath(sClassFeatureLink, "description"));
 		end

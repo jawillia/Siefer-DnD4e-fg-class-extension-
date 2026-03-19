@@ -276,7 +276,7 @@ end
 
 function addClassFeatures(rAdd, sRecord, sDescriptionText, sClassName, nLevel)
 	if isEssentialsClass(sClassName) then
-		addEssentialsClassFeatures(rAdd, sRecord, sDescriptionText, sClassName, nLevel);
+		addEssentialsClassFeatures(rAdd, sRecord, sDescriptionText, sClassName, nLevel, sDescriptionText);
 	else
 		addStandardAEDUClassFeatures(rAdd, sRecord, sDescriptionText, sClassName, nLevel);
 	end
@@ -304,9 +304,12 @@ function addClassFeatures(rAdd, sRecord, sDescriptionText, sClassName, nLevel)
 	-- elseif sDescriptionText then
 end
 
-function addEssentialsClassFeatures(rAdd, sRecord, sDescriptionText, sClassName, nLevel)
+function addEssentialsClassFeatures(rAdd, sRecord, sDescriptionText, sClassName, nLevel, sFullDescriptionText, bSkipPrefeatures)
 	if not nLevel then
 		nLevel = 1;
+	end
+	if not bSkipPrefeatures then
+		bSkipPrefeatures = false;
 	end
 	local bLevelInfoFound = true;
 	local sClassFeaturesValue = '';
@@ -346,8 +349,8 @@ function addEssentialsClassFeatures(rAdd, sRecord, sDescriptionText, sClassName,
 			--Pre-Feature Class Feature added here, features that must be chosen before other features, like warpriest domains
 			local tClassesWithPreFeatures = {};
 			tClassesWithPreFeatures = loadClassesWithPreFeatures(tClassesWithPreFeatures);
-			if tClassesWithPreFeatures[sClassName:upper()] and nLevel == 1 then
-				CharClassFeatureManager.addClassSpecificPreFeatures(sClassName, rAdd, sDescriptionText, tClassFeatures);
+			if tClassesWithPreFeatures[sClassName:upper()] and nLevel == 1 and bSkipPrefeatures == false then
+				CharClassFeatureDescManager.addClassSpecificPreFeatures(sClassName, rAdd, sDescriptionText, tClassFeatures, nLevel, sFullDescriptionText);
 			else
 				if nLevel == 1 then
 					for w,v in pairs(tClassFeatures) do
@@ -362,8 +365,10 @@ function addEssentialsClassFeatures(rAdd, sRecord, sDescriptionText, sClassName,
 								sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v .. "%s*</b></p>%s*(.-)<p><b>";
 							end
 							sClassFeatureSpecificDescriptionText = string.match(sDescriptionText, sClassFeatureDescriptionPattern);
+							Debug.console("In one");
 						elseif w == #tClassFeatures then
 							sClassFeatureSpecificDescriptionText, sClassFeatureDescriptionPattern = cutoffLastClassFeatureDescription(sDescriptionText, sClassFeatureSpecificDescriptionText, v, sClassName);
+							Debug.console("In two", v);
 						end
 						if sClassFeatureSpecificDescriptionText then
 							sClassFeatureFilteredDescriptionText = convertHTMLTable(removeLinkLists(sClassFeatureSpecificDescriptionText));
@@ -378,7 +383,7 @@ function addEssentialsClassFeatures(rAdd, sRecord, sDescriptionText, sClassName,
 							end
 						end
 						if isFeatureInList == false then
-							CharClassFeatureManager.addClassSpecificFeatures(sClassName, rAdd, v, sClassFeatureFilteredDescriptionText, sClassFeatureSpecificDescriptionText);
+							CharClassFeatureDescManager.addClassSpecificFeatures(sClassName, rAdd, v, sClassFeatureFilteredDescriptionText, sClassFeatureSpecificDescriptionText, sFullDescriptionText);
 						end
 					end
 				else
@@ -402,7 +407,7 @@ function addEssentialsClassFeatures(rAdd, sRecord, sDescriptionText, sClassName,
 							end
 						end
 						if isFeatureInList == false then
-							CharClassFeatureManager.addClassSpecificFeatures(sClassName, rAdd, classFeatureName, sClassFeatureFilteredDescriptionText, sClassFeatureSpecificDescriptionText);
+							CharClassFeatureDescManager.addClassSpecificFeatures(sClassName, rAdd, classFeatureName, sClassFeatureFilteredDescriptionText, sClassFeatureSpecificDescriptionText, sFullDescriptionText);
 						end
 					end
 				end
@@ -419,7 +424,27 @@ function addStandardAEDUClassFeatures(rAdd, sRecord, sDescriptionText, sClassNam
 	local sClassFeatureFilteredDescriptionText = '';
 	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
 
-	if sDescriptionText and nLevel == 1 then
+	local sRecordFeatureNode = DB.findNode(DB.getPath(sRecord, "features"));
+	if sRecordFeatureNode and nLevel == 1 then
+	local nodeFeatureChildren = DB.getChildren(sRecordFeatureNode);
+	for nodeName,nodeChild in pairs(nodeFeatureChildren) do
+		local isFeatureInList = false;
+		for _, featureNode in pairs(tCurrentFeatures) do
+			if DB.getText(featureNode, "value") == DB.getText(nodeChild, "name") then
+				isFeatureInList = true;
+				break;
+			end
+		end
+		if isFeatureInList == false then
+			local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+			DB.setValue(rCreatedIDChildNode, "description", "string", DB.getText(DB.getPath(nodeChild, "description")));
+	    	DB.createChild(rCreatedIDChildNode, "shortcut", "windowreference");
+	    	DB.setValue(rCreatedIDChildNode, "value", "string", DB.getText(DB.getPath(nodeChild, "name")));
+	    	local sRacialFeatureName = DB.getText(rCreatedIDChildNode, "value");
+	    	ChatManager.SystemMessageResource("char_abilities_message_featureadd", sRacialFeatureName, rAdd.sCharName);
+	    end
+	end
+	elseif sDescriptionText and nLevel == 1 then
 		-- then through the description text
 		local sClassFeaturesDescriptionTextLine = string.match(sDescriptionText, "<p>%s*<b>%s*Class features%s*:%s*</b>(.-)</p>");
 		if sClassFeaturesDescriptionTextLine then
@@ -453,7 +478,7 @@ function addStandardAEDUClassFeatures(rAdd, sRecord, sDescriptionText, sClassNam
 				end
 			end
 			if isFeatureInList == false then
-				CharClassFeatureManager.addClassSpecificFeatures(sClassName, rAdd, v, sClassFeatureFilteredDescriptionText, sClassFeatureSpecificDescriptionText);
+				CharClassFeatureDescManager.addClassSpecificFeatures(sClassName, rAdd, v, sClassFeatureFilteredDescriptionText, sClassFeatureSpecificDescriptionText);
 			end
 		end
 	end
@@ -465,6 +490,7 @@ function loadClassesWithPreFeatures(tClassesWithPreFeatures)
 	tClassesWithPreFeatures["WARLOCK (BINDER)"] = true;
 	tClassesWithPreFeatures["DRUID (PROTECTOR)"] = true;
 	tClassesWithPreFeatures["PALADIN (CAVALIER)"] = true;
+	tClassesWithPreFeatures["PALADIN (BLACKGUARD)"] = true;
 
 	return tClassesWithPreFeatures;
 end
@@ -498,10 +524,10 @@ function cutoffLastClassFeatureDescription(sDescriptionText, sClassFeatureSpecif
 		sClassFeatureSpecificDescriptionText = string.match(sDescriptionText, sClassFeatureDescriptionPattern);
 	end	
 	-- Then try reading to the end of the record if that didn't work
-	if sClassFeatureSpecificDescriptionText == nil then
-		sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. sClassFeatureName .. "%s*</b></p>%s*(.+)</p>";
-		sClassFeatureSpecificDescriptionText = string.match(sDescriptionText, sClassFeatureDescriptionPattern);
-	end
+	-- if sClassFeatureSpecificDescriptionText == nil then
+	-- 	sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. sClassFeatureName .. "%s*</b></p>%s*(.+)</p>";
+	-- 	sClassFeatureSpecificDescriptionText = string.match(sDescriptionText, sClassFeatureDescriptionPattern);
+	-- end
 	-- If that didn't work, try really reading to the end of the record
 	if sClassFeatureSpecificDescriptionText == nil then
 		sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. sClassFeatureName .. "%s*</b></p>%s*(.+)";
