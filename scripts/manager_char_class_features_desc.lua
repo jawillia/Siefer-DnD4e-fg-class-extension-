@@ -3,7 +3,7 @@
 -- attribution and copyright information.
 --
 
-function addClassSpecificFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription)
+function addClassSpecificFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription, nLevel, sFullDescriptionText)
 	switch(sClassName:upper(), 
 	{
 		--PHB1
@@ -38,7 +38,7 @@ function addClassSpecificFeatures(sClassName, rAdd, sClassFeatureName, sClassFea
 		--FPG
 		["SWORDMAGE"] = function() return addSwordmageFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
 		--HoFL
-		["CLERIC (WARPRIEST)"] = function() return addClericWarpriestFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
+		["CLERIC (WARPRIEST)"] = function() return addClericWarpriestFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription, nLevel, sFullDescriptionText) end,
 		["FIGHTER (KNIGHT)"] = function() return addFighterKnightFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
 		["WIZARD (MAGE)"] = function() return addWizardMageFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
 		--HotFK
@@ -127,14 +127,16 @@ function addPreChosenClassFeature(rAdd, sClassFeatureOriginalDescription, sClass
 		ChatManager.SystemMessageResource("char_error_addclassspower");
 		return;
 	end
-	local sPattern = "you gain a.- power associated with your([%w%s]+)";
+	local sPattern = "you gain a.- associated with your([%w%s]+)";
 	local sPrefeatureType = null;
 	sPrefeatureType = string.match(sClassFeatureOriginalDescription:lower(), sPattern);
 	if not sPrefeatureType then
-		sPattern = "you gain a.- feature associated with your([%w%s]+)";
+		sPattern = "gains a.- associated with your([%w%s]+)";
 		sPrefeatureType = string.match(sClassFeatureOriginalDescription:lower(), sPattern);
 	end
+
 	if sPrefeatureType then
+		sPrefeatureType = StringManager.trim(sPrefeatureType);
 		local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
 		local sChosenPrefeature = getChosenPrefeature(rAdd, sClassFeatureOriginalDescription, sPrefeatureType, sClassFeatureName);
 		local sClassFeatureName, sClassFeatureLink = getPrefeatureBasedFeatureNameAndLinkFromOtherFeature(sChosenPrefeature, sClassFeatureOriginalDescription);
@@ -166,6 +168,18 @@ function getChosenPrefeature(rAdd, sClassFeatureOriginalDescription, sPrefeature
 	end
 	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
 	local sChosenPrefeature = nil;
+	--Look for the Spirit of Vice Feature for Blackguard Paladins
+	for _, featureNode in pairs(tCurrentFeatures) do
+		--Name equals "Spirit of Vice (X)"
+		local sNamePattern = "Spirit of Vice%s%(([%a%s]+)%)";
+		local foundString = string.match(DB.getText(DB.getPath(featureNode, "value")):lower(), sNamePattern:lower());
+		if foundString then
+			local sSelectedDomainEquivalentName = StringManager.trim(StringManager.titleCase(foundString));
+			if sSelectedDomainEquivalentName then
+				return StringManager.trim(sSelectedDomainEquivalentName);
+			end
+		end
+	end
 	--If the feature has a name like "Level X [Domain] ... Power" (like Like 3 Domain Encounter Attack Power) 
 	--Add the sub-feature underneath it that matches the pre-feature chosen at level 1
 	if string.find(sClassFeatureName:lower(), "level[%s%d]*"..sPrefeatureType:lower()..".* power") or 
@@ -181,15 +195,11 @@ function getChosenPrefeature(rAdd, sClassFeatureOriginalDescription, sPrefeature
 				if sSelectedDomainEquivalentName then
 					local sDescriptionPattern = "You have selected the " .. sSelectedDomainEquivalentName .. " " .. sPrefeatureType .. ".";
 					if DB.getPath(featureNode, "description") and DB.getText(DB.getPath(featureNode, "description")) and string.find(DB.getText(DB.getPath(featureNode, "description")), sDescriptionPattern) then
-						sChosenPrefeature = sSelectedDomainEquivalentName;
-						break;
+						return StringManager.trim(sSelectedDomainEquivalentName);
 					end
 				end
 			end
 		end
-	--Look for something in a parentheses for a class sub-feature name
-	elseif string.find(sClassFeatureOriginalDescription:lower(), "<link.-%((.-)%).-</link>") then
-		sChosenPrefeature = string.match(sClassFeatureOriginalDescription, "<link.-%((.-)%).-</link>");
 	end
 
 	if not sChosenPrefeature then
@@ -198,15 +208,33 @@ function getChosenPrefeature(rAdd, sClassFeatureOriginalDescription, sPrefeature
 
 	return sChosenPrefeature;
 end
---Different Ways of Checking What a Class's Chosen Prefeature Was
-function analyzeFeaturesForChosenPrefeature(sClassFeatureName, sPrefeatureType)
-	--If the feature has a name like "Level X [Domain] ... Power" (like Like 3 Domain Encounter Attack Power) 
-	--Add the sub-feature underneath it that matches the pre-feature chosen at level 1
-	if string.find(sClassFeatureName:lower(), "level[%s%d]*"..sPrefeatureType:lower()..".* power") or 
-		string.find(sClassFeatureName:lower(), "level[%s%d]*"..sPrefeatureType:lower()..".* feature") then 
-		return true;
+
+--Replace older level power
+function replaceOlderPower(rAdd, sClassName, sAEDUType, nCharLevel)
+	local nLevel = 1;
+	local bReplaceOlderPower = true;
+	if nCharLevel == 13 and sAEDUType == "Encounter" then
+		nLevel = 1;
+	elseif nCharLevel == 15 and sAEDUType == "Daily" then
+		nLevel = 1;
+	elseif nCharLevel == 17 and sAEDUType == "Encounter" then
+		nLevel = 3;
+	elseif nCharLevel == 19 and sAEDUType == "Daily" then
+		nLevel = 5;
+	elseif nCharLevel == 23 and sAEDUType == "Encounter" then
+		nLevel = 7;
+	elseif nCharLevel == 25 and sAEDUType == "Daily" then
+		nLevel = 9;
+	elseif nCharLevel == 27 and sAEDUType == "Encounter" then
+		nLevel = 13;
+	elseif nCharLevel == 29 and sAEDUType == "Daily" then
+		nLevel = 15;
+	else
+		bReplaceOlderPower = false;
 	end
-	--Look for the Spirit of Vice Feature for Blackguard Paladins
+	if bReplaceOlderPower then
+		CharClassPowerManager.removePowerFromCharacter(rAdd, sClassName, sAEDUType, nLevel);
+	end
 end
 
 function getPrefeatureBasedFeatureNameAndLinkFromOtherFeature(sChosenPrefeature, sClassFeatureOriginalDescription)
@@ -219,8 +247,8 @@ function getPrefeatureBasedFeatureNameAndLinkFromOtherFeature(sChosenPrefeature,
 		sPattern = "reference.features." .. sFeaturesLink .. "@" .. sFeaturesLinkModule;
 		local sClassFeatureName = DB.getText(DB.getPath(sPattern, "name"));
 		local sClassFeatureDescription = DB.getText(DB.getPath(sPattern, "description"));
-		if string.find(sClassFeatureName, sChosenPrefeature) then
-			return  sClassFeatureName, sPattern;
+		if matchWholeWord(sClassFeatureName:lower(), sChosenPrefeature:lower()) then
+			return sClassFeatureName, sPattern;
 		end
 	end
 end
@@ -1842,25 +1870,35 @@ function callbackResolveClericWarpriestPreFeatureSelection(tSelection, tData)
 	end
 end
 
-function addClericWarpriestFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription)
+function addClericWarpriestFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription, nLevel, sFullDescriptionText)
 	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
 
 	if sClassFeatureName == "Channel Divinity Powers" then
 		--Add the feature, but if you have also already added a domain, narrow domain and channel divinity features
-		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
-		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
+		addBasicClassFeature(rAdd, sClassFeatureName, sClassFeatureFilteredDescription);
 		displayClericWarpriestDomainDialog(sClassName, rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
 	elseif sClassFeatureName == "Domain Features" then
 		--Add the feature, but if you have also already added a domain, narrow domain and channel divinity features
-		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
-		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
+		addBasicClassFeature(rAdd, sClassFeatureName, sClassFeatureFilteredDescription);
 		displayClericWarpriestDomainDialog(sClassName, rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
+	elseif string.find(sClassFeatureName:lower(), "domain") then
+		addBasicClassFeature(rAdd, sClassFeatureName, sClassFeatureFilteredDescription);
+		addPreChosenClassFeature(rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
 	else
 		addDefaultClassFeature(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription);
+	end
+
+	--Replace older power at certain levels
+	if string.find(sClassFeatureName:lower(), "level %d+ warpriest daily power") or
+		string.find(sClassFeatureName:lower(), "level %d+ domain encounter power") or
+		string.find(sClassFeatureName:lower(), "level %d+ warpriest utility power") then
+			local sAEDUType = "";
+			if string.match(sClassFeatureName, "Daily") then
+				sAEDUType = "Daily";
+			elseif string.match(sClassFeatureName, "Encounter") then
+				sAEDUType = "Encounter";
+			end
+			CharClassFeatureDescManager.replaceOlderPower(rAdd, sClassName, sAEDUType, nLevel);
 	end
 end
 function displayClericWarpriestDomainDialog(sClassName, rAdd, sClassFeatureOriginalDescription, sClassFeatureName)
@@ -3147,17 +3185,23 @@ function addPaladinBlackguardFeatures(sClassName, rAdd, sClassFeatureName, sClas
 	-- else
 	if sClassFeatureName == "Vice At-Will Power" then
 		addPreChosenClassFeature(rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
+	elseif sClassFeatureName == "Improved Shroud Of Shadow" then
+		addBasicClassFeature(rAdd, sClassFeatureName, sClassFeatureFilteredDescription);
+		addPreChosenClassFeature(rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
+	elseif sClassFeatureName == "Level 22 Vice Utility Power" then
+		addBasicClassFeature(rAdd, sClassFeatureName, sClassFeatureFilteredDescription);
+		addPreChosenClassFeature(rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
 	else
 		addDefaultClassFeature(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription);
 	end
 end
 function addPaladinBlackguardViceAtWillPower(rAdd, sFullDescriptionText)
 	if not rAdd then
-		Debug.console("No rAdd");
+		ChatManager.SystemMessageResource("char_error_addclassspower");
 		return;
 	end
 	if not sFullDescriptionText then
-		Debug.console("No sFullDescriptionText");
+		ChatManager.SystemMessageResource("char_error_addclassspower");
 		return;
 	end
 	local sClassFeatureDescriptionPattern = "<p>%s*<b>%s*Vice At-Will Power%s*</b></p>%s*(.-)<p><b>";
@@ -3208,24 +3252,14 @@ function addWarlockBinderFeatures(sClassName, rAdd, sClassFeatureName, sClassFea
 
 	if sClassFeatureName:upper() == "LEVEL 1 PACT ENCOUNTER POWER" then
 		--Add the feature, but if you have also already added a pact, narrow pact-based features
-		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
-		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
+		addBasicClassFeature(rAdd, sClassFeatureName, sClassFeatureFilteredDescription);
 		displayWarlockBinderPactDialog(sClassName, rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
 	elseif sClassFeatureName:upper() == "PACT BOON (BINDER)" then
 		--Add the feature, but if you have also already added a pact, narrow pact-based features
-		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
-		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
+		addBasicClassFeature(rAdd, sClassFeatureName, sClassFeatureFilteredDescription);
 		displayWarlockBinderPactDialog(sClassName, rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
 	else
-		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
-		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
-		ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", sClassFeatureName, rAdd.sCharName);
+		addDefaultClassFeature(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription);
 	end
 end
 function displayWarlockBinderPactDialog(sClassName, rAdd, sClassFeatureOriginalDescription, sClassFeatureName)
@@ -3612,11 +3646,11 @@ end
 
 function deleteFromSpecialAbilities(rAdd, rFeatureNode, sFeatureName)
 	if not rAdd then
-		Debug.console("rAdd not found. Should replace this with a chat message...");
+		ChatManager.SystemMessageResource("char_error_removingclasssfeature");
 		return;
 	end
 	if not rFeatureNode and not sFeatureName then
-		Debug.console("rFeatureNoden or sFeatureName not found. Should replace this with a chat message...");
+		ChatManager.SystemMessageResource("char_error_removingclasssfeature");
 		return;
 	end
 	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
@@ -3625,4 +3659,12 @@ function deleteFromSpecialAbilities(rAdd, rFeatureNode, sFeatureName)
 			DB.deleteNode(featureNode);
 		end
 	end
+end
+
+function matchWholeWord(input_string, word_to_find)
+    local pattern = "%f[%w_]" .. word_to_find .. "%f[^%w_]"
+    -- string.match returns the captured values or nil. 
+    -- Since the frontier patterns have zero width, the captured value is the word itself.
+    -- We can wrap the word in capture groups to ensure it is returned.
+    return string.match(input_string, "(" .. pattern .. ")")
 end

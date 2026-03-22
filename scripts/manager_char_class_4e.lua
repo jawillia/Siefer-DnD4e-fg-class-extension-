@@ -329,14 +329,27 @@ function addEssentialsClassFeatures(rAdd, sRecord, sDescriptionText, sClassName,
 			while nNextFeatureWithLevel < 30 and not string.match(sDescriptionText, "<p><b>Level " .. nNextFeatureWithLevel .. ":</b></p>") do
 				nNextFeatureWithLevel = nNextFeatureWithLevel + 1;
 			end
-			if sDescriptionText and string.find(sDescriptionText, "<p><b>Level " .. nLevel .. ":</b></p>") and string.find(sDescriptionText, "<p><b>Level " .. nNextFeatureWithLevel .. ":</b></p>") then
-				sDescriptionText = string.match(sDescriptionText, "<p><b>Level " .. nLevel .. ":</b></p>(.-)<p><b>Level " .. nNextFeatureWithLevel .. ":</b></p>");
+
+			if nNextFeatureWithLevel < 30 then
+				if sDescriptionText and string.find(sDescriptionText, "<p><b>Level " .. nLevel .. ":</b></p>") and string.find(sDescriptionText, "<p><b>Level " .. nNextFeatureWithLevel .. ":</b></p>") then
+					sDescriptionText = string.match(sDescriptionText, "<p><b>Level " .. nLevel .. ":</b></p>(.-)<p><b>Level " .. nNextFeatureWithLevel .. ":</b></p>");
+				else
+					if sDescriptionText and string.find(sDescriptionText, "<p><b>Level " .. nLevel .. ":</b></p>") then
+						sDescriptionText = string.match(sDescriptionText, "<p><b>Level " .. nLevel .. ":</b></p>(.+)");
+					else
+						bLevelInfoFound = false;
+					end
+				end
 			else
-				bLevelInfoFound = false;
+				if sDescriptionText and string.find(sDescriptionText, "<p><b>Level " .. nLevel .. ":</b></p>") then
+					sDescriptionText = string.match(sDescriptionText, "<p><b>Level " .. nLevel .. ":</b></p>(.+)");
+				else
+					bLevelInfoFound = false;
+				end
 			end
 		elseif nLevel == 30 then
 			if sDescriptionText and string.find(sDescriptionText, "<p><b>Level " .. nLevel .. ":</b></p>") then
-				sDescriptionText = string.match(sDescriptionText, "<p><b>Level " .. nLevel .. ":</b></p>(.-)");
+				sDescriptionText = string.match(sDescriptionText, "<p><b>Level " .. nLevel .. ":</b></p>(.+)");
 			else
 				bLevelInfoFound = false;
 			end		
@@ -365,10 +378,8 @@ function addEssentialsClassFeatures(rAdd, sRecord, sDescriptionText, sClassName,
 								sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v .. "%s*</b></p>%s*(.-)<p><b>";
 							end
 							sClassFeatureSpecificDescriptionText = string.match(sDescriptionText, sClassFeatureDescriptionPattern);
-							Debug.console("In one");
 						elseif w == #tClassFeatures then
 							sClassFeatureSpecificDescriptionText, sClassFeatureDescriptionPattern = cutoffLastClassFeatureDescription(sDescriptionText, sClassFeatureSpecificDescriptionText, v, sClassName);
-							Debug.console("In two", v);
 						end
 						if sClassFeatureSpecificDescriptionText then
 							sClassFeatureFilteredDescriptionText = convertHTMLTable(removeLinkLists(sClassFeatureSpecificDescriptionText));
@@ -383,7 +394,7 @@ function addEssentialsClassFeatures(rAdd, sRecord, sDescriptionText, sClassName,
 							end
 						end
 						if isFeatureInList == false then
-							CharClassFeatureDescManager.addClassSpecificFeatures(sClassName, rAdd, v, sClassFeatureFilteredDescriptionText, sClassFeatureSpecificDescriptionText, sFullDescriptionText);
+							CharClassFeatureDescManager.addClassSpecificFeatures(sClassName, rAdd, v, sClassFeatureFilteredDescriptionText, sClassFeatureSpecificDescriptionText, nLevel, sFullDescriptionText);
 						end
 					end
 				else
@@ -407,7 +418,7 @@ function addEssentialsClassFeatures(rAdd, sRecord, sDescriptionText, sClassName,
 							end
 						end
 						if isFeatureInList == false then
-							CharClassFeatureDescManager.addClassSpecificFeatures(sClassName, rAdd, classFeatureName, sClassFeatureFilteredDescriptionText, sClassFeatureSpecificDescriptionText, sFullDescriptionText);
+							CharClassFeatureDescManager.addClassSpecificFeatures(sClassName, rAdd, classFeatureName, sClassFeatureFilteredDescriptionText, sClassFeatureSpecificDescriptionText, nLevel, sFullDescriptionText);
 						end
 					end
 				end
@@ -654,6 +665,9 @@ function addClassPowers(rAdd, sRecord, sDescriptionText, sClassName, nLevel, nNu
 						nNumberOfPowersForClass = nNumberOfPowers;
 					end
 					addStandardPowers(rAdd, sFilteredClassName, tPowers, nNumberOfPowersForClass, refresh);
+
+					--Replace older power on certain levels for standard classes
+					CharClassFeatureDescManager.replaceOlderPower(rAdd, sClassName, refresh, nLevel)
 				end
 			end
 		end
@@ -1074,6 +1088,17 @@ function isSpellbookClass(sClassName)
 	tSpellbookClasses["WIZARD (ARCANIST)"] = true;
 
 	return tSpellbookClasses[sClassName:upper()];
+end
+
+function isClassThatReplacesOlderPowers(sClassName)
+	if not isEssentialsClass(sClassName) then
+		return true;
+	end
+
+	local tClassesTable = {};
+	tClassesTable["CLERIC (WARPRIEST)"] = true;
+
+	return tClassesTable[sClassName:upper()];
 end
 
 -----------------------------------------------------------

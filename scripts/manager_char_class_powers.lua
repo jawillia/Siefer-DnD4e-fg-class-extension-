@@ -53,13 +53,12 @@ function addPowersFromText(sDescriptionText, rAdd, sClassFeatureName, sSubFeatur
 		or string.find(sDescriptionText:lower(), "gain one")
 		or string.find(sClassFeatureName:lower(), "level [%d]+ .* daily power")
 		or string.find(sClassFeatureName:lower(), "level [%d]+ .* utility power") then
-			if not nNumberOfPowers then
+			if not nNumberOfPowers or string.find(sDescriptionText:lower(), "one") then
 				nNumberOfPowers = 1;
-				if string.find(sDescriptionText:lower(), "two") then
+			elseif string.find(sDescriptionText:lower(), "two") then
 					nNumberOfPowers = 2;
-				elseif string.find(sDescriptionText:lower(), "three") then
+			elseif string.find(sDescriptionText:lower(), "three") then
 					nNumberOfPowers = 3;
-				end
 			end
 			if string.find(sDescriptionText:lower(), "<i>.+</i>") then
 				CharClassPowerManager.dispayItalicPowersDialog(rAdd, sDescriptionText, sClassFeatureName);
@@ -295,6 +294,94 @@ function addPowersFromGlobalModuleFromPowerName(rAdd, sClassPowerName)
 	end
 end
 
+function removePowerFromCharacter(rAdd, sClassName, sAEDUType, nLevel)
+	if not rAdd then
+		ChatManager.SystemMessageResource("char_error_removeclassspower");
+		return;
+	end
+	local tOptions = {};
+	local tCurrentPowers = DB.getChildren(rAdd.nodeChar, "powers");
+	for _, powerNode in pairs(tCurrentPowers) do
+		local sPowerClass = '';
+		local sPowerType = ''; --Attack, Utility, or Feature
+		local sPowerRecharge = '';
+		local nPowerLevel = nil;
+		--Match the class and if it's an attack or utility
+		local sSourceNode = DB.findNode(DB.getPath(powerNode, "source"));
+		local sSourceText = DB.getValue(sSourceNode);
+		if sSourceText then
+			local sGetBeforeWords = "Attack Utility Feature";
+			for item in string.gmatch(sGetBeforeWords, "%S+") do 
+				local sItemMatch = "([%w%-%(%)%s]+)" .. item;
+				sClassOrRace = string.match(string.lower(sSourceText), string.lower(sItemMatch));
+				if sClassOrRace and StringManager.trim(sClassOrRace) ~= "" then
+					sClassOrRace = StringManager.titleCase(sClassOrRace);
+					sClassOrRace = StringManager.trim(sClassOrRace);
+					sPowerClass = sClassOrRace;
+				end
+				--Get power type
+				if string.match(string.lower(sSourceText), string.lower(item)) then
+					sPowerType = StringManager.trim(item);
+				end
+				--Get the level
+				nPowerLevel = string.match(sSourceText, "(%d+)");
+			end
+		end
+		--Match the recharge
+		local sRechargeValue = DB.getText(powerNode, "recharge", "");
+		-- Different spelling of At-Will and At Will count together
+		if sRechargeValue == "At Will" then
+			sRechargeValue = "At-Will";
+		end
+		-- Strip the word "(Special)" for the purposes of having 3 neat categories
+		sRechargeValue = string.gsub(sRechargeValue, "%(Special%)", "");
+		sPowerRecharge = StringManager.trim(sRechargeValue);
+
+		sClassName = StringManager.trim(string.gsub(sClassName, "%b()", ""));
+		if sPowerClass == sClassName and tonumber(nPowerLevel) and tonumber(nPowerLevel) <= nLevel then
+			if ((sPowerType == sAEDUType and sAEDUType == "Utility") or (sPowerRecharge == sAEDUType and sPowerType == "Attack" and sAEDUType ~= "Utility")) then
+				local sClassFeatureName = DB.getText(DB.getPath(powerNode, "name"));
+				local sClassFeatureDescription = DB.getText(DB.getPath(powerNode, "description"));
+				table.insert(tOptions, { text = sClassFeatureName .. " (Level: " .. nPowerLevel .. ")", linkclass = "powerdesc", linkrecord = DB.getPath(powerNode), });
+			end
+		end
+	end
+	if #tOptions > 0 then
+		local tDialogData = {
+			title = "Replace Power",
+			msg = "Choose 1 power to remove.",
+			options = tOptions,
+			min = 1,
+			max = 1,
+			callback = CharClassPowerManager.callbackResolveRemovePowerDialogSelection,
+			custom = rAdd, 
+		};
+		DialogManager.requestSelectionDialog(tDialogData);
+	end
+end
+function callbackResolveRemovePowerDialogSelection(tSelection, rAdd, tSelectionLinks)
+	if not tSelection or not tSelection[1] then
+		ChatManager.SystemMessageResource("char_error_removeclassspower");
+		return;
+	end
+	if not tSelectionLinks then
+		ChatManager.SystemMessageResource("char_error_removeclassspower");
+		return;
+	end
+	for i, selectedPower in ipairs(tSelectionLinks) do
+		local sPowerPath = selectedPower.linkrecord;
+		local sPowerName = DB.getText(DB.getPath(sPowerPath, "name"));
+
+		local tCurrentPowers = DB.getChildren(rAdd.nodeChar, "powers");
+		for _, powerNode in pairs(tCurrentPowers) do
+			if DB.getText(powerNode, "name") == sPowerName then
+				DB.deleteNode(powerNode);
+				ChatManager.SystemMessageResource("char_abilities_message_powerremove", sPowerName, rAdd.sCharName);
+				break;
+			end
+		end
+	end
+end
 
 -------------------------------------------
 ----- WIZARD (ARCANIST) Class Features ----
