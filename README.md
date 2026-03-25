@@ -14,11 +14,11 @@ v.0.3.1 - 11/10/2025 - Can now update by dragging onto skill sheet, instead of j
 v.0.4.0 - 11/10/2025 - Added filters for the class library for role, power source, book/publishing 
 source, and class type (default, essentials, and hybrid). Added choices for Avengers features.\
 v.0.5.0 - 11/16/2025 - Tested and fixed issues for class features up to the end of PHB2 (Avenger, Barbarian, Bard, Druid, Invoker, Shaman, Sorcerer, and Warden).\
-v.0.6.0 - 11/25/2025 - There is now a UI to add your own custom classes, although automation for them isn't set up (will do this after finishing automation for all the compendium classes). Added filters for the power library for class, keywords, level, publishing source, recharge, and type. Tested and fixed issues for class features for HotFL and HotFK Essentials classes (Druid (Sentinel), Paladin (Cavalier), Ranger (Hunter), Ranger (Scout), Warlock (Hexblade), Cleric (Warpriest), Fighter (Knight), Fighter (Slayer), and Rogue (Thief))
-v.0.7.0 - 12/1/2025 - Finished adding the rest of the Essentials classes by testing and fixing class features for HoEC and NCS classes (Wizard (Bladesinger), Sorcerer (Elementalist), Wizard (Sha'ir)). Also added links to the selection dialogues.
-v.0.8.0 - 12/5/2025 - Added support for class powers for standard AEDU classes. Completed testing and support for class powers for PHB1 and PHB2 classes.
-v.0.9.0 - 12/19/2025 - Added support for hybrid classes. They should add everything you can get from a normal class (features, powers, defenses, trained skills, etc.). Added class skill list to traits tab when making a custom class.
-v.1.0.0 - (started) 02/06/2026 (finished) 3/24/2026 - Added support for increasing your class level. Dragging a class onto your character sheet when you already have that class will increase it's level by 1. If on a level where you gain a new power, it will allow you to select a power you would gain from that level. In addition, at the right levels, you should be able to replace an old power with a new power. For Essentials classes, this has only been fully tested for Warpriest and Knight.
+v.0.6.0 - 11/25/2025 - There is now a UI to add your own custom classes, although automation for them isn't set up (will do this after finishing automation for all the compendium classes). Added filters for the power library for class, keywords, level, publishing source, recharge, and type. Tested and fixed issues for class features for HotFL and HotFK Essentials classes (Druid (Sentinel), Paladin (Cavalier), Ranger (Hunter), Ranger (Scout), Warlock (Hexblade), Cleric (Warpriest), Fighter (Knight), Fighter (Slayer), and Rogue (Thief))\
+v.0.7.0 - 12/1/2025 - Finished adding the rest of the Essentials classes by testing and fixing class features for HoEC and NCS classes (Wizard (Bladesinger), Sorcerer (Elementalist), Wizard (Sha'ir)). Also added links to the selection dialogues.\
+v.0.8.0 - 12/5/2025 - Added support for class powers for standard AEDU classes. Completed testing and support for class powers for PHB1 and PHB2 classes.\
+v.0.9.0 - 12/19/2025 - Added support for hybrid classes. They should add everything you can get from a normal class (features, powers, defenses, trained skills, etc.). Added class skill list to traits tab when making a custom class.\
+v.1.0.0 - (started) 02/06/2026 (finished) 3/24/2026 - Added support for increasing your class level. Dragging a class onto your character sheet when you already have that class will increase it's level by 1. If on a level where you gain a new power, it will allow you to select a power you would gain from that level. In addition, at the right levels, you should be able to replace an old power with a new power. For Essentials classes, this has only been fully tested for Warpriest and Knight.\
 
 
 
@@ -38,7 +38,7 @@ What This Extension Does:
 * It has a UI to add your own custom classes (as of v.0.6.0)
 * It adds powers now (as of v.0.8.0)
 * It has support for hybrid classes (as of v.0.9.0)
-* If you drag the same class onto your character sheet, as long as it's a standard AEDU class, it will increase it's level. You can use this to gain class powers and features, but it won't give you feats, increase your ability scores, or let you retrain a feat, power, or skill. Those things will have to be adjusted manually (as of v.1.0.0).
+* If you drag the same class onto your character sheet, it will increase it's level. You can use this to gain class powers and features, but it won't give you feats, or let you retrain a feat or skill. It will let you retrain powers. Other things will have to be adjusted manually (as of v.1.0.0).
 
 
 
