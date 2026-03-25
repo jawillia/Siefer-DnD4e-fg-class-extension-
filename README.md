@@ -18,7 +18,7 @@ v.0.6.0 - 11/25/2025 - There is now a UI to add your own custom classes, althoug
 v.0.7.0 - 12/1/2025 - Finished adding the rest of the Essentials classes by testing and fixing class features for HoEC and NCS classes (Wizard (Bladesinger), Sorcerer (Elementalist), Wizard (Sha'ir)). Also added links to the selection dialogues.
 v.0.8.0 - 12/5/2025 - Added support for class powers for standard AEDU classes. Completed testing and support for class powers for PHB1 and PHB2 classes.
 v.0.9.0 - 12/19/2025 - Added support for hybrid classes. They should add everything you can get from a normal class (features, powers, defenses, trained skills, etc.). Added class skill list to traits tab when making a custom class.
-v.1.0.0 - (started) 02/06/2026 - Added support for increasing your class level. Dragging a class onto your character sheet when you already have that class will increase it's level by 1. If on a level where you gain a new power, it will allow you to select a power you would gain from that level.
+v.1.0.0 - (started) 02/06/2026 (finished) 3/24/2026 - Added support for increasing your class level. Dragging a class onto your character sheet when you already have that class will increase it's level by 1. If on a level where you gain a new power, it will allow you to select a power you would gain from that level. In addition, at the right levels, you should be able to replace an old power with a new power. For Essentials classes, this has only been fully tested for Warpriest and Knight.
 
 
 
