@@ -43,21 +43,23 @@ function addClass(nodeChar, sRecord, tData)
 	end
 
 	-- -- Added every level -- --
-	--Add Class Hit Points
-	addClassHitPoints(rAdd, sRecord, sDescriptionText, nLevel);
+	if nLevel <= 30 then
+		--Add Class Hit Points
+		addClassHitPoints(rAdd, sRecord, sDescriptionText, nLevel);
 
-	--Add Class Features
-	addClassFeatures(rAdd, sRecord, sDescriptionText, sClassName, nLevel);	
+		--Add Class Features
+		addClassFeatures(rAdd, sRecord, sDescriptionText, sClassName, nLevel);	
 
-	-- --Add Class Powers.
-	addClassPowers(rAdd, sRecord, sDescriptionText, sClassName, nLevel);
+		-- --Add Class Powers.
+		addClassPowers(rAdd, sRecord, sDescriptionText, sClassName, nLevel);
+	end
 
 	--Add Ability Score Increase. Only for levels 4, 8, 11, 14, 18, 21, 24, and 28.
 	if nLevel and nLevel >= 4 then
 		helperResolveStatIncreaseOnClassDrop(rAdd, sRecord,sDescriptionText, nLevel);
 	end
 
-	if nLevel > 1 then
+	if nLevel > 1 and nLevel <= 30 then
 	--Level Up Notification
 		ChatManager.SystemMessageResource("char_abilities_message_classlevelup", rAdd.sCharName, nLevel, sClassName);
 	end
@@ -85,7 +87,11 @@ function addClassLevel(rAdd, sRecord, sClassName)
 		if sCurrentclassName == sClassName then
 			nLevel = DB.getValue(rAdd.nodeChar, "level", 1);
 			if nLevel then
-				nLevel = nLevel + 1;
+				if nLevel < 30 then
+					nLevel = nLevel + 1;
+				else
+					ChatManager.SystemMessageResource("char_abilities_message_classlevelupmax", rAdd.sCharName);
+				end
 			else 
 				nLevel = 1;
 			end

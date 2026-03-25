@@ -10,6 +10,7 @@
   <string name="char_abilities_message_classadd">Class '%s' added to '%s'.</string>
   <string name="char_abilities_message_hybridclassadd">'%s' and '%s' hybrid classes added to '%s'.</string>
   <string name="char_abilities_message_classlevelup">'%s' leveled up to level '%s' '%s'.</string>
+  <string name="char_abilities_message_classlevelupmax">'%s' is already at max level!</string>
   <!-- Ability Score Increase on Level Up -->
   <string name="char_build_title_selectclassabilitybonus">Increase Ability Score</string>
   <string name="char_build_message_selectclassabilitybonus">Select 2 ability scores to increase.</string>

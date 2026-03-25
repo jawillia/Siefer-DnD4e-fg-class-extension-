@@ -53,12 +53,16 @@ function addPowersFromText(sDescriptionText, rAdd, sClassFeatureName, sSubFeatur
 		or string.find(sDescriptionText:lower(), "gain one")
 		or string.find(sClassFeatureName:lower(), "level [%d]+ .* daily power")
 		or string.find(sClassFeatureName:lower(), "level [%d]+ .* utility power") then
-			if not nNumberOfPowers or string.find(sDescriptionText:lower(), "one") then
-				nNumberOfPowers = 1;
-			elseif string.find(sDescriptionText:lower(), "two") then
+			if not nNumberOfPowers then
+				if string.find(sDescriptionText:lower(), "one") then
+					nNumberOfPowers = 1;
+				elseif string.find(sDescriptionText:lower(), "two") then
 					nNumberOfPowers = 2;
-			elseif string.find(sDescriptionText:lower(), "three") then
+				elseif string.find(sDescriptionText:lower(), "three") then
 					nNumberOfPowers = 3;
+				else
+					nNumberOfPowers = 1;
+				end
 			end
 			if string.find(sDescriptionText:lower(), "<i>.+</i>") then
 				CharClassPowerManager.dispayItalicPowersDialog(rAdd, sDescriptionText, sClassFeatureName);
@@ -167,7 +171,18 @@ function displayClassPowerSelectionsDialog(rAdd, sClassFeatureOriginalDescriptio
 		local sPattern = "reference.powers." .. w .. "@" .. v;
 		local sClassPowerName = DB.getText(DB.getPath(sPattern, "name"));
 		local sClassFeatureDescription = DB.getText(DB.getPath(sPattern, "description"));
-		table.insert(tOptions, { text = sClassPowerName, linkclass = "powerdesc", linkrecord = DB.getPath(sPattern), });
+
+		local tCurrentPowers = DB.getChildren(rAdd.nodeChar, "powers");
+		local isPowerInList = false;
+		for _, powerNode in pairs(tCurrentPowers) do
+			if DB.getText(powerNode, "name") == sClassPowerName then
+				isPowerInList = true;
+				break;
+			end
+		end
+		if isPowerInList == false then
+			table.insert(tOptions, { text = sClassPowerName, linkclass = "powerdesc", linkrecord = DB.getPath(sPattern), });
+		end
 	end
 	if #tOptions > 1 then
 		--Display a pop-up where we choose from the class power options
