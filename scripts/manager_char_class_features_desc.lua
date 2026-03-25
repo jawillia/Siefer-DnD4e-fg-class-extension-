@@ -785,7 +785,7 @@ function addRangerFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFil
 		addBasicClassFeature(rAdd, sClassFeatureName, sClassFeatureFilteredDescription);
 		displayRangerFightingStyleDialog(rAdd, sClassFeatureOriginalDescription);
 	else
-		addBasicClassFeature(rAdd, sClassFeatureName, sClassFeatureFilteredDescription);
+		addDefaultClassFeature(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription);
 	end
 end
 function displayRangerPrimeShotDialog(rAdd, sClassFeatureOriginalDescription)
