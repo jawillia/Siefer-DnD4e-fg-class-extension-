@@ -38,10 +38,13 @@ function addClassSpecificFeatures(sClassName, rAdd, sClassFeatureName, sClassFea
 		--FPG
 		["SWORDMAGE"] = function() return addSwordmageFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
 		--HoFL
+		--NOTE:Tested up to level 30
 		["CLERIC (WARPRIEST)"] = function() return addClericWarpriestFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription, nLevel, sFullDescriptionText) end,
 		["FIGHTER (KNIGHT)"] = function() return addFighterKnightFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
+		--TODO:STILL NEED TO TEST THIS ONE
 		["WIZARD (MAGE)"] = function() return addWizardMageFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
 		--HotFK
+		--NOTE:Tested up to level 10
 		["DRUID (SENTINEL)"] = function() return addDruidSentinelFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
 		["PALADIN (CAVALIER)"] = function() return addPaladinCavalierFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
 		["RANGER (HUNTER)"] = function() return addRangerHunterFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
@@ -76,11 +79,17 @@ function isNotAddingFeaturePower(sClassFeatureName)
 end
 
 --Basic Add Feature Method, no extra frills
-function addBasicClassFeature(rAdd, sClassFeatureName, sClassFeatureDescription)
+function addBasicClassFeature(rAdd, sClassFeatureName, sClassFeatureDescription, sWindowLinkClass, sWindowLinkPath)
 	local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-	DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+	if not sWindowLinkClass or not sWindowLinkPath then
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+	else
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference", sWindowLinkClass, sWindowLinkPath);
+	end
 	DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-	DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureDescription);
+	if sClassFeatureDescription then
+		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureDescription);
+	end
 	ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", sClassFeatureName, rAdd.sCharName);
 end
 
@@ -112,7 +121,7 @@ function addClassSpecificPreFeatures(sClassName, rAdd, sDescriptionText, tClassF
 	switch(sClassName:upper(), 
 	{
 		["CLERIC (WARPRIEST)"] = function() return addClericWarpriestPreFeatures(sClassName, rAdd, sDescriptionText, tClassFeatures) end,
-		["DRUID (SENTINEL)"] = function() return addDruidSentinelPreFeatures(sClassName, rAdd, sDescriptionText, tClassFeatures) end,
+		["DRUID (SENTINEL)"] = function() return addDruidSentinelPreFeatures(sClassName, rAdd, sDescriptionText, tClassFeatures, nLevel, sFullDescriptionText) end,
 		["WARLOCK (HEXBLADE)"] = function() return addWarlockHexbladePreFeatures(sClassName, rAdd, sDescriptionText, tClassFeatures) end,
 		["WARLOCK (BINDER)"] = function() return addWarlockBinderPreFeatures(sClassName, rAdd, sDescriptionText, tClassFeatures) end,
 		["DRUID (PROTECTOR)"] = function() return addDruidProtectorPreFeatures(sClassName, rAdd, sDescriptionText, tClassFeatures) end,
@@ -2335,7 +2344,7 @@ end
 -------------------------------------------
 ----- DRUID (SENTINEL) Class Features ----
 -------------------------------------------
-function addDruidSentinelPreFeatures(sClassName, rAdd, sDescriptionText, tClassFeatures)
+function addDruidSentinelPreFeatures(sClassName, rAdd, sDescriptionText, tClassFeatures, nLevel, sFullDescriptionText)
 	--First, see if you have a season already selected. If you don't, select one, then go through the rest of the features.
 	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
 	local sAlreadyTakenSeason = nil;
@@ -2364,7 +2373,7 @@ function addDruidSentinelPreFeatures(sClassName, rAdd, sDescriptionText, tClassF
 			min = 1,
 			max = 1,
 			callback = CharClassFeatureDescManager.callbackResolveDruidSentinelPreFeatureSelection,
-			custom = { sClassName=sClassName, rAdd=rAdd, sDescriptionText=sDescriptionText, tClassFeatures=tClassFeatures },
+			custom = { sClassName=sClassName, rAdd=rAdd, sDescriptionText=sDescriptionText, tClassFeatures=tClassFeatures, nLevel=nLevel, sFullDescriptionText=sFullDescriptionText },
 		};
 		DialogManager.requestSelectionDialog(tDialogData);
 	end
@@ -2376,66 +2385,30 @@ function callbackResolveDruidSentinelPreFeatureSelection(tSelection, tData)
 	end
 
 	local sSeasonDescription = "You have selected the season of " .. tSelection[1] .. ".";
-	local rCreatedIDChildNode = DB.createChild(tData.rAdd.nodeChar.getPath("specialabilitylist"));
-	DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
-	DB.setValue(rCreatedIDChildNode, "value", "string", "Season of " .. tSelection[1]);
-	DB.setValue(rCreatedIDChildNode, "description", "string", sSeasonDescription);
+	addBasicClassFeature(tData.rAdd, "Season of " .. tSelection[1], sSeasonDescription);
 
-	local tCurrentFeatures = DB.getChildren(tData.rAdd.nodeChar, "specialabilitylist");
-	for w,v in pairs(tData.tClassFeatures) do
-		local sClassFeatureDescriptionPattern = '';
-		if w < #tData.tClassFeatures then
-			sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v:gsub("(%a)([%w_']*)", titleCase) .. "%s*</b></p>%s*(.-)<p><b>";
-		elseif w == #tData.tClassFeatures then
-			-- On the last feature entry, first try reading to the end of the description we're given
-			sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v:gsub("(%a)([%w_']*)", titleCase) .. "%s*</b></p>%s*(.+)";
-		end
-		sClassFeatureSpecificDescriptionText = string.match(tData.sDescriptionText, sClassFeatureDescriptionPattern);
-		if sClassFeatureSpecificDescriptionText then
-			sClassFeatureFilteredDescriptionText = removeLinkLists(sClassFeatureSpecificDescriptionText);
-		end
-		local isFeatureInList = false;
-		for _, featureNode in pairs(tCurrentFeatures) do
-			if DB.getText(DB.getPath(featureNode, "value")) == v then
-				isFeatureInList = true;
-				break;
-			end
-		end
-		if isFeatureInList == false then
-			CharClassFeatureDescManager.addClassSpecificFeatures(tData.sClassName, tData.rAdd, v, sClassFeatureFilteredDescriptionText, sClassFeatureSpecificDescriptionText);
-		end
-	end
+	CharClassManager.addEssentialsClassFeatures(tData.rAdd, nil, tData.sFullDescriptionText, tData.sClassName, tData.nLevel, tData.sFullDescriptionText, true);
 end
 
 function addDruidSentinelFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription)
+	Debug.console("Adding DRuid Sentinel normal features...");
 	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
 
 	if sClassFeatureName == "Acolyte of the Natural Cycle" then
 		--Add the feature, but if you have also already added a season, narrow acolyte of the natural cycle and animal companion features
-		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
-		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
+		addBasicClassFeature(rAdd, sClassFeatureName, sClassFeatureFilteredDescription);
 		displayDruidSentinelSeasonDialog(sClassName, rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
 	elseif sClassFeatureName == "Animal Companion" then
 		--Add the feature, but if you have also already added a season, narrow acolyte of the natural cycle and animal companion eatures
-		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
-		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
+		addBasicClassFeature(rAdd, sClassFeatureName, sClassFeatureFilteredDescription);
 		displayDruidSentinelSeasonDialog(sClassName, rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
 	elseif sClassFeatureName == "Druid Wilderness Knacks" then
-		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
-		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
+		addBasicClassFeature(rAdd, sClassFeatureName, sClassFeatureFilteredDescription);
 		displayClassFeatureSelectionsDialog(rAdd, sClassFeatureOriginalDescription, sClassFeatureName, 2);		
 	else
-		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
-		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
-		ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", sClassFeatureName, rAdd.sCharName);
+		Debug.console("sClassFeatureName", sClassFeatureName);
+		Debug.console("sClassFeatureOriginalDescription", sClassFeatureOriginalDescription);
+		addDefaultClassFeature(sClassName,rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription);
 	end
 end
 function displayDruidSentinelSeasonDialog(sClassName, rAdd, sClassFeatureOriginalDescription, sClassFeatureName)
@@ -2491,10 +2464,7 @@ function callbackResolveDruidSentinelSeasonSelection(tSelection, tData)
 			addDruidSentinelAnimalCompanion(tData.rAdd, tData.sClassFeatureOriginalDescription, tSelection[1]);
 		else
 			local sDomainDescription = "You have selected the " .. tSelection[1] .. " domain.";
-			local rCreatedIDChildNode = DB.createChild(tData.rAdd.nodeChar.getPath("specialabilitylist"));
-			DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
-			DB.setValue(rCreatedIDChildNode, "value", "string", tSelection[1] .. " Domain");
-			DB.setValue(rCreatedIDChildNode, "description", "string", sDomainDescription);
+			addBasicClassFeature(tData.rAdd, tSelection[1] .. " Domain", sDomainDescription);
 		end
 	end
 end
@@ -2516,11 +2486,9 @@ function addDruidSentinelAcolyte(rAdd, sClassFeatureOriginalDescription, sSelect
 			local sClassFeatureName = DB.getText(DB.getPath(sPattern, "name"));
 			local sClassFeatureDescription = DB.getText(DB.getPath(sPattern, "description"));
 			if sClassFeatureName == "Druid of " .. sSelectedSeason or sClassFeatureName == "Druid of the " .. sSelectedSeason then
-				local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-				DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference", "powerdesc", sPattern);
-				DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-				--DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureOriginalDescription);
-				ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", sClassFeatureName, rAdd.sCharName);
+				local sWindowLinkClass = "powerdesc";
+				local sWindowLinkPath = sPattern;
+				addBasicClassFeature(rAdd, sClassFeatureName, nil, sWindowLinkClass, sWindowLinkPath);
 				break;
 			end
 		end
@@ -2545,11 +2513,9 @@ function addDruidSentinelAnimalCompanion(rAdd, sClassFeatureOriginalDescription,
 			local sClassFeatureDescription = DB.getText(DB.getPath(sPattern, "description"));
 			if string.find(sClassFeatureName, "Druid of " .. sSelectedSeason .. ":") or 
 			 string.find(sClassFeatureName, "Druid of the " .. sSelectedSeason .. ":") then
-				local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-				DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference", "powerdesc", sPattern);
-				DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-				--DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureOriginalDescription);
-				ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", sClassFeatureName, rAdd.sCharName);
+			 	local sWindowLinkClass = "powerdesc";
+			 	local sWindowLinkPath = sPattern;
+				addBasicClassFeature(rAdd, sClassFeatureName, nil, sWindowLinkClass, sWindowLinkPath);
 				break;
 			end
 		end
@@ -2918,11 +2884,7 @@ function addWarlockHexbladeFeatures(sClassName, rAdd, sClassFeatureName, sClassF
 		addDefaultClassFeature(sClassName,rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription);
 		displayWarlockHexbladePactDialog(sClassName, rAdd, sClassFeatureOriginalDescription, sClassFeatureName);		
 	else
-		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
-		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
-		ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", sClassFeatureName, rAdd.sCharName);
+		addDefaultClassFeature(sClassName,rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription);
 	end
 end
 function displayWarlockHexbladePactDialog(sClassName, rAdd, sClassFeatureOriginalDescription, sClassFeatureName)
