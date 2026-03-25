@@ -257,7 +257,7 @@ function addHybridClassFeatures(rAdd, sRecordOne, sRecordTwo, sDescriptionTextOn
 		local tClassesWithPreFeatures = {};
 		tClassesWithPreFeatures = loadClassesWithPreFeatures(tClassesWithPreFeatures);
 		if tClassesWithPreFeatures[sClassName:upper()] then
-			CharClassFeatureManager.addClassSpecificPreFeatures(sClassName, rAdd, sDescriptionTextOne, tClassFeatures);
+			CharClassFeatureDescManager.addClassSpecificPreFeatures(sClassName, rAdd, sDescriptionTextOne, tClassFeatures);
 		else
 			for w,v in pairs(tClassFeatures) do
 				local sClassFeatureDescriptionPattern = '';
@@ -282,7 +282,7 @@ function addHybridClassFeatures(rAdd, sRecordOne, sRecordTwo, sDescriptionTextOn
 					end
 				end
 				if isFeatureInList == false then
-					CharClassFeatureManager.addClassSpecificFeatures(sClassName, rAdd, v, sClassFeatureFilteredDescriptionText, sClassFeatureSpecificDescriptionText);
+					CharClassFeatureDescManager.addClassSpecificFeatures(sClassName, rAdd, v, sClassFeatureFilteredDescriptionText, sClassFeatureSpecificDescriptionText);
 					--For each feature, add all powers in it (if it doesn't have the words implying a choice, like "choose", "choice", or "following")
 					if not string.find(sClassFeatureSpecificDescriptionText:lower(), "choose") 
 						and not string.find(sClassFeatureSpecificDescriptionText:lower(), "choice")

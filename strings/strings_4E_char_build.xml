@@ -9,17 +9,22 @@
   <!-- Character - Build -->
   <string name="char_abilities_message_classadd">Class '%s' added to '%s'.</string>
   <string name="char_abilities_message_hybridclassadd">'%s' and '%s' hybrid classes added to '%s'.</string>
+  <string name="char_abilities_message_classlevelup">'%s' leveled up to level '%s' '%s'.</string>
+  <string name="char_abilities_message_classlevelupmax">'%s' is already at max level!</string>
   <!-- Ability Score Increase on Level Up -->
   <string name="char_build_title_selectclassabilitybonus">Increase Ability Score</string>
   <string name="char_build_message_selectclassabilitybonus">Select 2 ability scores to increase.</string>
   <string name="char_error_addabilityscoreonlevelup">Error increasing ability score on level up.</string>  
   <!-- Feat Strings -->
-  <string name="char_abilities_message_pickfeatreminder">Don't forget to pick a feat %s !</string>  
+  <string name="char_abilities_message_classfeatadd">Feat '%s' added to '%s'.</string>
+  <string name="char_abilities_message_pickfeatreminder">Don't forget to pick a feat %s !</string>
+  <string name="char_abilities_message_erroraddingclassfeaturefeat">Error adding feats for the %s class feature to '%s'.</string>
    <!-- Class Feature Strings -->
   <string name="char_abilities_message_classfeatureadd">Class Feature '%s' added to '%s' special ability list.</string>
   <string name="char_abilities_message_classfeaturedialoguetitle">Choose a Class Feature</string>
   <string name="char_abilities_message_classfeaturedialoguemsg">Choose one.</string>
   <string name="char_error_addclasssfeature">Error adding class feature.</string>
+  <string name="char_error_removingclasssfeature">Error removing class feature from special abilities.</string>
   <string name="char_build_message_chooseclassfeatures">Choose %s of the following %s:</string>
   <!-- Class Power Strings -->
   <string name="char_build_title_genericpowerselection">%s %s Power</string>
@@ -27,7 +32,9 @@
   <string name="char_abilities_message_poweradd">'%s' power added to '%s' power list.</string>  
   <string name="char_abilities_message_classpoweradd">Class Power '%s' added to '%s' powers list.</string>
   <string name="char_error_addclassspower">Error adding class power.</string>
-  <string name="char_build_message_chooseclasspowers">Choose %s of the following %s:</string>  
+  <string name="char_error_removeclassspower">Error removing class power.</string>
+  <string name="char_build_message_chooseclasspowers">Choose %s of the following %s:</string>
+  <string name="char_abilities_message_powerremove">'%s' power removed from '%s' power list.</string>  
   <!-- Proficiency Strings -->
   <string name="char_abilities_message_armorproficiencyadd">Armor Proficiency '%s' added to '%s' armor proficiency list.</string>
   <string name="char_abilities_message_armorproficiencyremove">Armor Proficiency '%s' removed from '%s' armor proficiency list.</string>
@@ -53,7 +60,10 @@
   <string name="char_build_message_addchanneldivinity">Choose one of the following Channel Divinity options. Search the power name to find it. </string>
   <!-- Fighter(Weaponmaster) Feature strings -->
   <string name="char_build_title_addcombatsuperiority">Combat Superiority or Alternate</string> 
-  <string name="char_build_message_addcombatsuperiorityoragility">Choose Combat Superiority or Combat Agility. Check the chat for detailed descriptions.</string> 
+  <string name="char_build_message_addcombatsuperiorityoragility">Choose Combat Superiority or Combat Agility. Check the chat for detailed descriptions.</string>
+  <!-- Paladin Feature strings -->
+  <string name="char_build_title_addalternativepaladinfeatures">Lay on Hands or Alternate</string> 
+  <string name="char_build_message_addalternativepaladinfeatures">Choose Lay on Hands, or Ardent Vow or Virtue's Touch.</string>  
   <!-- Ranger Feature strings -->  
   <string name="char_build_title_addprimeshot">Prime Shot or Alternate</string> 
   <string name="char_build_message_addprimeshotorrunningattack">Choose Prime Shot or Running Attack.</string>
@@ -88,8 +98,16 @@
   <string name="char_build_title_adddbinderpact">Binder Pact</string> 
   <string name="char_build_message_addbinderpact">Choose a Binder Pact. These determine some of your class features, including a pact boon and encounter power.</string>
    <!-- Druid (Protector) Feature strings -->
-  <string name="char_build_title_addddruidprotectorcircle">Druid (Protector) Circle</string> 
+  <string name="char_build_title_addddruidprotectorcircle">Druid (Protector) Circle</string>
   <string name="char_build_message_adddruidprotectorcircle">Choose a Druid (Protector) Circle. These determine some of your class features, including a pact boon and encounter power.</string>
+   <!-- Wizard (Mage) Feature strings -->
+  <string name="char_build_title_addexpertmage">Expert Mage</string>
+  <string name="char_build_message_addexpertmage">Choose which Apprentice Mage feature to gain the Expert Mage benefit associated with.</string>
+  <!-- Paladin (Cavalier) Feature strings -->
+  <string name="char_build_title_adddcavaliervirtue">Cavalier Virtue</string> 
+  <string name="char_build_message_addcavaliervirtue">Choose a Cavalier Virtue. These determine some of your class features, including your Spirit of Virtue benefit, an at-will power, and additional benefits as you level up.</string>
+  <string name="char_build_title_addvirtuouschargerorsummonedsteed">Pace of the Virtuous Charger or Summoned Steed</string> 
+  <string name="char_build_message_addvirtuouschargerorsummonedsteed">Choose Pace of the Virtuous Charger or Summoned Steed. Check the chat for detailed descriptions.</string>   
 
   <!-- Hybrid strings -->
   <string name="char_build_title_secondhybridclass">Second Hybrid Class</string> 
