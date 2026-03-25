@@ -31,14 +31,10 @@ What This Extension Does:
 * Adds a record type for classes in the sidebar
 * Allows you to drag a class record to a character in order to add that class to your character sheet
 * Adds a link in the character sheet to your class and its associated record
-* When a class record is dragged to your character sheet, it will automatically add armor, weapon, and implement proficiencies, hit points at first level, max healing surges, defense bonuses, and trained skills.
-* It adds the text for implements to implements (as of v.0.2.0)
-* It adds bonus to defenses (as of v.0.2.0)
-* It adds class features (as of v.0.2.0)
-* It has a UI to add your own custom classes (as of v.0.6.0)
-* It adds powers now (as of v.0.8.0)
-* It has support for hybrid classes (as of v.0.9.0)
-* If you drag the same class onto your character sheet, it will increase it's level. You can use this to gain class powers and features, but it won't give you feats, or let you retrain a feat or skill. It will let you retrain powers. Other things will have to be adjusted manually (as of v.1.0.0).
+* When a class record is dragged to your character sheet, it will automatically add armor, weapon, and implement proficiencies, hit points at first level, max healing surges, defense bonuses, and trained skills. Class features will be added to the special abilities list and class powers will be given based on the class features or based on standard power selection from the DnD 4e level up table if it's a standard AEDU class.
+* It also has a UI to add your own custom classes. This doesn't automate adding features and powers (yet).
+* If you drag the same class onto your character sheet, it will increase it's level. You can use this to gain class powers and features, but it won't give you feats, or let you retrain a feat or skill. However, it will let you retrain powers.
+* It has support for hybrid classes. You must drag two separate hybrid classes onto a character in order to gain them. They do not have level up support yet, though.
 
 
 
@@ -50,8 +46,7 @@ What This Extension Does Not Do (but it might do one day):
 
 * It does not allow class support beyond first level (for hybrid classes, essentials, custom classes).
 * It only supports base classes, not paragon classes or epic destinies.
-* Does not replace class powers at level 13 and beyond yet. When selecting powers at level 13 and beyond, you will have to decide whether you are replacing an old power when you do so, and if you do, remove that other power you are replacing manually.
-* Does not automatically add any feats or ability score increases. It just adds stuff directly related gained from your class (features and powers).
+* Does not automatically add any feats. It just adds stuff directly related gained from your class (features, powers, and other traits named above).
 
 
 Notes on Filtering Powers and Classes:
