@@ -2797,39 +2797,33 @@ function addWarlockHexbladeFeatures(sClassName, rAdd, sClassFeatureName, sClassF
 
 	if sClassFeatureName == "Pact Boon" then
 		--Add the feature, but if you have also already added a pact, narrow pact-based features
-		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
-		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
+		addBasicClassFeature(rAdd, sClassFeatureName, sClassFeatureFilteredDescription);
 		displayWarlockHexbladePactDialog(sClassName, rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
 	elseif sClassFeatureName == "Pact Reward" then
 		--Add the feature, but if you have also already added a pact, narrow pact-based features
-		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
-		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
+		addBasicClassFeature(rAdd, sClassFeatureName, sClassFeatureFilteredDescription);
 		displayWarlockHexbladePactDialog(sClassName, rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
 	elseif sClassFeatureName == "Pact Weapon" then
 		--Add the feature, but if you have also already added a pact, narrow pact-based features
-		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
-		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
+		addBasicClassFeature(rAdd, sClassFeatureName, sClassFeatureFilteredDescription);
 		displayWarlockHexbladePactDialog(sClassName, rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
 	elseif sClassFeatureName == "Pact Weapon Retribution" then
 		--Add the feature, but if you have also already added a pact, narrow pact-based features
-		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
-		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
+		addBasicClassFeature(rAdd, sClassFeatureName, sClassFeatureFilteredDescription);
 		displayWarlockHexbladePactDialog(sClassName, rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
-	elseif sClassFeatureName == "Summon Warlock's Ally" then
+	elseif sClassFeatureName == "Summon Warlock's Ally" or sClassFeatureName == "Greater Summon Warlock's Ally" then
 		--Add the feature, but if you have also already added a pact, narrow pact-based features
 		addDefaultClassFeature(sClassName,rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription);
 		displayWarlockHexbladePactDialog(sClassName, rAdd, sClassFeatureOriginalDescription, sClassFeatureName);		
 	else
 		addDefaultClassFeature(sClassName,rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription);
 	end
+
+	--Replace older power at certain levels
+	if string.find(sClassFeatureName:lower(), "level %d+ hexblade daily power")
+		and (nLevel == 19 or nLevel == 29) then
+		CharClassFeatureDescManager.replaceOlderPower(rAdd, sClassName, "Daily", nLevel);
+	end		
 end
 function displayWarlockHexbladePactDialog(sClassName, rAdd, sClassFeatureOriginalDescription, sClassFeatureName)
 	--Find out if you have a pact feature already, and if so, add the pact-based feature already
@@ -2857,7 +2851,7 @@ function displayWarlockHexbladePactDialog(sClassName, rAdd, sClassFeatureOrigina
 			addWarlockHexbladePactFeature(rAdd, sClassFeatureOriginalDescription, sAlreadyTakenPact, "Weapon");
 		elseif sClassFeatureName == "Pact Weapon Retribution" and sClassFeatureOriginalDescription then
 			addWarlockHexbladePactFeature(rAdd, sClassFeatureOriginalDescription, sAlreadyTakenPact, "Weapon Retribution");
-		elseif sClassFeatureName == "Summon Warlock's Ally" and sClassFeatureOriginalDescription then
+		elseif (sClassFeatureName == "Summon Warlock's Ally" or sClassFeatureName == "Greater Summon Warlock's Ally") and sClassFeatureOriginalDescription then
 			addWarlockHexbladePactFeature(rAdd, sClassFeatureOriginalDescription, sAlreadyTakenPact, "Summon Warlock's Ally", sClassFeatureName);
 		end
 	else
@@ -2892,12 +2886,11 @@ function callbackResolveWarlockHexbladePactSelection(tSelection, tData)
 			(tData.sClassFeatureName == "Pact Weapon Retribution" and tData.sClassFeatureOriginalDescription) then
 			local secondWord = string.match(tData.sClassFeatureName, "^%S+%s(%S+)")
 			addWarlockHexbladePactFeature(tData.rAdd, tData.sClassFeatureOriginalDescription, tSelection[1], secondWord);
+		elseif ((tData.sClassFeatureName == "Summon Warlock's Ally" or tData.sClassFeatureName == "Greater Summon Warlock's Ally") and tData.sClassFeatureOriginalDescription) then
+			local secondWord = string.match(tData.sClassFeatureName, "%((%S+)%)")
 		else
 			local sDomainDescription = "You have selected the " .. tSelection[1] .. " domain.";
-			local rCreatedIDChildNode = DB.createChild(tData.rAdd.nodeChar.getPath("specialabilitylist"));
-			DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
-			DB.setValue(rCreatedIDChildNode, "value", "string", tSelection[1] .. " Domain");
-			DB.setValue(rCreatedIDChildNode, "description", "string", sDomainDescription);
+			addBasicClassFeature(rAdd, tSelection[1] .. " Domain", sDomainDescription);
 		end
 	end
 end
@@ -2923,11 +2916,7 @@ function addWarlockHexbladePactFeature(rAdd, sClassFeatureOriginalDescription, s
 			local sPactNameWithoutPactPart = string.gsub(sSelectedPact, " Pact", "");
 			if string.find(sClassFeatureName, sSelectedPact .. " " .. sTextToFind, 1, true)
 			or sClassFeatureName == sParentClassFeatureName .. " (" .. sPactNameWithoutPactPart .. ")" then
-				local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-				DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference", "powerdesc", sPattern);
-				DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-				--DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureOriginalDescription);
-				ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", sClassFeatureName, rAdd.sCharName);
+				addBasicClassFeature(rAdd, sClassFeatureName, nil, "powerdesc", sPattern);
 
 				if sTextToFind == "Boon" 
 				or sTextToFind == "Weapon" 
