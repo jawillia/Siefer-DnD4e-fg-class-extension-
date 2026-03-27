@@ -113,7 +113,6 @@ function addDefaultClassFeature(sClassName, rAdd, sClassFeatureName, sClassFeatu
 	if string.find(sClassFeatureOriginalDescription:lower(), "you gain a.- power associated with your") or 
 		string.find(sClassFeatureOriginalDescription:lower(), "you gain a.- feature associated with your") or
 		string.find(sClassFeatureOriginalDescription:lower(), "your .- gains a.- associated with your") then
-			Debug.console("Adding prefeature...");
 			addPreChosenClassFeature(rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
 	end
 end
@@ -147,12 +146,11 @@ function addPreChosenClassFeature(rAdd, sClassFeatureOriginalDescription, sClass
 		sPattern = "gains a.- associated with your([%w%s]+)";
 		sPrefeatureType = string.match(sClassFeatureOriginalDescription:lower(), sPattern);
 	end
-	Debug.console("sPrefeatureType", sPrefeatureType);
+
 	if sPrefeatureType then
 		sPrefeatureType = StringManager.trim(sPrefeatureType);
 		local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
 		local sChosenPrefeature = getChosenPrefeature(rAdd, sClassFeatureOriginalDescription, sPrefeatureType, sClassFeatureName);
-		Debug.console("sChosenPrefeature", sChosenPrefeature);
 		local sClassFeatureName, sClassFeatureLink = getPrefeatureBasedFeatureNameAndLinkFromOtherFeature(sChosenPrefeature, sClassFeatureOriginalDescription);
 		if sClassFeatureName and sClassFeatureLink then
 			local alreadyExists = false;
@@ -2057,11 +2055,7 @@ function addFighterKnightFeatures(sClassName, rAdd, sClassFeatureName, sClassFea
 		if sCharRace and sCharRace:upper() == "ELADRIN" then
 			displayFighterKnightFeywildGuardianDialog(rAdd, sClassFeatureOriginalDescription);
 		else
-			local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-			DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
-			DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-			DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
-			ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", sClassFeatureName, rAdd.sCharName);
+			addBasicClassFeature(rAdd, sClassFeatureName, sClassFeatureFilteredDescription);
 		end
 	else
 		if string.find(sClassFeatureOriginalDescription, "You gain one of the benefits of your choice") then
@@ -2110,11 +2104,7 @@ function callbackResolveFighterKnightBattleGuardianSelection(tSelection, tData)
 			--sClassFeatureOriginalDescription = sClassFeatureOriginalDescription .. "Eladrin can choose to gain the Feywild Guardian power in place of Battle Guardian.\n\n - Feywild Guardian";
 		end
 		local sClassFeatureDescription = removeLinkLists(tData.sClassFeatureOriginalDescription);
-		local rCreatedIDChildNode = DB.createChild(tData.rAdd.nodeChar.getPath("specialabilitylist"));
-		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
-		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureDescription);
-		ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", sClassFeatureName, tData.rAdd.sCharName);
+		addBasicClassFeature(rAdd, sClassFeatureName, sClassFeatureDescription);
 
 		CharClassPowerManager.addAllFeaturePowers(tData.rAdd, sClassFeatureOriginalDescription);
 	end
@@ -2401,7 +2391,6 @@ function callbackResolveDruidSentinelPreFeatureSelection(tSelection, tData)
 end
 
 function addDruidSentinelFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription)
-	Debug.console("Adding DRuid Sentinel normal features...");
 	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
 
 	if sClassFeatureName == "Acolyte of the Natural Cycle" then
@@ -2416,8 +2405,6 @@ function addDruidSentinelFeatures(sClassName, rAdd, sClassFeatureName, sClassFea
 		addBasicClassFeature(rAdd, sClassFeatureName, sClassFeatureFilteredDescription);
 		displayClassFeatureSelectionsDialog(rAdd, sClassFeatureOriginalDescription, sClassFeatureName, 2);		
 	else
-		Debug.console("sClassFeatureName", sClassFeatureName);
-		Debug.console("sClassFeatureOriginalDescription", sClassFeatureOriginalDescription);
 		addDefaultClassFeature(sClassName,rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription);
 	end
 end
@@ -2638,12 +2625,10 @@ function displayPaladinCavalierSelectionsDialog(rAdd, sClassFeatureOriginalDescr
 		end
 	end
 	--If it exists, automatically choose the feature
-	Debug.console("sAlreadyTakenVirtue", sAlreadyTakenVirtue);
 	if sAlreadyTakenVirtue then
 		local sPattern = '<link class="powerdesc" recordname="reference.features.(%w+)@([%w%s]+)">([%w%s%p]-)</link>';
 		for w, v, featureLinkName in string.gmatch(sClassFeatureOriginalDescription, sPattern) do
 			if string.find(featureLinkName, sAlreadyTakenVirtue) then
-				Debug.console("featureLinkName", featureLinkName);
 				local sPattern = "reference.features." .. w .. "@" .. v;
 				local sClassFeatureDescription = DB.getText(DB.getPath(sPattern, "description"));
 				addBasicClassFeature(rAdd, featureLinkName, sClassFeatureDescription);
@@ -2937,6 +2922,8 @@ function addAssassinExecutionerFeatures(sClassName, rAdd, sClassFeatureName, sCl
 	if sClassFeatureName == "Guild Attacks" then
 		addBasicClassFeature(rAdd, sClassFeatureName, sClassFeatureFilteredDescription);
 		displayAssassinExecutionerGuildAttacksSelectionsDialog(rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
+	elseif sClassFeatureName == "Attack Finesse (Executioner)" then
+		displayAssassinExecutionerMasterOfShroudsDialog(rAdd, sClassFeatureOriginalDescription);
 	elseif sClassFeatureName == "Level 6 Executioner Utility Power" or
 			sClassFeatureName == "Level 10 Executioner Utility Power" then
 		addBasicClassFeature(rAdd, sClassFeatureName, sClassFeatureFilteredDescription);
@@ -3029,7 +3016,7 @@ function callbackResolveAssassinExecutionerGuildAttacksSelectionsDialogSelection
 				end
 			end
 			-- your Attack Finesse class feature also applies to kusari-gama and shuriken
-			if rAttackFinesseFeature then
+			if rAttackFinesseFeature and type(rAttackFinesseFeature) ~= "string" then
 				local sAttackFinesseDescription = DB.getText(rAttackFinesseFeature, "description");
 				sAttackFinesseDescription = sAttackFinesseDescription .. "\n\n This class feature also applies to kusari-gama and shuriken (from Way of the Ninja).";
 				DB.setValue(rAttackFinesseFeature, "description", "string", sAttackFinesseDescription);
@@ -3053,6 +3040,72 @@ function callbackResolveAssassinExecutionerGuildAttacksSelectionsDialogSelection
 		local sSubClassFeatureOriginalDescription = DB.getText(DB.getPath(tSelectionLinks[1].linkrecord, "description"));
 		local sParentClassFeatureOriginalDescription = tData.sClassFeatureOriginalDescription;
 		CharClassPowerManager.addAllPowersFromFeatureText(tData.rAdd, sSubClassFeatureOriginalDescription, sParentClassFeatureOriginalDescription)
+	end
+end
+function displayAssassinExecutionerMasterOfShroudsDialog(rAdd, sClassFeatureOriginalDescription)
+	--Display a pop-up where we either choose from the Attack Finesse (Executioner) or Master of Shrouds
+	local tOptions = {}
+	tOptions[1] = "Attack Finesse (Executioner)";
+	tOptions[2] = "Master Of Shrouds";
+	local tDialogData = {
+		title = Interface.getString("char_build_title_addassassinexecutionermasterofshrouds"),
+		msg = Interface.getString("char_build_message_addassassinexecutionermasterofshrouds"),
+		options = tOptions,
+		min = 1,
+		max = 1,
+		callback = CharClassFeatureDescManager.callbackResolveAssassinExecutionerMasterOfShroudsSelection,
+		custom = { rAdd=rAdd, sClassFeatureOriginalDescription=sClassFeatureOriginalDescription },
+	};
+	DialogManager.requestSelectionDialog(tDialogData);
+end
+function callbackResolveAssassinExecutionerMasterOfShroudsSelection(tSelection, tData)
+	if not tSelection and #tSelection == 1 then
+		ChatManager.SystemMessageResource("char_error_addclasssfeature");
+		return;
+	end
+	if #tSelection == 1 then
+		local tCurrentFeatures = DB.getChildren(tData.rAdd.nodeChar, "specialabilitylist");
+		--Clear all existing Attack Finesse (Executioner) nodes, then add them
+		for _, featureNode in pairs(tCurrentFeatures) do
+			if (DB.getText(DB.getPath(featureNode, "value")) == "Attack Finesse (Executioner)")
+				or (DB.getText(DB.getPath(featureNode, "value")) == "Master Of Shrouds") then
+				DB.deleteNode(featureNode);
+			end
+		end
+		local sClassFeatureName = tSelection[1];
+		local sClassFeatureOriginalDescription =  tData.sClassFeatureOriginalDescription;
+		if sClassFeatureName == "Attack Finesse (Executioner)" then
+			sClassFeatureOriginalDescription = string.match(sClassFeatureOriginalDescription, "(.-)<p><b>Master Of Shrouds</b></p>");
+		elseif sClassFeatureName == "Master Of Shrouds" then
+			sClassFeatureOriginalDescription = string.match(sClassFeatureOriginalDescription, "<p><b>Master Of Shrouds</b></p>(.+)");
+		end
+		local sClassFeatureDescription = sClassFeatureOriginalDescription;
+		addBasicClassFeature(tData.rAdd, sClassFeatureName, sClassFeatureDescription);
+
+		if(sClassFeatureName == "Master Of Shrouds") then
+			local isInList = false;
+			for _, featureNode in pairs(tCurrentFeatures) do
+				if DB.getText(DB.getPath(featureNode, "value")) == sClassFeatureName then
+					isInList = true;
+					break;
+				end
+			end
+			if not isInList then
+				local sPattern = '<link class="powerdesc" recordname="reference.features.(%w+)@([%w%s]+)">';
+				local sFeaturesLink = string.gmatch(tData.sClassFeatureOriginalDescription, sPattern);
+				for w,v in sFeaturesLink do
+					local sPattern = "reference.features." .. w .. "@" .. v;
+					local sClassFeatureName = DB.getText(DB.getPath(sPattern, "name"));
+					local sClassFeatureDescription = DB.getValue(DB.getPath(sPattern, "description"));
+					if string.find(sClassFeatureName, "Benefit", 1, true) then
+						addBasicClassFeature(tData.rAdd, sClassFeatureName, nil, "powerdesc", sPattern);
+
+						CharClassPowerManager.dispayItalicPowersDialog(tData.rAdd, sClassFeatureDescription, "Master Of Shrouds");
+						break;
+					end
+				end
+			end
+		end
 	end
 end
 
