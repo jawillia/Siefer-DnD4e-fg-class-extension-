@@ -54,7 +54,7 @@ function addPowersFromText(sDescriptionText, rAdd, sClassFeatureName, sSubFeatur
 		or string.find(sClassFeatureName:lower(), "level [%d]+ .* daily power")
 		or string.find(sClassFeatureName:lower(), "level [%d]+ .* utility power") then
 			if not nNumberOfPowers then
-				if string.find(sDescriptionText:lower(), "one") then
+				if matchWholeWord(sDescriptionText:lower(), "one") then
 					nNumberOfPowers = 1;
 				elseif string.find(sDescriptionText:lower(), "two") then
 					nNumberOfPowers = 2;
@@ -584,4 +584,12 @@ function convertWordToNumber(word)
 
     local lowerCaseWord = string.lower(word)
     return numberWords[lowerCaseWord]
+end
+
+function matchWholeWord(input_string, word_to_find)
+    local pattern = "%f[%w_]" .. word_to_find .. "%f[^%w_]"
+    -- string.match returns the captured values or nil. 
+    -- Since the frontier patterns have zero width, the captured value is the word itself.
+    -- We can wrap the word in capture groups to ensure it is returned.
+    return string.match(input_string, "(" .. pattern .. ")")
 end
