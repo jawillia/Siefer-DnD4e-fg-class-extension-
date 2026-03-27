@@ -18,6 +18,7 @@ function addClass(nodeChar, sRecord, tData)
 	local sDescriptionText = DB.getValue(sRecordDescriptionNode);
 
 	--Add Class level and Save it for Future Functions That are Level Dependent
+	local nOriginalLevel = DB.getValue(rAdd.nodeChar, "level", 1);
 	local nLevel = addClassLevel(rAdd, sRecord, sClassName);
 
 	--Added first level only
@@ -43,7 +44,7 @@ function addClass(nodeChar, sRecord, tData)
 	end
 
 	-- -- Added every level -- --
-	if nLevel <= 30 then
+	if nOriginalLevel < 30 then
 		--Add Class Hit Points
 		addClassHitPoints(rAdd, sRecord, sDescriptionText, nLevel);
 
@@ -59,13 +60,13 @@ function addClass(nodeChar, sRecord, tData)
 		helperResolveStatIncreaseOnClassDrop(rAdd, sRecord,sDescriptionText, nLevel);
 	end
 
-	if nLevel > 1 and nLevel <= 30 then
+	if nLevel > 1 and nOriginalLevel < 30 then
 	--Level Up Notification
 		ChatManager.SystemMessageResource("char_abilities_message_classlevelup", rAdd.sCharName, nLevel, sClassName);
 	end
 
 	--Add Feat Notification
-	if nLevel and nLevel % 2 == 0 then
+	if nLevel and nLevel % 2 == 0 and nOriginalLevel < 30 then
 		ChatManager.SystemMessageResource("char_abilities_message_pickfeatreminder", rAdd.sCharName);
 	end
 	
