@@ -54,7 +54,9 @@ function addClassSpecificFeatures(sClassName, rAdd, sClassFeatureName, sClassFea
 		["WARLOCK (HEXBLADE)"] = function() return addWarlockHexbladeFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,		
 		--HoS
 		["ASSASSIN (EXECUTIONER)"] = function() return addAssassinExecutionerFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
+		--NOTE:Tested up to level 19
 		["PALADIN (BLACKGUARD)"] = function() return addPaladinBlackguardFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription, sFullDescriptionText) end,
+		--NOTE:Tested up to level 10
 		["WARLOCK (BINDER)"] = function() return addWarlockBinderFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
 		--HoF
 		["BARBARIAN (BERSERKER)"] = function() return addBarbarianBerserkerFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
@@ -190,6 +192,21 @@ function getChosenPrefeature(rAdd, sClassFeatureOriginalDescription, sPrefeature
 			sNamePattern = "Virtue of (%a+)";
 			foundString = string.match(DB.getText(DB.getPath(featureNode, "value")):lower(), sNamePattern:lower());			
 		end
+		if not foundString then
+			--Name equals "X Domain/Pact/etc."
+			--Description is "You have selected the X domain/pact/etc."
+			sNamePattern = "([%a%s]+)" .. sPrefeatureType;
+			local foundString = string.match(DB.getText(DB.getPath(featureNode, "value")):lower(), sNamePattern:lower());
+			if foundString and #foundString > 0 then
+				local sSelectedDomainEquivalentName = StringManager.trim(StringManager.titleCase(foundString));
+				if sSelectedDomainEquivalentName and #sSelectedDomainEquivalentName > 0 then
+					local sDescriptionPattern = "You have selected the " .. sSelectedDomainEquivalentName .. " " .. sPrefeatureType .. ".";
+					if DB.getPath(featureNode, "description") and DB.getText(DB.getPath(featureNode, "description")) and string.find(DB.getText(DB.getPath(featureNode, "description")):lower(), sDescriptionPattern:lower()) then
+						return StringManager.trim(sSelectedDomainEquivalentName);
+					end
+				end
+			end
+		end
 		if foundString then
 			local sSelectedDomainEquivalentName = StringManager.trim(StringManager.titleCase(foundString));
 			if sSelectedDomainEquivalentName then
@@ -207,11 +224,11 @@ function getChosenPrefeature(rAdd, sClassFeatureOriginalDescription, sPrefeature
 			--Name equals "X Domain/Pact/etc."
 			--Description is "You have selected the X domain/pact/etc."
 			local foundString = string.match(DB.getText(DB.getPath(featureNode, "value")):lower(), sNamePattern:lower());
-			if foundString then
+			if foundString and #foundString > 0 then
 				local sSelectedDomainEquivalentName = StringManager.trim(StringManager.titleCase(foundString));
-				if sSelectedDomainEquivalentName then
+				if sSelectedDomainEquivalentName and #sSelectedDomainEquivalentName > 0 then
 					local sDescriptionPattern = "You have selected the " .. sSelectedDomainEquivalentName .. " " .. sPrefeatureType .. ".";
-					if DB.getPath(featureNode, "description") and DB.getText(DB.getPath(featureNode, "description")) and string.find(DB.getText(DB.getPath(featureNode, "description")), sDescriptionPattern) then
+					if DB.getPath(featureNode, "description") and DB.getText(DB.getPath(featureNode, "description")) and string.find(DB.getText(DB.getPath(featureNode, "description")):lower(), sDescriptionPattern:lower()) then
 						return StringManager.trim(sSelectedDomainEquivalentName);
 					end
 				end
@@ -2743,7 +2760,7 @@ function callbackResolveWarlockHexbladePreFeatureSelection(tSelection, tData)
 		return;
 	end
 
-	local sPactDescription = "You have selected the " .. tSelection[1] .. " pact.";
+	local sPactDescription = "You have selected the " .. tSelection[1] .. ".";
 	local rCreatedIDChildNode = DB.createChild(tData.rAdd.nodeChar.getPath("specialabilitylist"));
 	DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
 	DB.setValue(rCreatedIDChildNode, "value", "string", tSelection[1]);
@@ -2808,7 +2825,7 @@ function addWarlockHexbladeFeatures(sClassName, rAdd, sClassFeatureName, sClassF
 	if string.find(sClassFeatureName:lower(), "level %d+ hexblade daily power")
 		and (nLevel == 19 or nLevel == 29) then
 		CharClassFeatureDescManager.replaceOlderPower(rAdd, sClassName, "Daily", nLevel);
-	end		
+	end
 end
 function displayWarlockHexbladePactDialog(sClassName, rAdd, sClassFeatureOriginalDescription, sClassFeatureName)
 	--Find out if you have a pact feature already, and if so, add the pact-based feature already
@@ -2866,6 +2883,7 @@ function callbackResolveWarlockHexbladePactSelection(tSelection, tData)
 	end
 	if #tSelection == 1 then
 		if (tData.sClassFeatureName == "Pact Boon" and tData.sClassFeatureOriginalDescription) or
+			(tData.sClassFeatureName == "Pact Boon (Binder)" and tData.sClassFeatureOriginalDescription) or
 			(tData.sClassFeatureName == "Pact Reward" and tData.sClassFeatureOriginalDescription) or
 			(tData.sClassFeatureName == "Pact Weapon" and tData.sClassFeatureOriginalDescription) or
 			(tData.sClassFeatureName == "Pact Weapon Retribution" and tData.sClassFeatureOriginalDescription) then
@@ -2903,7 +2921,8 @@ function addWarlockHexbladePactFeature(rAdd, sClassFeatureOriginalDescription, s
 			or sClassFeatureName == sParentClassFeatureName .. " (" .. sPactNameWithoutPactPart .. ")" then
 				addBasicClassFeature(rAdd, sClassFeatureName, nil, "powerdesc", sPattern);
 
-				if sTextToFind == "Boon" 
+				if sTextToFind == "Boon"
+				or sTextToFind == "Boon (Binder)"
 				or sTextToFind == "Weapon" 
 				or sTextToFind == "Weapon Retribution" then
 					CharClassPowerManager.addAllPowersFromFeatureText(rAdd, sClassFeatureDescription, sClassFeatureOriginalDescription);
@@ -3142,6 +3161,12 @@ function addPaladinBlackguardFeatures(sClassName, rAdd, sClassFeatureName, sClas
 	else
 		addDefaultClassFeature(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription);
 	end
+
+	--Replace older power at certain levels
+	if string.find(sClassFeatureName:lower(), "level %d+ blackguard daily power")
+		and (nLevel == 19 or nLevel == 25 or nLevel == 29) then
+		CharClassFeatureDescManager.replaceOlderPower(rAdd, sClassName, "Daily", nLevel);
+	end	
 end
 function addPaladinBlackguardViceAtWillPower(rAdd, sFullDescriptionText)
 	if not rAdd then
@@ -3198,14 +3223,21 @@ end
 function addWarlockBinderFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription)
 	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
 
-	if sClassFeatureName:upper() == "LEVEL 1 PACT ENCOUNTER POWER" then
+	-- if sClassFeatureName:upper() == "LEVEL 1 PACT ENCOUNTER POWER" then
+	-- 	--Add the feature, but if you have also already added a pact, narrow pact-based features
+	-- 	addBasicClassFeature(rAdd, sClassFeatureName, sClassFeatureFilteredDescription);
+	-- 	displayWarlockBinderPactDialog(sClassName, rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
+	if sClassFeatureName:upper() == "PACT BOON (BINDER)" then
 		--Add the feature, but if you have also already added a pact, narrow pact-based features
 		addBasicClassFeature(rAdd, sClassFeatureName, sClassFeatureFilteredDescription);
 		displayWarlockBinderPactDialog(sClassName, rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
-	elseif sClassFeatureName:upper() == "PACT BOON (BINDER)" then
-		--Add the feature, but if you have also already added a pact, narrow pact-based features
+	elseif sClassFeatureName:upper() == "SUMMON WARLOCK'S ALLY" then
 		addBasicClassFeature(rAdd, sClassFeatureName, sClassFeatureFilteredDescription);
-		displayWarlockBinderPactDialog(sClassName, rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
+		local sSelectedPact = getChosenPrefeature(rAdd, sClassFeatureOriginalDescription, "pact", sClassFeatureName)
+		addWarlockHexbladePactFeature(rAdd, sClassFeatureOriginalDescription, sSelectedPact, "Binder's Ally", "Binder's Ally");		
+	elseif string.find(sClassFeatureName:lower(), "pact") then
+		addBasicClassFeature(rAdd, sClassFeatureName, sClassFeatureFilteredDescription);
+		addPreChosenClassFeature(rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
 	else
 		addDefaultClassFeature(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription);
 	end
