@@ -225,6 +225,7 @@ function dispayItalicPowersDialog(rAdd, sClassFeatureOriginalDescription, sClass
 		ChatManager.SystemMessageResource("char_error_addclassspower");
 		return;
 	end
+
 	local tOptions = {};
 	local tTotalPowerNames = {};
 	local nTotalPowerCount = 1;
@@ -287,6 +288,17 @@ function dispayItalicPowersDialog(rAdd, sClassFeatureOriginalDescription, sClass
 			custom = { rAdd=rAdd }, 
 		};
 		DialogManager.requestSelectionDialog(tDialogData);
+	else
+		local tGlobalPowerNodes = DB.getChildrenGlobal("reference.powers");
+		for i, italicsPowerName in ipairs(tTotalPowerNames) do
+			for _,powerNode in ipairs(tGlobalPowerNodes) do
+				local sPowerName = DB.getText(DB.getPath(powerNode, "name"));
+				if italicsPowerName:lower() == sPowerName:lower() then
+					local sPowerPath = DB.getPath(powerNode);
+					addPowerFromRecordLink(rAdd, sPowerName, sPowerPath);
+				end
+			end
+		end	
 	end
 end
 

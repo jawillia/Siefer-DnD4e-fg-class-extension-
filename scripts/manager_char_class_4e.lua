@@ -381,6 +381,9 @@ function addEssentialsClassFeatures(rAdd, sRecord, sDescriptionText, sClassName,
 							--Weird special case for the Feywild Guardian feature from the Fighter(Knight)
 							if v:upper() == "BATTLE GUARDIAN" then
 								sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v .. "%s*</b></p>%s*(.-)<p><b>Defender Aura</b></p>";
+							--Weird special case for the Master of Shrouds feature from the Assassin (Executioner)
+							elseif v:upper() == "ATTACK FINESSE %(EXECUTIONER%)" then
+								sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v .. "%s*</b></p>%s*(.-)<p><b>Guild Attacks</b></p>";
 							else
 								sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v .. "%s*</b></p>%s*(.-)<p><b>";
 							end

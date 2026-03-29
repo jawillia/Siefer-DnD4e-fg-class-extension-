@@ -88,6 +88,9 @@
    <!-- Fighter (Knight) Feature strings -->
   <string name="char_build_title_addfighterknightbattleguardian">Battle Guardian or Feywild Guardian</string> 
   <string name="char_build_message_addfighterknightbattleguardian">Eladrin can choose to gain the Feywild Guardian power instead of Battle Guardian.</string>
+  <!-- Assassin (Executioner) Feature strings -->
+  <string name="char_build_title_addassassinexecutionermasterofshrouds">Attack Finesse or Master of Shrouds</string> 
+  <string name="char_build_message_addassassinexecutionermasterofshrouds">Executioner can choose to gain the Master of Shrouds power instead of Attack Finesse (Executioner).</string>
    <!-- Druid (Sentinel) Feature strings -->
   <string name="char_build_title_adddruidseason">Druid Seasons</string> 
   <string name="char_build_message_adddruidseason">Choose a Druid season. These determine some of your class features, including the animal companion you gain.</string>
