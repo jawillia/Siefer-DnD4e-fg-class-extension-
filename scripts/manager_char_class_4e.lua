@@ -512,6 +512,7 @@ function loadClassesWithPreFeatures(tClassesWithPreFeatures)
 	tClassesWithPreFeatures["DRUID (PROTECTOR)"] = true;
 	tClassesWithPreFeatures["PALADIN (CAVALIER)"] = true;
 	tClassesWithPreFeatures["PALADIN (BLACKGUARD)"] = true;
+	tClassesWithPreFeatures["SORCERER (ELEMENTALIST)"] = true;
 
 	return tClassesWithPreFeatures;
 end
@@ -1098,6 +1099,7 @@ function isEssentialsFirstThenStandardClass(sClassName)
 	tEssentialsFirstThenStandardClass["BARBARIAN (BERSERKER)"] = true;
 	tEssentialsFirstThenStandardClass["DRUID (PROTECTOR)"] = true;
 	tEssentialsFirstThenStandardClass["WIZARD (WITCH)"] = true;
+	tEssentialsFirstThenStandardClass["SORCERER (ELEMENTALIST)"] = true;
 
 	return tEssentialsFirstThenStandardClass[sClassName:upper()];
 end
