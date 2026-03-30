@@ -282,7 +282,7 @@ function addClassHealingSurges(rAdd, sRecord, sDescriptionText)
 end
 
 function addClassFeatures(rAdd, sRecord, sDescriptionText, sClassName, nLevel)
-	if isEssentialsClass(sClassName) then
+	if (isEssentialsClass(sClassName)) or (nLevel == 1 and isEssentialsFirstThenStandardClass(sClassName)) then
 		addEssentialsClassFeatures(rAdd, sRecord, sDescriptionText, sClassName, nLevel, sDescriptionText);
 	else
 		addStandardAEDUClassFeatures(rAdd, sRecord, sDescriptionText, sClassName, nLevel);
@@ -609,7 +609,7 @@ function addClassPowers(rAdd, sRecord, sDescriptionText, sClassName, nLevel, nNu
 		local encounterPowerNumbers = 0;
 		local dailyPowerNumbers = 0;
 		local utilityPowerNumbers = 0;
-		if not isEssentialsClass(sClassName) then
+		if not isEssentialsClass(sClassName) or (isEssentialsFirstThenStandardClass(sClassName)) then
 			local tRefreshTypes = {};
 			if not sRefreshText then
 				--Add one type here for each type of power you gain at least one for this level
@@ -1092,6 +1092,14 @@ function isEssentialsClass(sClassName)
 	tEssentialsClasses["WIZARD (WITCH)"] = true;
 
 	return tEssentialsClasses[sClassName:upper()];
+end
+function isEssentialsFirstThenStandardClass(sClassName)
+	local tEssentialsFirstThenStandardClass = {};
+	tEssentialsFirstThenStandardClass["BARBARIAN (BERSERKER)"] = true;
+	tEssentialsFirstThenStandardClass["DRUID (PROTECTOR)"] = true;
+	tEssentialsFirstThenStandardClass["WIZARD (WITCH)"] = true;
+
+	return tEssentialsFirstThenStandardClass[sClassName:upper()];
 end
 function isSpellbookClass(sClassName)
 	local tSpellbookClasses = {};
