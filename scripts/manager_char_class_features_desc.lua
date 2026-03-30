@@ -38,18 +38,25 @@ function addClassSpecificFeatures(sClassName, rAdd, sClassFeatureName, sClassFea
 		--FPG
 		["SWORDMAGE"] = function() return addSwordmageFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
 		--HoFL
+		--NOTE:Tested up to level 30
 		["CLERIC (WARPRIEST)"] = function() return addClericWarpriestFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription, nLevel, sFullDescriptionText) end,
 		["FIGHTER (KNIGHT)"] = function() return addFighterKnightFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
+		--TODO:STILL NEED TO TEST THIS ONE
 		["WIZARD (MAGE)"] = function() return addWizardMageFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
 		--HotFK
+		--NOTE:Tested up to level 10
 		["DRUID (SENTINEL)"] = function() return addDruidSentinelFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
-		["PALADIN (CAVALIER)"] = function() return addPaladinCavalierFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
+		--NOTE:Tested up to level 29
+		["PALADIN (CAVALIER)"] = function() return addPaladinCavalierFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription, nLevel, sFullDescriptionText) end,
+		--NOTE:Tested up to level 10
 		["RANGER (HUNTER)"] = function() return addRangerHunterFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
 		["RANGER (SCOUT)"] = function() return addRangerScoutFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
 		["WARLOCK (HEXBLADE)"] = function() return addWarlockHexbladeFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,		
 		--HoS
 		["ASSASSIN (EXECUTIONER)"] = function() return addAssassinExecutionerFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
+		--NOTE:Tested up to level 19
 		["PALADIN (BLACKGUARD)"] = function() return addPaladinBlackguardFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription, sFullDescriptionText) end,
+		--NOTE:Tested up to level 10
 		["WARLOCK (BINDER)"] = function() return addWarlockBinderFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
 		--HoF
 		["BARBARIAN (BERSERKER)"] = function() return addBarbarianBerserkerFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription) end,
@@ -76,11 +83,17 @@ function isNotAddingFeaturePower(sClassFeatureName)
 end
 
 --Basic Add Feature Method, no extra frills
-function addBasicClassFeature(rAdd, sClassFeatureName, sClassFeatureDescription)
+function addBasicClassFeature(rAdd, sClassFeatureName, sClassFeatureDescription, sWindowLinkClass, sWindowLinkPath)
 	local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-	DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+	if not sWindowLinkClass or not sWindowLinkPath then
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
+	else
+		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference", sWindowLinkClass, sWindowLinkPath);
+	end
 	DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-	DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureDescription);
+	if sClassFeatureDescription then
+		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureDescription);
+	end
 	ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", sClassFeatureName, rAdd.sCharName);
 end
 
@@ -100,7 +113,8 @@ function addDefaultClassFeature(sClassName, rAdd, sClassFeatureName, sClassFeatu
 
 	--Add sub-feature automatically, if it's something that was chosen by the class's pre-chosen feature (i.e. domain, pact, season, element, etc)
 	if string.find(sClassFeatureOriginalDescription:lower(), "you gain a.- power associated with your") or 
-		string.find(sClassFeatureOriginalDescription:lower(), "you gain a.- feature associated with your") then
+		string.find(sClassFeatureOriginalDescription:lower(), "you gain a.- feature associated with your") or
+		string.find(sClassFeatureOriginalDescription:lower(), "your .- gains a.- associated with your") then
 			addPreChosenClassFeature(rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
 	end
 end
@@ -112,11 +126,11 @@ function addClassSpecificPreFeatures(sClassName, rAdd, sDescriptionText, tClassF
 	switch(sClassName:upper(), 
 	{
 		["CLERIC (WARPRIEST)"] = function() return addClericWarpriestPreFeatures(sClassName, rAdd, sDescriptionText, tClassFeatures) end,
-		["DRUID (SENTINEL)"] = function() return addDruidSentinelPreFeatures(sClassName, rAdd, sDescriptionText, tClassFeatures) end,
+		["DRUID (SENTINEL)"] = function() return addDruidSentinelPreFeatures(sClassName, rAdd, sDescriptionText, tClassFeatures, nLevel, sFullDescriptionText) end,
 		["WARLOCK (HEXBLADE)"] = function() return addWarlockHexbladePreFeatures(sClassName, rAdd, sDescriptionText, tClassFeatures) end,
 		["WARLOCK (BINDER)"] = function() return addWarlockBinderPreFeatures(sClassName, rAdd, sDescriptionText, tClassFeatures) end,
 		["DRUID (PROTECTOR)"] = function() return addDruidProtectorPreFeatures(sClassName, rAdd, sDescriptionText, tClassFeatures) end,
-		["PALADIN (CAVALIER)"] = function() return addPaladinCavalierPreFeatures(sClassName, rAdd, sDescriptionText, tClassFeatures) end,
+		["PALADIN (CAVALIER)"] = function() return addPaladinCavalierPreFeatures(sClassName, rAdd, sDescriptionText, tClassFeatures, nLevel, sFullDescriptionText) end,
 		["PALADIN (BLACKGUARD)"] = function() return addPaladinBlackguardPreFeatures(sClassName, rAdd, sDescriptionText, tClassFeatures, nLevel, sFullDescriptionText) end
 	});
 end
@@ -173,6 +187,26 @@ function getChosenPrefeature(rAdd, sClassFeatureOriginalDescription, sPrefeature
 		--Name equals "Spirit of Vice (X)"
 		local sNamePattern = "Spirit of Vice%s%(([%a%s]+)%)";
 		local foundString = string.match(DB.getText(DB.getPath(featureNode, "value")):lower(), sNamePattern:lower());
+		--Name equals "Virtue of X"
+		if not foundString then
+			sNamePattern = "Virtue of (%a+)";
+			foundString = string.match(DB.getText(DB.getPath(featureNode, "value")):lower(), sNamePattern:lower());			
+		end
+		if not foundString then
+			--Name equals "X Domain/Pact/etc."
+			--Description is "You have selected the X domain/pact/etc."
+			sNamePattern = "([%a%s]+)" .. sPrefeatureType;
+			local foundString = string.match(DB.getText(DB.getPath(featureNode, "value")):lower(), sNamePattern:lower());
+			if foundString and #foundString > 0 then
+				local sSelectedDomainEquivalentName = StringManager.trim(StringManager.titleCase(foundString));
+				if sSelectedDomainEquivalentName and #sSelectedDomainEquivalentName > 0 then
+					local sDescriptionPattern = "You have selected the " .. sSelectedDomainEquivalentName .. " " .. sPrefeatureType .. ".";
+					if DB.getPath(featureNode, "description") and DB.getText(DB.getPath(featureNode, "description")) and string.find(DB.getText(DB.getPath(featureNode, "description")):lower(), sDescriptionPattern:lower()) then
+						return StringManager.trim(sSelectedDomainEquivalentName);
+					end
+				end
+			end
+		end
 		if foundString then
 			local sSelectedDomainEquivalentName = StringManager.trim(StringManager.titleCase(foundString));
 			if sSelectedDomainEquivalentName then
@@ -190,11 +224,11 @@ function getChosenPrefeature(rAdd, sClassFeatureOriginalDescription, sPrefeature
 			--Name equals "X Domain/Pact/etc."
 			--Description is "You have selected the X domain/pact/etc."
 			local foundString = string.match(DB.getText(DB.getPath(featureNode, "value")):lower(), sNamePattern:lower());
-			if foundString then
+			if foundString and #foundString > 0 then
 				local sSelectedDomainEquivalentName = StringManager.trim(StringManager.titleCase(foundString));
-				if sSelectedDomainEquivalentName then
+				if sSelectedDomainEquivalentName and #sSelectedDomainEquivalentName > 0 then
 					local sDescriptionPattern = "You have selected the " .. sSelectedDomainEquivalentName .. " " .. sPrefeatureType .. ".";
-					if DB.getPath(featureNode, "description") and DB.getText(DB.getPath(featureNode, "description")) and string.find(DB.getText(DB.getPath(featureNode, "description")), sDescriptionPattern) then
+					if DB.getPath(featureNode, "description") and DB.getText(DB.getPath(featureNode, "description")) and string.find(DB.getText(DB.getPath(featureNode, "description")):lower(), sDescriptionPattern:lower()) then
 						return StringManager.trim(sSelectedDomainEquivalentName);
 					end
 				end
@@ -2038,11 +2072,7 @@ function addFighterKnightFeatures(sClassName, rAdd, sClassFeatureName, sClassFea
 		if sCharRace and sCharRace:upper() == "ELADRIN" then
 			displayFighterKnightFeywildGuardianDialog(rAdd, sClassFeatureOriginalDescription);
 		else
-			local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-			DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
-			DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-			DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
-			ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", sClassFeatureName, rAdd.sCharName);
+			addBasicClassFeature(rAdd, sClassFeatureName, sClassFeatureFilteredDescription);
 		end
 	else
 		if string.find(sClassFeatureOriginalDescription, "You gain one of the benefits of your choice") then
@@ -2091,11 +2121,7 @@ function callbackResolveFighterKnightBattleGuardianSelection(tSelection, tData)
 			--sClassFeatureOriginalDescription = sClassFeatureOriginalDescription .. "Eladrin can choose to gain the Feywild Guardian power in place of Battle Guardian.\n\n - Feywild Guardian";
 		end
 		local sClassFeatureDescription = removeLinkLists(tData.sClassFeatureOriginalDescription);
-		local rCreatedIDChildNode = DB.createChild(tData.rAdd.nodeChar.getPath("specialabilitylist"));
-		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
-		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureDescription);
-		ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", sClassFeatureName, tData.rAdd.sCharName);
+		addBasicClassFeature(rAdd, sClassFeatureName, sClassFeatureDescription);
 
 		CharClassPowerManager.addAllFeaturePowers(tData.rAdd, sClassFeatureOriginalDescription);
 	end
@@ -2335,7 +2361,7 @@ end
 -------------------------------------------
 ----- DRUID (SENTINEL) Class Features ----
 -------------------------------------------
-function addDruidSentinelPreFeatures(sClassName, rAdd, sDescriptionText, tClassFeatures)
+function addDruidSentinelPreFeatures(sClassName, rAdd, sDescriptionText, tClassFeatures, nLevel, sFullDescriptionText)
 	--First, see if you have a season already selected. If you don't, select one, then go through the rest of the features.
 	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
 	local sAlreadyTakenSeason = nil;
@@ -2364,7 +2390,7 @@ function addDruidSentinelPreFeatures(sClassName, rAdd, sDescriptionText, tClassF
 			min = 1,
 			max = 1,
 			callback = CharClassFeatureDescManager.callbackResolveDruidSentinelPreFeatureSelection,
-			custom = { sClassName=sClassName, rAdd=rAdd, sDescriptionText=sDescriptionText, tClassFeatures=tClassFeatures },
+			custom = { sClassName=sClassName, rAdd=rAdd, sDescriptionText=sDescriptionText, tClassFeatures=tClassFeatures, nLevel=nLevel, sFullDescriptionText=sFullDescriptionText },
 		};
 		DialogManager.requestSelectionDialog(tDialogData);
 	end
@@ -2376,35 +2402,9 @@ function callbackResolveDruidSentinelPreFeatureSelection(tSelection, tData)
 	end
 
 	local sSeasonDescription = "You have selected the season of " .. tSelection[1] .. ".";
-	local rCreatedIDChildNode = DB.createChild(tData.rAdd.nodeChar.getPath("specialabilitylist"));
-	DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
-	DB.setValue(rCreatedIDChildNode, "value", "string", "Season of " .. tSelection[1]);
-	DB.setValue(rCreatedIDChildNode, "description", "string", sSeasonDescription);
+	addBasicClassFeature(tData.rAdd, "Season of " .. tSelection[1], sSeasonDescription);
 
-	local tCurrentFeatures = DB.getChildren(tData.rAdd.nodeChar, "specialabilitylist");
-	for w,v in pairs(tData.tClassFeatures) do
-		local sClassFeatureDescriptionPattern = '';
-		if w < #tData.tClassFeatures then
-			sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v:gsub("(%a)([%w_']*)", titleCase) .. "%s*</b></p>%s*(.-)<p><b>";
-		elseif w == #tData.tClassFeatures then
-			-- On the last feature entry, first try reading to the end of the description we're given
-			sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v:gsub("(%a)([%w_']*)", titleCase) .. "%s*</b></p>%s*(.+)";
-		end
-		sClassFeatureSpecificDescriptionText = string.match(tData.sDescriptionText, sClassFeatureDescriptionPattern);
-		if sClassFeatureSpecificDescriptionText then
-			sClassFeatureFilteredDescriptionText = removeLinkLists(sClassFeatureSpecificDescriptionText);
-		end
-		local isFeatureInList = false;
-		for _, featureNode in pairs(tCurrentFeatures) do
-			if DB.getText(DB.getPath(featureNode, "value")) == v then
-				isFeatureInList = true;
-				break;
-			end
-		end
-		if isFeatureInList == false then
-			CharClassFeatureDescManager.addClassSpecificFeatures(tData.sClassName, tData.rAdd, v, sClassFeatureFilteredDescriptionText, sClassFeatureSpecificDescriptionText);
-		end
-	end
+	CharClassManager.addEssentialsClassFeatures(tData.rAdd, nil, tData.sFullDescriptionText, tData.sClassName, tData.nLevel, tData.sFullDescriptionText, true);
 end
 
 function addDruidSentinelFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription)
@@ -2412,30 +2412,17 @@ function addDruidSentinelFeatures(sClassName, rAdd, sClassFeatureName, sClassFea
 
 	if sClassFeatureName == "Acolyte of the Natural Cycle" then
 		--Add the feature, but if you have also already added a season, narrow acolyte of the natural cycle and animal companion features
-		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
-		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
+		addBasicClassFeature(rAdd, sClassFeatureName, sClassFeatureFilteredDescription);
 		displayDruidSentinelSeasonDialog(sClassName, rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
 	elseif sClassFeatureName == "Animal Companion" then
 		--Add the feature, but if you have also already added a season, narrow acolyte of the natural cycle and animal companion eatures
-		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
-		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
+		addBasicClassFeature(rAdd, sClassFeatureName, sClassFeatureFilteredDescription);
 		displayDruidSentinelSeasonDialog(sClassName, rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
 	elseif sClassFeatureName == "Druid Wilderness Knacks" then
-		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
-		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
+		addBasicClassFeature(rAdd, sClassFeatureName, sClassFeatureFilteredDescription);
 		displayClassFeatureSelectionsDialog(rAdd, sClassFeatureOriginalDescription, sClassFeatureName, 2);		
 	else
-		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
-		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
-		ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", sClassFeatureName, rAdd.sCharName);
+		addDefaultClassFeature(sClassName,rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription);
 	end
 end
 function displayDruidSentinelSeasonDialog(sClassName, rAdd, sClassFeatureOriginalDescription, sClassFeatureName)
@@ -2491,10 +2478,7 @@ function callbackResolveDruidSentinelSeasonSelection(tSelection, tData)
 			addDruidSentinelAnimalCompanion(tData.rAdd, tData.sClassFeatureOriginalDescription, tSelection[1]);
 		else
 			local sDomainDescription = "You have selected the " .. tSelection[1] .. " domain.";
-			local rCreatedIDChildNode = DB.createChild(tData.rAdd.nodeChar.getPath("specialabilitylist"));
-			DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
-			DB.setValue(rCreatedIDChildNode, "value", "string", tSelection[1] .. " Domain");
-			DB.setValue(rCreatedIDChildNode, "description", "string", sDomainDescription);
+			addBasicClassFeature(tData.rAdd, tSelection[1] .. " Domain", sDomainDescription);
 		end
 	end
 end
@@ -2516,11 +2500,9 @@ function addDruidSentinelAcolyte(rAdd, sClassFeatureOriginalDescription, sSelect
 			local sClassFeatureName = DB.getText(DB.getPath(sPattern, "name"));
 			local sClassFeatureDescription = DB.getText(DB.getPath(sPattern, "description"));
 			if sClassFeatureName == "Druid of " .. sSelectedSeason or sClassFeatureName == "Druid of the " .. sSelectedSeason then
-				local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-				DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference", "powerdesc", sPattern);
-				DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-				--DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureOriginalDescription);
-				ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", sClassFeatureName, rAdd.sCharName);
+				local sWindowLinkClass = "powerdesc";
+				local sWindowLinkPath = sPattern;
+				addBasicClassFeature(rAdd, sClassFeatureName, nil, sWindowLinkClass, sWindowLinkPath);
 				break;
 			end
 		end
@@ -2545,11 +2527,9 @@ function addDruidSentinelAnimalCompanion(rAdd, sClassFeatureOriginalDescription,
 			local sClassFeatureDescription = DB.getText(DB.getPath(sPattern, "description"));
 			if string.find(sClassFeatureName, "Druid of " .. sSelectedSeason .. ":") or 
 			 string.find(sClassFeatureName, "Druid of the " .. sSelectedSeason .. ":") then
-				local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-				DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference", "powerdesc", sPattern);
-				DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-				--DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureOriginalDescription);
-				ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", sClassFeatureName, rAdd.sCharName);
+			 	local sWindowLinkClass = "powerdesc";
+			 	local sWindowLinkPath = sPattern;
+				addBasicClassFeature(rAdd, sClassFeatureName, nil, sWindowLinkClass, sWindowLinkPath);
 				break;
 			end
 		end
@@ -2560,7 +2540,7 @@ end
 ---------------------------------------------
 ----- PALADIN (CAVALIER) Class Features ----
 ---------------------------------------------
-function addPaladinCavalierPreFeatures(sClassName, rAdd, sDescriptionText, tClassFeatures)
+function addPaladinCavalierPreFeatures(sClassName, rAdd, sDescriptionText, tClassFeatures, nLevel, sFullDescriptionText)
 	--First, see if you have a pact already selected. If you don't, select one, then go through the rest of the features.
 	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
 	local sAlreadyTakenVirtue = nil;
@@ -2588,7 +2568,7 @@ function addPaladinCavalierPreFeatures(sClassName, rAdd, sDescriptionText, tClas
 			min = 1,
 			max = 1,
 			callback = CharClassFeatureDescManager.callbackResolvePaladinCavalierPreFeatureSelection,
-			custom = { sClassName=sClassName, rAdd=rAdd, sDescriptionText=sDescriptionText, tClassFeatures=tClassFeatures },
+			custom = { sClassName=sClassName, rAdd=rAdd, sDescriptionText=sDescriptionText, tClassFeatures=tClassFeatures, nLevel=nLevel, sFullDescriptionText=sFullDescriptionText },
 		};
 		DialogManager.requestSelectionDialog(tDialogData);
 	end
@@ -2600,40 +2580,11 @@ function callbackResolvePaladinCavalierPreFeatureSelection(tSelection, tData)
 	end
 
 	local sVirtueDescription = "You have selected the " .. tSelection[1] .. " virtue.";
-	local rCreatedIDChildNode = DB.createChild(tData.rAdd.nodeChar.getPath("specialabilitylist"));
-	DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
-	DB.setValue(rCreatedIDChildNode, "value", "string", tSelection[1]);
-	DB.setValue(rCreatedIDChildNode, "description", "string", sVirtueDescription);
+	addBasicClassFeature(tData.rAdd, tSelection[1], sVirtueDescription);
 
-	local tCurrentFeatures = DB.getChildren(tData.rAdd.nodeChar, "specialabilitylist");
-	for w,v in pairs(tData.tClassFeatures) do
-		local sClassFeatureDescriptionPattern = '';
-		v = v:gsub("[%(%)%-]", "%%%0");
-		if w < #tData.tClassFeatures then
-			sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v:gsub("(%a)([%w_']*)", titleCase) .. "%s*</b></p>%s*(.-)<p><b>";
-		elseif w == #tData.tClassFeatures then
-			-- On the last feature entry, first try reading to the end of the description we're given
-			sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v:gsub("(%a)([%w_']*)", titleCase) .. "%s*</b></p>%s*(.+)";
-		end
-		sClassFeatureSpecificDescriptionText = string.match(tData.sDescriptionText, sClassFeatureDescriptionPattern);
-		if sClassFeatureSpecificDescriptionText then
-			sClassFeatureFilteredDescriptionText = removeLinkLists(sClassFeatureSpecificDescriptionText);
-		end
-		--Revert v back to unescaped version
-		v = v:gsub("%%", "");		
-		local isFeatureInList = false;
-		for _, featureNode in pairs(tCurrentFeatures) do
-			if DB.getText(DB.getPath(featureNode, "value")) == v then
-				isFeatureInList = true;
-				break;
-			end
-		end
-		if isFeatureInList == false then
-			CharClassFeatureDescManager.addClassSpecificFeatures(tData.sClassName, tData.rAdd, v, sClassFeatureFilteredDescriptionText, sClassFeatureSpecificDescriptionText);
-		end
-	end
+	CharClassManager.addEssentialsClassFeatures(tData.rAdd, nil, tData.sFullDescriptionText, tData.sClassName, tData.nLevel, tData.sFullDescriptionText, true);
 end
-function addPaladinCavalierFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription)
+function addPaladinCavalierFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription, nLevel, sFullDescriptionText)
 	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
 	local tLevelFourAlternativeClassFeaturesOptions = {};
 	tLevelFourAlternativeClassFeaturesOptions[1] = "Pace Of The Virtuous Charger";
@@ -2643,23 +2594,14 @@ function addPaladinCavalierFeatures(sClassName, rAdd, sClassFeatureName, sClassF
 	tLevelFourStringCharBuildData[1] = "char_build_title_addvirtuouschargerorsummonedsteed";
 	tLevelFourStringCharBuildData[2] = "char_build_message_addvirtuouschargerorsummonedsteed";	
 	if sClassFeatureName == "Spirit of Virtue" then
-		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
-		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-		DB.setValue(rCreatedIDChildNode, "description", "string", removeLinkLists(sClassFeatureOriginalDescription));
+		addBasicClassFeature(rAdd, sClassFeatureName, sClassFeatureFilteredDescription);
 		displayPaladinCavalierSelectionsDialog(rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
 	elseif sClassFeatureName == "Virtue At-Will Power" then
-		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
-		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-		DB.setValue(rCreatedIDChildNode, "description", "string", removeLinkLists(sClassFeatureOriginalDescription));
+		addBasicClassFeature(rAdd, sClassFeatureName, sClassFeatureFilteredDescription);
 		displayPaladinCavalierSelectionsDialog(rAdd, sClassFeatureOriginalDescription, sClassFeatureName);		
 	elseif sClassFeatureName == "Pace Of The Virtuous Charger" then
 		--Add the feature, but if you have also already added Summoned Steed, choose between them
-		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
-		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
+		addBasicClassFeature(rAdd, sClassFeatureName, sClassFeatureFilteredDescription);
 		for _, featureNode in pairs(tCurrentFeatures) do
 			if DB.getText(DB.getPath(featureNode, "value")) == "Summoned Steed" then
 				displayAlternativeFeatureDialog(rAdd, tLevelFourAlternativeClassFeaturesOptions, tLevelFourStringCharBuildData);
@@ -2668,10 +2610,7 @@ function addPaladinCavalierFeatures(sClassName, rAdd, sClassFeatureName, sClassF
 		end
 	elseif sClassFeatureName == "Summoned Steed" then
 		--Add the feature, but if you have also already added Pace of the Virtuous Charger, choose between them
-		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
-		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureOriginalDescription);
+		addBasicClassFeature(rAdd, sClassFeatureName, sClassFeatureOriginalDescription);
 		for _, featureNode in pairs(tCurrentFeatures) do
 			if DB.getText(DB.getPath(featureNode, "value")) == "Pace Of The Virtuous Charger" then
 				displayAlternativeFeatureDialog(rAdd, tLevelFourAlternativeClassFeaturesOptions, tLevelFourStringCharBuildData);
@@ -2679,12 +2618,14 @@ function addPaladinCavalierFeatures(sClassName, rAdd, sClassFeatureName, sClassF
 			end
 		end
 	else
-		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
-		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
-		ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", sClassFeatureName, rAdd.sCharName);
+		addDefaultClassFeature(sClassName,rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription);
 	end
+
+	--Replace older power at certain levels
+	if string.find(sClassFeatureName:lower(), "level %d+ cavalier daily power")
+		and (nLevel == 19 or nLevel == 25 or nLevel == 29) then
+		CharClassFeatureDescManager.replaceOlderPower(rAdd, sClassName, "Daily", nLevel);
+	end	
 end
 
 function displayPaladinCavalierSelectionsDialog(rAdd, sClassFeatureOriginalDescription, sClassFeatureName)
@@ -2707,10 +2648,7 @@ function displayPaladinCavalierSelectionsDialog(rAdd, sClassFeatureOriginalDescr
 			if string.find(featureLinkName, sAlreadyTakenVirtue) then
 				local sPattern = "reference.features." .. w .. "@" .. v;
 				local sClassFeatureDescription = DB.getText(DB.getPath(sPattern, "description"));
-				local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-				DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
-				DB.setValue(rCreatedIDChildNode, "value", "string", featureLinkName);
-				DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureDescription);
+				addBasicClassFeature(rAdd, featureLinkName, sClassFeatureDescription);
 
 				CharClassPowerManager.addAllPowersFromFeatureText(rAdd, sClassFeatureDescription, sClassFeatureOriginalDescription);
 				break;
@@ -2730,22 +2668,13 @@ end
 function addRangerHunterFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription)
 	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
 	if sClassFeatureName == "Archery Style" then
-		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
-		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-		DB.setValue(rCreatedIDChildNode, "description", "string", removeLinkLists(sClassFeatureOriginalDescription));
+		addBasicClassFeature(rAdd, sClassFeatureName, sClassFeatureFilteredDescription);
 		displayClassFeatureSelectionsDialog(rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
 	elseif sClassFeatureName == "Ranger Wilderness Knacks" then
-		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
-		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureOriginalDescription);
+		addBasicClassFeature(rAdd, sClassFeatureName, sClassFeatureOriginalDescription);
 		displayClassFeatureSelectionsDialog(rAdd, sClassFeatureOriginalDescription, sClassFeatureName, 2);
 	elseif string.find(sClassFeatureName:lower(), "level %d+ wilderness knack") then
-		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
-		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-		DB.setValue(rCreatedIDChildNode, "description", "string", removeLinkLists(sClassFeatureOriginalDescription));
+		addBasicClassFeature(rAdd, sClassFeatureName, sClassFeatureFilteredDescription);
 		local sOriginalWildernessKnackDescription = nil;
 		for _, featureNode in pairs(tCurrentFeatures) do
 			if DB.getText(DB.getPath(featureNode, "value")) == "Ranger Wilderness Knacks" then
@@ -2754,11 +2683,7 @@ function addRangerHunterFeatures(sClassName, rAdd, sClassFeatureName, sClassFeat
 			end
 		end
 	else
-		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
-		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
-		ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", sClassFeatureName, rAdd.sCharName);
+		addDefaultClassFeature(sClassName,rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription);
 	end
 end
 
@@ -2770,22 +2695,13 @@ end
 function addRangerScoutFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription)
 	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
 	if sClassFeatureName == "Two-Weapon Style" then
-		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
-		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-		DB.setValue(rCreatedIDChildNode, "description", "string", removeLinkLists(sClassFeatureOriginalDescription));
+		addBasicClassFeature(rAdd, sClassFeatureName, sClassFeatureFilteredDescription);
 		displayClassFeatureSelectionsDialog(rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
 	elseif sClassFeatureName == "Ranger Wilderness Knacks" then
-		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
-		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureOriginalDescription);
+		addBasicClassFeature(rAdd, sClassFeatureName, sClassFeatureOriginalDescription);
 		displayClassFeatureSelectionsDialog(rAdd, sClassFeatureOriginalDescription, sClassFeatureName, 2);
 	elseif string.find(sClassFeatureName:lower(), "level %d+ wilderness knack") then
-		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
-		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-		DB.setValue(rCreatedIDChildNode, "description", "string", removeLinkLists(sClassFeatureOriginalDescription));
+		addBasicClassFeature(rAdd, sClassFeatureName, sClassFeatureOriginalDescription);
 		local sOriginalWildernessKnackDescription = nil;
 		for _, featureNode in pairs(tCurrentFeatures) do
 			if DB.getText(DB.getPath(featureNode, "value")) == "Ranger Wilderness Knacks" then
@@ -2794,11 +2710,7 @@ function addRangerScoutFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatu
 			end
 		end		
 	else
-		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
-		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
-		ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", sClassFeatureName, rAdd.sCharName);
+		addDefaultClassFeature(sClassName,rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription);
 	end
 end
 
@@ -2848,7 +2760,7 @@ function callbackResolveWarlockHexbladePreFeatureSelection(tSelection, tData)
 		return;
 	end
 
-	local sPactDescription = "You have selected the " .. tSelection[1] .. " pact.";
+	local sPactDescription = "You have selected the " .. tSelection[1] .. ".";
 	local rCreatedIDChildNode = DB.createChild(tData.rAdd.nodeChar.getPath("specialabilitylist"));
 	DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
 	DB.setValue(rCreatedIDChildNode, "value", "string", tSelection[1]);
@@ -2887,42 +2799,32 @@ function addWarlockHexbladeFeatures(sClassName, rAdd, sClassFeatureName, sClassF
 
 	if sClassFeatureName == "Pact Boon" then
 		--Add the feature, but if you have also already added a pact, narrow pact-based features
-		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
-		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
+		addBasicClassFeature(rAdd, sClassFeatureName, sClassFeatureFilteredDescription);
 		displayWarlockHexbladePactDialog(sClassName, rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
 	elseif sClassFeatureName == "Pact Reward" then
 		--Add the feature, but if you have also already added a pact, narrow pact-based features
-		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
-		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
+		addBasicClassFeature(rAdd, sClassFeatureName, sClassFeatureFilteredDescription);
 		displayWarlockHexbladePactDialog(sClassName, rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
 	elseif sClassFeatureName == "Pact Weapon" then
 		--Add the feature, but if you have also already added a pact, narrow pact-based features
-		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
-		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
+		addBasicClassFeature(rAdd, sClassFeatureName, sClassFeatureFilteredDescription);
 		displayWarlockHexbladePactDialog(sClassName, rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
 	elseif sClassFeatureName == "Pact Weapon Retribution" then
 		--Add the feature, but if you have also already added a pact, narrow pact-based features
-		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
-		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
+		addBasicClassFeature(rAdd, sClassFeatureName, sClassFeatureFilteredDescription);
 		displayWarlockHexbladePactDialog(sClassName, rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
-	elseif sClassFeatureName == "Summon Warlock's Ally" then
+	elseif sClassFeatureName == "Summon Warlock's Ally" or sClassFeatureName == "Greater Summon Warlock's Ally" then
 		--Add the feature, but if you have also already added a pact, narrow pact-based features
 		addDefaultClassFeature(sClassName,rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription);
 		displayWarlockHexbladePactDialog(sClassName, rAdd, sClassFeatureOriginalDescription, sClassFeatureName);		
 	else
-		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
-		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
-		ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", sClassFeatureName, rAdd.sCharName);
+		addDefaultClassFeature(sClassName,rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription);
+	end
+
+	--Replace older power at certain levels
+	if string.find(sClassFeatureName:lower(), "level %d+ hexblade daily power")
+		and (nLevel == 19 or nLevel == 29) then
+		CharClassFeatureDescManager.replaceOlderPower(rAdd, sClassName, "Daily", nLevel);
 	end
 end
 function displayWarlockHexbladePactDialog(sClassName, rAdd, sClassFeatureOriginalDescription, sClassFeatureName)
@@ -2951,7 +2853,7 @@ function displayWarlockHexbladePactDialog(sClassName, rAdd, sClassFeatureOrigina
 			addWarlockHexbladePactFeature(rAdd, sClassFeatureOriginalDescription, sAlreadyTakenPact, "Weapon");
 		elseif sClassFeatureName == "Pact Weapon Retribution" and sClassFeatureOriginalDescription then
 			addWarlockHexbladePactFeature(rAdd, sClassFeatureOriginalDescription, sAlreadyTakenPact, "Weapon Retribution");
-		elseif sClassFeatureName == "Summon Warlock's Ally" and sClassFeatureOriginalDescription then
+		elseif (sClassFeatureName == "Summon Warlock's Ally" or sClassFeatureName == "Greater Summon Warlock's Ally") and sClassFeatureOriginalDescription then
 			addWarlockHexbladePactFeature(rAdd, sClassFeatureOriginalDescription, sAlreadyTakenPact, "Summon Warlock's Ally", sClassFeatureName);
 		end
 	else
@@ -2981,17 +2883,17 @@ function callbackResolveWarlockHexbladePactSelection(tSelection, tData)
 	end
 	if #tSelection == 1 then
 		if (tData.sClassFeatureName == "Pact Boon" and tData.sClassFeatureOriginalDescription) or
+			(tData.sClassFeatureName == "Pact Boon (Binder)" and tData.sClassFeatureOriginalDescription) or
 			(tData.sClassFeatureName == "Pact Reward" and tData.sClassFeatureOriginalDescription) or
 			(tData.sClassFeatureName == "Pact Weapon" and tData.sClassFeatureOriginalDescription) or
 			(tData.sClassFeatureName == "Pact Weapon Retribution" and tData.sClassFeatureOriginalDescription) then
 			local secondWord = string.match(tData.sClassFeatureName, "^%S+%s(%S+)")
 			addWarlockHexbladePactFeature(tData.rAdd, tData.sClassFeatureOriginalDescription, tSelection[1], secondWord);
+		elseif ((tData.sClassFeatureName == "Summon Warlock's Ally" or tData.sClassFeatureName == "Greater Summon Warlock's Ally") and tData.sClassFeatureOriginalDescription) then
+			local secondWord = string.match(tData.sClassFeatureName, "%((%S+)%)")
 		else
 			local sDomainDescription = "You have selected the " .. tSelection[1] .. " domain.";
-			local rCreatedIDChildNode = DB.createChild(tData.rAdd.nodeChar.getPath("specialabilitylist"));
-			DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
-			DB.setValue(rCreatedIDChildNode, "value", "string", tSelection[1] .. " Domain");
-			DB.setValue(rCreatedIDChildNode, "description", "string", sDomainDescription);
+			addBasicClassFeature(rAdd, tSelection[1] .. " Domain", sDomainDescription);
 		end
 	end
 end
@@ -3017,13 +2919,10 @@ function addWarlockHexbladePactFeature(rAdd, sClassFeatureOriginalDescription, s
 			local sPactNameWithoutPactPart = string.gsub(sSelectedPact, " Pact", "");
 			if string.find(sClassFeatureName, sSelectedPact .. " " .. sTextToFind, 1, true)
 			or sClassFeatureName == sParentClassFeatureName .. " (" .. sPactNameWithoutPactPart .. ")" then
-				local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-				DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference", "powerdesc", sPattern);
-				DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-				--DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureOriginalDescription);
-				ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", sClassFeatureName, rAdd.sCharName);
+				addBasicClassFeature(rAdd, sClassFeatureName, nil, "powerdesc", sPattern);
 
-				if sTextToFind == "Boon" 
+				if sTextToFind == "Boon"
+				or sTextToFind == "Boon (Binder)"
 				or sTextToFind == "Weapon" 
 				or sTextToFind == "Weapon Retribution" then
 					CharClassPowerManager.addAllPowersFromFeatureText(rAdd, sClassFeatureDescription, sClassFeatureOriginalDescription);
@@ -3042,6 +2941,8 @@ function addAssassinExecutionerFeatures(sClassName, rAdd, sClassFeatureName, sCl
 	if sClassFeatureName == "Guild Attacks" then
 		addBasicClassFeature(rAdd, sClassFeatureName, sClassFeatureFilteredDescription);
 		displayAssassinExecutionerGuildAttacksSelectionsDialog(rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
+	elseif sClassFeatureName == "Attack Finesse (Executioner)" then
+		displayAssassinExecutionerMasterOfShroudsDialog(rAdd, sClassFeatureOriginalDescription);
 	elseif sClassFeatureName == "Level 6 Executioner Utility Power" or
 			sClassFeatureName == "Level 10 Executioner Utility Power" then
 		addBasicClassFeature(rAdd, sClassFeatureName, sClassFeatureFilteredDescription);
@@ -3134,7 +3035,7 @@ function callbackResolveAssassinExecutionerGuildAttacksSelectionsDialogSelection
 				end
 			end
 			-- your Attack Finesse class feature also applies to kusari-gama and shuriken
-			if rAttackFinesseFeature then
+			if rAttackFinesseFeature and type(rAttackFinesseFeature) ~= "string" then
 				local sAttackFinesseDescription = DB.getText(rAttackFinesseFeature, "description");
 				sAttackFinesseDescription = sAttackFinesseDescription .. "\n\n This class feature also applies to kusari-gama and shuriken (from Way of the Ninja).";
 				DB.setValue(rAttackFinesseFeature, "description", "string", sAttackFinesseDescription);
@@ -3158,6 +3059,72 @@ function callbackResolveAssassinExecutionerGuildAttacksSelectionsDialogSelection
 		local sSubClassFeatureOriginalDescription = DB.getText(DB.getPath(tSelectionLinks[1].linkrecord, "description"));
 		local sParentClassFeatureOriginalDescription = tData.sClassFeatureOriginalDescription;
 		CharClassPowerManager.addAllPowersFromFeatureText(tData.rAdd, sSubClassFeatureOriginalDescription, sParentClassFeatureOriginalDescription)
+	end
+end
+function displayAssassinExecutionerMasterOfShroudsDialog(rAdd, sClassFeatureOriginalDescription)
+	--Display a pop-up where we either choose from the Attack Finesse (Executioner) or Master of Shrouds
+	local tOptions = {}
+	tOptions[1] = "Attack Finesse (Executioner)";
+	tOptions[2] = "Master Of Shrouds";
+	local tDialogData = {
+		title = Interface.getString("char_build_title_addassassinexecutionermasterofshrouds"),
+		msg = Interface.getString("char_build_message_addassassinexecutionermasterofshrouds"),
+		options = tOptions,
+		min = 1,
+		max = 1,
+		callback = CharClassFeatureDescManager.callbackResolveAssassinExecutionerMasterOfShroudsSelection,
+		custom = { rAdd=rAdd, sClassFeatureOriginalDescription=sClassFeatureOriginalDescription },
+	};
+	DialogManager.requestSelectionDialog(tDialogData);
+end
+function callbackResolveAssassinExecutionerMasterOfShroudsSelection(tSelection, tData)
+	if not tSelection and #tSelection == 1 then
+		ChatManager.SystemMessageResource("char_error_addclasssfeature");
+		return;
+	end
+	if #tSelection == 1 then
+		local tCurrentFeatures = DB.getChildren(tData.rAdd.nodeChar, "specialabilitylist");
+		--Clear all existing Attack Finesse (Executioner) nodes, then add them
+		for _, featureNode in pairs(tCurrentFeatures) do
+			if (DB.getText(DB.getPath(featureNode, "value")) == "Attack Finesse (Executioner)")
+				or (DB.getText(DB.getPath(featureNode, "value")) == "Master Of Shrouds") then
+				DB.deleteNode(featureNode);
+			end
+		end
+		local sClassFeatureName = tSelection[1];
+		local sClassFeatureOriginalDescription =  tData.sClassFeatureOriginalDescription;
+		if sClassFeatureName == "Attack Finesse (Executioner)" then
+			sClassFeatureOriginalDescription = string.match(sClassFeatureOriginalDescription, "(.-)<p><b>Master Of Shrouds</b></p>");
+		elseif sClassFeatureName == "Master Of Shrouds" then
+			sClassFeatureOriginalDescription = string.match(sClassFeatureOriginalDescription, "<p><b>Master Of Shrouds</b></p>(.+)");
+		end
+		local sClassFeatureDescription = sClassFeatureOriginalDescription;
+		addBasicClassFeature(tData.rAdd, sClassFeatureName, sClassFeatureDescription);
+
+		if(sClassFeatureName == "Master Of Shrouds") then
+			local isInList = false;
+			for _, featureNode in pairs(tCurrentFeatures) do
+				if DB.getText(DB.getPath(featureNode, "value")) == sClassFeatureName then
+					isInList = true;
+					break;
+				end
+			end
+			if not isInList then
+				local sPattern = '<link class="powerdesc" recordname="reference.features.(%w+)@([%w%s]+)">';
+				local sFeaturesLink = string.gmatch(tData.sClassFeatureOriginalDescription, sPattern);
+				for w,v in sFeaturesLink do
+					local sPattern = "reference.features." .. w .. "@" .. v;
+					local sClassFeatureName = DB.getText(DB.getPath(sPattern, "name"));
+					local sClassFeatureDescription = DB.getValue(DB.getPath(sPattern, "description"));
+					if string.find(sClassFeatureName, "Benefit", 1, true) then
+						addBasicClassFeature(tData.rAdd, sClassFeatureName, nil, "powerdesc", sPattern);
+
+						CharClassPowerManager.dispayItalicPowersDialog(tData.rAdd, sClassFeatureDescription, "Master Of Shrouds");
+						break;
+					end
+				end
+			end
+		end
 	end
 end
 
@@ -3194,6 +3161,12 @@ function addPaladinBlackguardFeatures(sClassName, rAdd, sClassFeatureName, sClas
 	else
 		addDefaultClassFeature(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription);
 	end
+
+	--Replace older power at certain levels
+	if string.find(sClassFeatureName:lower(), "level %d+ blackguard daily power")
+		and (nLevel == 19 or nLevel == 25 or nLevel == 29) then
+		CharClassFeatureDescManager.replaceOlderPower(rAdd, sClassName, "Daily", nLevel);
+	end	
 end
 function addPaladinBlackguardViceAtWillPower(rAdd, sFullDescriptionText)
 	if not rAdd then
@@ -3250,14 +3223,21 @@ end
 function addWarlockBinderFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription)
 	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
 
-	if sClassFeatureName:upper() == "LEVEL 1 PACT ENCOUNTER POWER" then
+	-- if sClassFeatureName:upper() == "LEVEL 1 PACT ENCOUNTER POWER" then
+	-- 	--Add the feature, but if you have also already added a pact, narrow pact-based features
+	-- 	addBasicClassFeature(rAdd, sClassFeatureName, sClassFeatureFilteredDescription);
+	-- 	displayWarlockBinderPactDialog(sClassName, rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
+	if sClassFeatureName:upper() == "PACT BOON (BINDER)" then
 		--Add the feature, but if you have also already added a pact, narrow pact-based features
 		addBasicClassFeature(rAdd, sClassFeatureName, sClassFeatureFilteredDescription);
 		displayWarlockBinderPactDialog(sClassName, rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
-	elseif sClassFeatureName:upper() == "PACT BOON (BINDER)" then
-		--Add the feature, but if you have also already added a pact, narrow pact-based features
+	elseif sClassFeatureName:upper() == "SUMMON WARLOCK'S ALLY" then
 		addBasicClassFeature(rAdd, sClassFeatureName, sClassFeatureFilteredDescription);
-		displayWarlockBinderPactDialog(sClassName, rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
+		local sSelectedPact = getChosenPrefeature(rAdd, sClassFeatureOriginalDescription, "pact", sClassFeatureName)
+		addWarlockHexbladePactFeature(rAdd, sClassFeatureOriginalDescription, sSelectedPact, "Binder's Ally", "Binder's Ally");		
+	elseif string.find(sClassFeatureName:lower(), "pact") then
+		addBasicClassFeature(rAdd, sClassFeatureName, sClassFeatureFilteredDescription);
+		addPreChosenClassFeature(rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
 	else
 		addDefaultClassFeature(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription);
 	end
@@ -3311,16 +3291,10 @@ end
 function addBarbarianBerserkerFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription)
 	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
 	if sClassFeatureName == "Heartland" then
-		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
-		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-		DB.setValue(rCreatedIDChildNode, "description", "string", removeLinkLists(sClassFeatureOriginalDescription));
+		addBasicClassFeature(rAdd, sClassFeatureName, sClassFeatureFilteredDescription);
 		displayClassFeatureSelectionsDialog(rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
 	else
-		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
-		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
+		addDefaultClassFeature(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription);
 		ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", sClassFeatureName, rAdd.sCharName);
 	end
 end
@@ -3369,10 +3343,7 @@ function callbackResolveDruidProtectorPreFeatureSelection(tSelection, tData)
 
 	local sCircleName = tSelection[1];
 	local sCircleDescription = "You have selected the " .. sCircleName .. ". This determines your Druid Circle and Summon Natural Ally.";
-	local rCreatedIDChildNode = DB.createChild(tData.rAdd.nodeChar.getPath("specialabilitylist"));
-	DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
-	DB.setValue(rCreatedIDChildNode, "value", "string", sCircleName);
-	DB.setValue(rCreatedIDChildNode, "description", "string", sCircleDescription);
+	addBasicClassFeature(rAdd, sCircleName, sCircleDescription);
 
 	local tCurrentFeatures = DB.getChildren(tData.rAdd.nodeChar, "specialabilitylist");
 	for w,v in pairs(tData.tClassFeatures) do
@@ -3407,23 +3378,14 @@ function addDruidProtectorFeatures(sClassName, rAdd, sClassFeatureName, sClassFe
 
 	if sClassFeatureName:upper() == "DRUID CIRCLE" then
 		--Add the feature, but if you have also already added a pact, narrow pact-based features
-		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
-		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
+		addBasicClassFeature(rAdd, sClassFeatureName, sClassFeatureFilteredDescription);
 		displayDruidProtectorCircleDialog(sClassName, rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
 	elseif sClassFeatureName:upper() == "SUMMON NATURAL ALLY" then
 		--Add the feature, but if you have also already added a pact, narrow pact-based features
-		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
-		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
+		addBasicClassFeature(rAdd, sClassFeatureName, sClassFeatureFilteredDescription);
 		displayDruidProtectorCircleDialog(sClassName, rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
 	else
-		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
-		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
+		addDefaultClassFeature(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription);
 		ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", sClassFeatureName, rAdd.sCharName);
 	end
 end
@@ -3480,10 +3442,7 @@ function callbackResolveDruidProtectorCircleSelection(tSelection, tData)
 		else
 			local sCircleName = tSelection[1];
 			local sCircleDescription = "You have selected the " .. sCircleName .. ". This determines your Druid Circle and Summon Natural Ally.";
-			local rCreatedIDChildNode = DB.createChild(tData.rAdd.nodeChar.getPath("specialabilitylist"));
-			DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
-			DB.setValue(rCreatedIDChildNode, "value", "string", sCircleName);
-			DB.setValue(rCreatedIDChildNode, "description", "string", sCircleDescription);
+			addBasicClassFeature(rAdd, sCircleName, sCircleDescription);
 		end
 	end
 end
@@ -3505,11 +3464,7 @@ function addDruidProtectorDruidCircle(rAdd, sClassFeatureOriginalDescription, se
 			local sClassFeatureName = DB.getText(DB.getPath(sPattern, "name"));
 			local sClassFeatureDescription = DB.getText(DB.getPath(sPattern, "description"));
 			if string.find(sClassFeatureName, selectedCircle, 1, true) then
-				local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-				DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference", "powerdesc", sPattern);
-				DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-				--DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureOriginalDescription);
-				ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", sClassFeatureName, rAdd.sCharName);
+				addBasicClassFeature(rAdd, sClassFeatureName, nil, "powerdesc", sPattern);
 				break;
 			end
 		end
@@ -3538,11 +3493,7 @@ function addDruidProtectorNaturalAlly(rAdd, sClassFeatureOriginalDescription, se
 			local sClassFeatureName = DB.getText(DB.getPath(sPattern, "name"));
 			local sClassFeatureDescription = DB.getText(DB.getPath(sPattern, "description"));
 			if string.find(sClassFeatureName, "Summon Natural Ally" .. " (" .. sPrimal .. ")", 1, true) then
-				local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-				DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference", "powerdesc", sPattern);
-				DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-				--DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureOriginalDescription);
-				ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", sClassFeatureName, rAdd.sCharName);
+				addBasicClassFeature(rAdd, sClassFeatureName, nil, "powerdesc", sPattern);
 				break;
 			end
 		end
@@ -3556,17 +3507,10 @@ end
 function addWizardWitchFeatures(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription)
 	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
 	if sClassFeatureName == "Moon Coven" then
-		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
-		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-		DB.setValue(rCreatedIDChildNode, "description", "string", removeLinkLists(sClassFeatureOriginalDescription));
+		addBasicClassFeature(rAdd, sClassFeatureName, sClassFeatureFilteredDescription);
 		displayClassFeatureSelectionsDialog(rAdd, sClassFeatureOriginalDescription, sClassFeatureName);
 	else
-		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-		DB.setValue(rCreatedIDChildNode, "shortcut", "windowreference");
-		DB.setValue(rCreatedIDChildNode, "value", "string", sClassFeatureName);
-		DB.setValue(rCreatedIDChildNode, "description", "string", sClassFeatureFilteredDescription);
-		ChatManager.SystemMessageResource("char_abilities_message_classfeatureadd", sClassFeatureName, rAdd.sCharName);
+		addDefaultClassFeature(sClassName, rAdd, sClassFeatureName, sClassFeatureFilteredDescription, sClassFeatureOriginalDescription);
 	end
 end
 

@@ -18,6 +18,7 @@ function addClass(nodeChar, sRecord, tData)
 	local sDescriptionText = DB.getValue(sRecordDescriptionNode);
 
 	--Add Class level and Save it for Future Functions That are Level Dependent
+	local nOriginalLevel = DB.getValue(rAdd.nodeChar, "level", 1);
 	local nLevel = addClassLevel(rAdd, sRecord, sClassName);
 
 	--Added first level only
@@ -43,7 +44,7 @@ function addClass(nodeChar, sRecord, tData)
 	end
 
 	-- -- Added every level -- --
-	if nLevel <= 30 then
+	if nOriginalLevel < 30 then
 		--Add Class Hit Points
 		addClassHitPoints(rAdd, sRecord, sDescriptionText, nLevel);
 
@@ -59,13 +60,13 @@ function addClass(nodeChar, sRecord, tData)
 		helperResolveStatIncreaseOnClassDrop(rAdd, sRecord,sDescriptionText, nLevel);
 	end
 
-	if nLevel > 1 and nLevel <= 30 then
+	if nLevel > 1 and nOriginalLevel < 30 then
 	--Level Up Notification
 		ChatManager.SystemMessageResource("char_abilities_message_classlevelup", rAdd.sCharName, nLevel, sClassName);
 	end
 
 	--Add Feat Notification
-	if nLevel and nLevel % 2 == 0 then
+	if nLevel and nLevel % 2 == 0 and nOriginalLevel < 30 then
 		ChatManager.SystemMessageResource("char_abilities_message_pickfeatreminder", rAdd.sCharName);
 	end
 	
@@ -281,7 +282,7 @@ function addClassHealingSurges(rAdd, sRecord, sDescriptionText)
 end
 
 function addClassFeatures(rAdd, sRecord, sDescriptionText, sClassName, nLevel)
-	if isEssentialsClass(sClassName) then
+	if (isEssentialsClass(sClassName)) or (nLevel == 1 and isEssentialsFirstThenStandardClass(sClassName)) then
 		addEssentialsClassFeatures(rAdd, sRecord, sDescriptionText, sClassName, nLevel, sDescriptionText);
 	else
 		addStandardAEDUClassFeatures(rAdd, sRecord, sDescriptionText, sClassName, nLevel);
@@ -380,6 +381,9 @@ function addEssentialsClassFeatures(rAdd, sRecord, sDescriptionText, sClassName,
 							--Weird special case for the Feywild Guardian feature from the Fighter(Knight)
 							if v:upper() == "BATTLE GUARDIAN" then
 								sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v .. "%s*</b></p>%s*(.-)<p><b>Defender Aura</b></p>";
+							--Weird special case for the Master of Shrouds feature from the Assassin (Executioner)
+							elseif v:upper() == "ATTACK FINESSE %(EXECUTIONER%)" then
+								sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v .. "%s*</b></p>%s*(.-)<p><b>Guild Attacks</b></p>";
 							else
 								sClassFeatureDescriptionPattern = "<p>%s*<b>%s*" .. v .. "%s*</b></p>%s*(.-)<p><b>";
 							end
@@ -605,7 +609,7 @@ function addClassPowers(rAdd, sRecord, sDescriptionText, sClassName, nLevel, nNu
 		local encounterPowerNumbers = 0;
 		local dailyPowerNumbers = 0;
 		local utilityPowerNumbers = 0;
-		if not isEssentialsClass(sClassName) then
+		if not isEssentialsClass(sClassName) or (isEssentialsFirstThenStandardClass(sClassName)) then
 			local tRefreshTypes = {};
 			if not sRefreshText then
 				--Add one type here for each type of power you gain at least one for this level
@@ -1088,6 +1092,14 @@ function isEssentialsClass(sClassName)
 	tEssentialsClasses["WIZARD (WITCH)"] = true;
 
 	return tEssentialsClasses[sClassName:upper()];
+end
+function isEssentialsFirstThenStandardClass(sClassName)
+	local tEssentialsFirstThenStandardClass = {};
+	tEssentialsFirstThenStandardClass["BARBARIAN (BERSERKER)"] = true;
+	tEssentialsFirstThenStandardClass["DRUID (PROTECTOR)"] = true;
+	tEssentialsFirstThenStandardClass["WIZARD (WITCH)"] = true;
+
+	return tEssentialsFirstThenStandardClass[sClassName:upper()];
 end
 function isSpellbookClass(sClassName)
 	local tSpellbookClasses = {};
