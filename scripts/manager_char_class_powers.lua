@@ -137,7 +137,7 @@ function addAllPowersFromFeatureText(rAdd, sSubClassFeatureOriginalDescription, 
 end
 
 --Adds powers that are given based on the class's pre-feature (like domain, pact, etc)
-function addPreFeaturePower(rAdd, sDescriptionText, sPrefeatureType, sClassFeatureName, sSubFeatureDescriptionText)
+function addPreFeaturePower(rAdd, sDescriptionText, sPrefeatureType, sClassFeatureName)
 	if not rAdd or not sDescriptionText or not sClassFeatureName then
 		ChatManager.SystemMessageResource("char_error_addclassspower");
 		return;
@@ -145,16 +145,26 @@ function addPreFeaturePower(rAdd, sDescriptionText, sPrefeatureType, sClassFeatu
 
 	if sSubFeatureDescriptionText == nil or sSubFeatureDescriptionText == "" then
 		local sChosenPrefeature = CharClassFeatureDescManager.getChosenPrefeature(rAdd, sDescriptionText, sPrefeatureType);
-		local sPrefeatureName, sClassFeatureLink = CharClassFeatureDescManager.getPrefeatureBasedFeatureNameAndLinkFromOtherFeature(sChosenPrefeature, sDescriptionText);
-		if sClassFeatureLink then
-			sSubFeatureDescriptionText = DB.getText(DB.getPath(sClassFeatureLink, "description"));
+		Debug.console("sChosenPrefeature", sChosenPrefeature);
+		local sPowerName, sPowerLink = getPrefeatureBasedPowerNameAndLinkFromOtherFeature(sChosenPrefeature, sDescriptionText);
+		if sPowerLink then
+			addPowerFromRecordLink(rAdd, sPowerName, sPowerLink)
 		end
 	end
+end
+function getPrefeatureBasedPowerNameAndLinkFromOtherFeature(sChosenPrefeature, sClassFeatureOriginalDescription)
+	if not sChosenPrefeature or not sClassFeatureOriginalDescription then
+		return;
+	end
 
-	--If the feature has a name like "Level X [Domain] ... Power" (like Like 3 Domain Encounter Attack Power) 
-	--Add the pre-feature power
-	if string.find(sClassFeatureName:lower(), "level[%s%d]*"..sPrefeatureType:lower()..".* power") then
-		addAllPowersFromFeatureText(rAdd, sSubFeatureDescriptionText, sDescriptionText);
+	local sPattern = '<link class="powerdesc" recordname="reference.powers.(%w+)@([%w%s]+)">';
+	for sPowersLink,sPowersLinkModule in string.gmatch(sClassFeatureOriginalDescription, sPattern) do
+		sPattern = "reference.powers." .. sPowersLink .. "@" .. sPowersLinkModule;
+		local sPowerName = DB.getText(DB.getPath(sPattern, "name"));
+		local sPowerDescription = DB.getText(DB.getPath(sPattern, "description"));
+		if matchWholeWord(sPowerName:lower(), sChosenPrefeature:lower()) then
+			return sPowerName, sPattern;
+		end
 	end
 end
 

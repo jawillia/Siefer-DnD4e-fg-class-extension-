@@ -9,14 +9,20 @@ function addClassFeats(sClassFeatureOriginalDescription, rAdd, sClassFeatureName
 		return;
 	end
 
-	local sPattern = "You gain the (.+) feat."
+	local sPattern = "You gain the (.-) feat as a bonus feat.";
 	local sClassFeatureFeatName = string.match(sClassFeatureOriginalDescription, sPattern);
-	
+	if not sClassFeatureFeatName then
+		sPattern = "You gain the (.+) feat."
+		sClassFeatureFeatName = string.match(sClassFeatureOriginalDescription, sPattern);
+	end
 	if sClassFeatureFeatName then
 		local tFeatNodes = DB.getChildrenGlobal("reference.feats");
 		for _,featNode in ipairs(tFeatNodes) do
 			local sFeatName = DB.getText(featNode, "name");
 			local sFeatDescription = DB.getText(featNode, "description");
+			if sFeatName then
+				sFeatName = StringManager.trim(sFeatName:gsub('%b[]', ''));
+			end
 			if sFeatName == sClassFeatureFeatName then
 				local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("featlist"));
 				local rFindNode = DB.findNode(DB.getPath(featNode));
