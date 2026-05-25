@@ -445,27 +445,28 @@ function addStandardAEDUClassFeatures(rAdd, sRecord, sDescriptionText, sClassNam
 	local sClassFeatureFilteredDescriptionText = '';
 	local tCurrentFeatures = DB.getChildren(rAdd.nodeChar, "specialabilitylist");
 
-	local sRecordFeatureNode = DB.findNode(DB.getPath(sRecord, "features"));
-	if sRecordFeatureNode and nLevel == 1 then
-	local nodeFeatureChildren = DB.getChildren(sRecordFeatureNode);
-	for nodeName,nodeChild in pairs(nodeFeatureChildren) do
-		local isFeatureInList = false;
-		for _, featureNode in pairs(tCurrentFeatures) do
-			if DB.getText(featureNode, "value") == DB.getText(nodeChild, "name") then
-				isFeatureInList = true;
-				break;
-			end
-		end
-		if isFeatureInList == false then
-			local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
-			DB.setValue(rCreatedIDChildNode, "description", "string", DB.getText(DB.getPath(nodeChild, "description")));
-	    	DB.createChild(rCreatedIDChildNode, "shortcut", "windowreference");
-	    	DB.setValue(rCreatedIDChildNode, "value", "string", DB.getText(DB.getPath(nodeChild, "name")));
-	    	local sRacialFeatureName = DB.getText(rCreatedIDChildNode, "value");
-	    	ChatManager.SystemMessageResource("char_abilities_message_featureadd", sRacialFeatureName, rAdd.sCharName);
-	    end
-	end
-	elseif sDescriptionText and nLevel == 1 then
+	-- local sRecordFeatureNode = DB.findNode(DB.getPath(sRecord, "features"));
+	-- if sRecordFeatureNode and nLevel == 1 then
+	-- 	local nodeFeatureChildren = DB.getChildren(sRecordFeatureNode);
+	-- 	for nodeName,nodeChild in pairs(nodeFeatureChildren) do
+	-- 		local isFeatureInList = false;
+	-- 		for _, featureNode in pairs(tCurrentFeatures) do
+	-- 			if DB.getText(featureNode, "value") == DB.getText(nodeChild, "name") then
+	-- 				isFeatureInList = true;
+	-- 				break;
+	-- 			end
+	-- 		end
+	-- 		if isFeatureInList == false then
+	-- 			local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("specialabilitylist"));
+	-- 			DB.setValue(rCreatedIDChildNode, "description", "string", DB.getText(DB.getPath(nodeChild, "description")));
+	-- 	    	DB.createChild(rCreatedIDChildNode, "shortcut", "windowreference");
+	-- 	    	DB.setValue(rCreatedIDChildNode, "value", "string", DB.getText(DB.getPath(nodeChild, "name")));
+	-- 	    	local sRacialFeatureName = DB.getText(rCreatedIDChildNode, "value");
+	-- 	    	ChatManager.SystemMessageResource("char_abilities_message_featureadd", sRacialFeatureName, rAdd.sCharName);
+	-- 	    end
+	-- 	end
+	-- else
+	if sDescriptionText and nLevel == 1 then
 		-- then through the description text
 		local sClassFeaturesDescriptionTextLine = string.match(sDescriptionText, "<p>%s*<b>%s*Class features%s*:%s*</b>(.-)</p>");
 		if sClassFeaturesDescriptionTextLine then

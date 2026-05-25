@@ -15,6 +15,11 @@ function addClassFeats(sClassFeatureOriginalDescription, rAdd, sClassFeatureName
 		sPattern = "You gain the (.+) feat."
 		sClassFeatureFeatName = string.match(sClassFeatureOriginalDescription, sPattern);
 	end
+	if not sClassFeatureFeatName then
+		sPattern = "You gain ([%a][%a ]-) as a bonus feat";
+		sClassFeatureFeatName = string.match(sClassFeatureOriginalDescription, sPattern);		
+	end
+	Debug.console("sClassFeatureFeatName", sClassFeatureFeatName);
 	if sClassFeatureFeatName then
 		local tFeatNodes = DB.getChildrenGlobal("reference.feats");
 		for _,featNode in ipairs(tFeatNodes) do

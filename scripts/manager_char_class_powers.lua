@@ -145,7 +145,6 @@ function addPreFeaturePower(rAdd, sDescriptionText, sPrefeatureType, sClassFeatu
 
 	if sSubFeatureDescriptionText == nil or sSubFeatureDescriptionText == "" then
 		local sChosenPrefeature = CharClassFeatureDescManager.getChosenPrefeature(rAdd, sDescriptionText, sPrefeatureType);
-		Debug.console("sChosenPrefeature", sChosenPrefeature);
 		local sPowerName, sPowerLink = getPrefeatureBasedPowerNameAndLinkFromOtherFeature(sChosenPrefeature, sDescriptionText);
 		if sPowerLink then
 			addPowerFromRecordLink(rAdd, sPowerName, sPowerLink)
@@ -420,8 +419,22 @@ function callbackResolveRemovePowerDialogSelection(tSelection, rAdd, tSelectionL
 	end
 end
 
+-----------------------------------------------
+----- FIGHTER (WEAPONMASTER) Class Powers ----
+-----------------------------------------------
+function addFighterCombatChallengePower(rAdd)
+	local tPowerNodes = DB.getChildrenGlobal("reference.powers");
+	for _,powerNode in ipairs(tPowerNodes) do
+		local sPowerName = DB.getText(powerNode, "name");
+		if sPowerName == "Combat Challenge" then
+			local sPowerPath = DB.getPath(powerNode);
+			addPowerFromRecordLink(rAdd, sPowerName, sPowerPath)
+		end
+	end
+end
+
 -------------------------------------------
------ WIZARD (ARCANIST) Class Features ----
+----- WIZARD (ARCANIST) Class Powers ----
 -------------------------------------------
 function addWizardArcanistSpellbookPowers(rAdd, sClassName, nNumberOfPowers)
 	local sDailyAttackText = "Daily";
