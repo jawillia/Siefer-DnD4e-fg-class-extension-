@@ -25,7 +25,7 @@ function addPowerFromRecordLink(rAdd, sPowerName, sPowerPath)
 		local sPowerKeywords = DB.getText(DB.getPath(sPowerPath, "keywords"));
 		local sPowerRange = DB.getText(DB.getPath(sPowerPath, "range"));
 		local sPowerRecharge = DB.getText(DB.getPath(sPowerPath, "recharge"));
-		local sPowerFullDescription = DB.getText(DB.getPath(sPowerPath, "flavor")) .. "\n\n" .. DB.getText(DB.getPath(sPowerPath, "description"))
+		local sPowerFullDescription = DB.getText(DB.getPath(sPowerPath, "flavor"), "") .. "\n\n" .. DB.getText(DB.getPath(sPowerPath, "description"), "")
 		local rCreatedIDChildNode = DB.createChild(rAdd.nodeChar.getPath("powers"));
 		DB.setValue(rCreatedIDChildNode, "action", "string", sPowerActionSpeed);
 		DB.setValue(rCreatedIDChildNode, "name", "string", sPowerName);
@@ -278,7 +278,7 @@ function dispayItalicPowersDialog(rAdd, sClassFeatureOriginalDescription, sClass
 		for i, italicsPowerName in ipairs(tTotalPowerNames) do
 			for _,powerNode in ipairs(tGlobalPowerNodes) do
 				local sPowerName = DB.getText(DB.getPath(powerNode, "name"));
-				if italicsPowerName:lower() == sPowerName:lower() then
+				if sPowerName and italicsPowerName:lower() == sPowerName:lower() then
 					local sPowerPath = DB.getPath(powerNode);
 					table.insert(tOptions, { text = sPowerName, linkclass = "powerdesc", linkrecord = sPowerPath, });
 				end
@@ -320,10 +320,12 @@ function addPowersFromGlobalModuleFromPowerName(rAdd, sClassPowerName)
 		ChatManager.SystemMessageResource("char_error_addclassspower");
 		return;
 	end
+	Debug.console("sClassPowerName", sClassPowerName);
 	local tPowerNodes = DB.getChildrenGlobal("reference.powers");
 	for _,powerNode in ipairs(tPowerNodes) do
 		local sPowerName = DB.getText(DB.getPath(powerNode, "name"));
 		if sPowerName and sPowerName ~= "" and sPowerName:lower() == sClassPowerName:lower() then
+			Debug.console("Found sPowerName:" .. sPowerName);
 			addPowerFromRecordLink(rAdd, sPowerName, DB.getPath(powerNode));
 			break;
 		end
